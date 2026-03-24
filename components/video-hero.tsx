@@ -25,9 +25,9 @@ export function VideoHero({ youtubeId = "Dz2_7Em3VXo" }: VideoHeroProps) {
             className="pointer-events-none h-full w-full scale-110"
           />
         </div>
-        {/* Overlay gradient for text readability - dark blue gradient on left */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a1628] via-[#0a1628]/95 via-35% to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628]/70 via-transparent to-[#0a1628]/40" />
+        {/* Overlay gradient for text readability - darker blue gradient on left to match video */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#050a12] via-[#050a12] via-30% to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/80 via-transparent to-[#050a12]/50" />
       </div>
 
       {/* Hero Content */}

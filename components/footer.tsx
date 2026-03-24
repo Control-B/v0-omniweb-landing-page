@@ -10,7 +10,7 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="h-14 border-t border-border/40 bg-background/80 backdrop-blur-xl">
+    <footer className="h-14 border-t border-white/10">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 lg:px-8">
         {/* Left - Brand & Copyright */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground lg:text-sm">

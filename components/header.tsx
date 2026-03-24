@@ -42,10 +42,10 @@ export function Header() {
         {/* Desktop Actions */}
         <div className="hidden items-center gap-2 lg:flex">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             asChild
-            className="gap-2 border-border/50 bg-background/50 backdrop-blur-sm hover:bg-background/80"
+            className="gap-2 text-foreground/80 hover:bg-white/10 hover:text-foreground"
           >
             <a href="tel:+1234567890">
               <Phone className="h-4 w-4" />
@@ -53,10 +53,10 @@ export function Header() {
             </a>
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             asChild
-            className="border-border/50 bg-background/50 backdrop-blur-sm hover:bg-background/80"
+            className="text-foreground/80 hover:bg-white/10 hover:text-foreground"
           >
             <Link href="/signin">Sign In</Link>
           </Button>
