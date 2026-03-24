@@ -13,19 +13,17 @@ export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      {/* Video Background - scaled up to crop YouTube UI elements */}
+      {/* Video Background - scaled up to crop YouTube UI elements and captions */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Video container - positioned to show right edge content, cropping top YouTube branding */}
-        <div className="absolute -top-[12%] right-0 h-[124%] w-[85%]">
+        {/* Video container - scaled larger to crop play button and bottom captions */}
+        <div className="absolute -bottom-[20%] -top-[15%] right-0 w-[90%]">
           <iframe
             key={`${isMuted}-${isPlaying}`}
             src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en`}
             title="Omniweb Demo Video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            className="pointer-events-none h-full w-full"
+            className="pointer-events-none h-full w-full scale-125"
           />
-          {/* Overlay to hide YouTube play button in center */}
-          <div className="absolute inset-0" />
         </div>
         {/* Overlay gradient for text readability - stronger on left for hero content */}
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 via-40% to-transparent" />
