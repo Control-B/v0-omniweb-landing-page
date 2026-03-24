@@ -1,11 +1,20 @@
 import Link from "next/link"
-import { Facebook, Instagram, Youtube, Twitter } from "lucide-react"
+import { Facebook, Instagram, Youtube, Mail } from "lucide-react"
+
+// Custom X icon (formerly Twitter)
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
 
 const socialLinks = [
   { icon: Facebook, href: "https://facebook.com", label: "Facebook" },
   { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
   { icon: Youtube, href: "https://youtube.com", label: "YouTube" },
-  { icon: Twitter, href: "https://x.com", label: "X" },
+  { icon: XIcon, href: "https://x.com", label: "X" },
 ]
 
 export function Footer() {
@@ -15,8 +24,14 @@ export function Footer() {
         {/* Left - Brand & Copyright */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground lg:text-sm">
           <span className="font-medium text-foreground">Omniweb</span>
-          <span className="hidden sm:inline">•</span>
           <span className="hidden sm:inline">{"© 2026"}</span>
+          <a 
+            href="mailto:support@omniweb.ai" 
+            className="hidden items-center gap-1 transition-colors hover:text-foreground sm:flex"
+          >
+            <Mail className="h-3 w-3" />
+            support@omniweb.ai
+          </a>
         </div>
 
         {/* Center - Legal Links */}
