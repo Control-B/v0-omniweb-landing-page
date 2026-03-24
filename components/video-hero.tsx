@@ -13,19 +13,21 @@ export function VideoHero({ youtubeId = "DqKwuU8v2pU" }: VideoHeroProps) {
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      {/* Fullscreen Video Background */}
+      {/* Video Background - positioned on right side */}
       <div className="absolute inset-0 overflow-hidden">
-        <iframe
-          key={`${isMuted}-${isPlaying}`}
-          src={`https://www.youtube.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1`}
-          title="Omniweb Demo Video"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[300%] w-[300%] -translate-x-1/2 -translate-y-1/2"
-          style={{ aspectRatio: "9/16" }}
-        />
-        {/* Overlay gradient for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/40" />
+        {/* Video container on the right */}
+        <div className="absolute right-0 top-0 h-full w-full lg:w-[60%]">
+          <iframe
+            key={`${isMuted}-${isPlaying}`}
+            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1`}
+            title="Omniweb Demo Video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            className="pointer-events-none h-full w-full"
+          />
+        </div>
+        {/* Overlay gradient for text readability - stronger on left for hero content */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 via-40% to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/30" />
       </div>
 
       {/* Hero Content */}
