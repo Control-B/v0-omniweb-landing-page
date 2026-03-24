@@ -20,11 +20,10 @@ export async function POST(request: NextRequest) {
     }
 
     const blob = await put(`videos/${file.name}`, file, {
-      access: 'private',
+      access: 'public',
     })
 
-    // Return pathname for private blobs - we'll serve via API route
-    return NextResponse.json({ url: blob.url, pathname: blob.pathname })
+    return NextResponse.json({ url: blob.url })
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })

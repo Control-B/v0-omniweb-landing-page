@@ -7,15 +7,8 @@ import { ArrowLeft, Copy, Check } from "lucide-react"
 import Link from "next/link"
 
 export default function AdminPage() {
-  const [videoPathname, setVideoPathname] = useState<string>("")
+  const [videoUrl, setVideoUrl] = useState<string>("")
   const [copied, setCopied] = useState(false)
-
-  // For private blobs, we serve via API route
-  const videoUrl = videoPathname ? `/api/file?pathname=${encodeURIComponent(videoPathname)}` : ""
-
-  const handleUploadComplete = (data: { pathname: string }) => {
-    setVideoPathname(data.pathname)
-  }
 
   const handleCopy = async () => {
     if (videoUrl) {
@@ -50,7 +43,7 @@ export default function AdminPage() {
 
           <div className="flex justify-center">
             <VideoUploader
-              onUploadComplete={handleUploadComplete}
+              onUploadComplete={setVideoUrl}
               currentVideoUrl={videoUrl}
             />
           </div>
