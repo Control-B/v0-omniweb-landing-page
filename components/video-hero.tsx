@@ -19,7 +19,7 @@ export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
         <div className="absolute -top-[12%] right-0 h-[124%] w-[85%]">
           <iframe
             key={`${isMuted}-${isPlaying}`}
-            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0`}
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en`}
             title="Omniweb Demo Video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             className="pointer-events-none h-full w-full"
