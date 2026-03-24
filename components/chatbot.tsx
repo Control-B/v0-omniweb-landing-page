@@ -19,7 +19,7 @@ export function Chatbot() {
     <>
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-4 z-50 w-80 overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl sm:w-96">
+        <div className="fixed bottom-36 right-4 z-50 w-80 overflow-hidden rounded-2xl border border-white/10 bg-card shadow-2xl sm:w-96">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-white/10 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 px-4 py-3">
             <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export function Chatbot() {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 shadow-lg shadow-purple-500/30 transition-transform hover:scale-105"
+        className="fixed bottom-20 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 shadow-lg shadow-purple-500/30 transition-transform hover:scale-105"
         aria-label="Open chat assistant"
       >
         {isOpen ? (
