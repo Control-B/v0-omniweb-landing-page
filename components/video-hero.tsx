@@ -13,21 +13,21 @@ export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      {/* Video Background - scaled up to crop YouTube UI elements and captions */}
+      {/* Video Background - scaled to crop YouTube UI elements and captions */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Video container - scaled larger to crop play button and bottom captions */}
-        <div className="absolute -bottom-[20%] -top-[15%] right-0 w-[90%]">
+        {/* Video container - smaller and positioned to the right */}
+        <div className="absolute -bottom-[15%] -top-[10%] right-0 w-[70%]">
           <iframe
             key={`${isMuted}-${isPlaying}`}
             src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en`}
             title="Omniweb Demo Video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            className="pointer-events-none h-full w-full scale-125"
+            className="pointer-events-none h-full w-full scale-110"
           />
         </div>
-        {/* Overlay gradient for text readability - stronger on left for hero content */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 via-40% to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-background/30" />
+        {/* Overlay gradient for text readability - dark blue gradient on left */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 via-35% to-background/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-background/40" />
       </div>
 
       {/* Hero Content */}
