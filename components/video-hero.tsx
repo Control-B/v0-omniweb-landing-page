@@ -7,7 +7,7 @@ interface VideoHeroProps {
   youtubeId?: string
 }
 
-export function VideoHero({ youtubeId = "DqKwuU8v2pU" }: VideoHeroProps) {
+export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
   const [isMuted, setIsMuted] = useState(true)
   const [isPlaying, setIsPlaying] = useState(true)
 
