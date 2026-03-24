@@ -6,11 +6,11 @@ import { Phone, Menu, X } from "lucide-react"
 import { useState } from "react"
 
 const navItems = [
-  { label: "Solutions", href: "#solutions" },
-  { label: "Resources", href: "#resources" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Templates", href: "#templates" },
-  { label: "Company", href: "#company" },
+  { label: "Solutions", href: "/solutions" },
+  { label: "Resources", href: "/resources" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Templates", href: "/templates" },
+  { label: "Company", href: "/company" },
 ]
 
 export function Header() {
