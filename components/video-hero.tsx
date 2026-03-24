@@ -27,11 +27,11 @@ export function VideoHero({ youtubeId = "DqKwuU8v2pU" }: VideoHeroProps) {
           {/* Aspect ratio container */}
           <div className="relative aspect-video w-full">
             <iframe
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&rel=0&modestbranding=1`}
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
               title="Omniweb Demo Video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="h-full w-full"
+              className="h-full w-full pointer-events-none"
             />
           </div>
         </div>
