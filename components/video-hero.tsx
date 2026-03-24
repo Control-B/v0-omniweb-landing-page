@@ -13,16 +13,16 @@ export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      {/* Video Background - positioned on right side */}
+      {/* Video Background - scaled up to crop YouTube UI elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Video container on the right */}
-        <div className="absolute right-0 top-0 h-full w-full lg:w-[60%]">
+        {/* Video container - scaled larger and offset to hide YouTube branding */}
+        <div className="absolute -right-[10%] -top-[15%] h-[130%] w-[80%]">
           <iframe
             key={`${isMuted}-${isPlaying}`}
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1`}
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0`}
             title="Omniweb Demo Video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            className="pointer-events-none h-full w-full"
+            className="pointer-events-none h-full w-full scale-110"
           />
         </div>
         {/* Overlay gradient for text readability - stronger on left for hero content */}
@@ -47,29 +47,15 @@ export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
             </span>
           </h1>
 
-          {/* Supporting text */}
-          <p className="max-w-lg text-base text-muted-foreground sm:text-lg lg:text-xl">
-            The all-in-one platform built for modern businesses.
-            <br />
-            Less complexity, more conversions.
+          {/* Supporting text - using the marquee content */}
+          <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:text-xl">
+            From e-commerce brands to professional services, we build AI-powered websites that present, qualify, and convert your visitors into customers.
           </p>
         </div>
       </div>
 
-      {/* Scrolling Marquee Text */}
-      <div className="relative z-10 overflow-hidden border-t border-border/20 bg-background/30 py-4 backdrop-blur-sm">
-        <div className="animate-marquee flex whitespace-nowrap">
-          <span className="mx-8 text-lg font-medium text-foreground/70 lg:text-2xl">
-            From e-commerce brands to professional services, we build AI-powered websites that present, qualify, and convert your visitors into customers.
-          </span>
-          <span className="mx-8 text-lg font-medium text-foreground/70 lg:text-2xl">
-            From e-commerce brands to professional services, we build AI-powered websites that present, qualify, and convert your visitors into customers.
-          </span>
-        </div>
-      </div>
-
-      {/* Video Controls - integrated into footer area */}
-      <div className="absolute bottom-20 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+      {/* Video Controls */}
+      <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           className="flex h-9 items-center gap-2 rounded-full border border-border/50 bg-background/80 px-4 text-sm font-medium text-foreground shadow-lg backdrop-blur-sm transition-all hover:bg-background"
