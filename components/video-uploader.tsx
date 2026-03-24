@@ -5,7 +5,7 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 
 interface VideoUploaderProps {
-  onUploadComplete: (url: string) => void
+  onUploadComplete: (pathname: string) => void
   currentVideoUrl?: string
 }
 
@@ -44,7 +44,7 @@ export function VideoUploader({ onUploadComplete, currentVideoUrl }: VideoUpload
 
       const data = await response.json()
       setUploadProgress(100)
-      onUploadComplete(data.url)
+      onUploadComplete(data.pathname)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed")
     } finally {
