@@ -25,16 +25,16 @@ export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
             className="pointer-events-none h-full w-full scale-110"
           />
         </div>
-        {/* Overlay gradient for text readability - dark blue gradient on left */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/95 via-35% to-background/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-background/40" />
+        {/* Overlay gradient for text readability - white transparent gradient on left */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 via-35% to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-white/30" />
       </div>
 
       {/* Hero Content */}
       <div className="relative z-10 flex flex-1 flex-col justify-center px-6 lg:px-16 xl:px-24">
         <div className="max-w-2xl">
           {/* Label */}
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-600">
             AI Website Platform
           </p>
 
@@ -42,7 +42,7 @@ export function VideoHero({ youtubeId = "4YMOZ2hteDU" }: VideoHeroProps) {
           <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
             <span className="text-foreground">Build Smarter.</span>
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-purple-700 bg-clip-text text-transparent">
               Convert Faster.
             </span>
           </h1>
