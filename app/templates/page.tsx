@@ -2,48 +2,49 @@ import { PageLayout } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { Eye, Zap } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 const templates = [
   {
     name: "Commerce Pro",
     category: "E-Commerce",
     description: "A modern e-commerce template with product showcases, cart, and checkout.",
-    image: "/templates/commerce-pro.jpg",
+    image: "/images/ecommerce-solution.jpg",
     previewUrl: "/templates/preview/commerce-pro",
   },
   {
     name: "Consultant",
     category: "Professional Services",
     description: "Clean and professional template for consultants and advisors.",
-    image: "/templates/consultant.jpg",
+    image: "/images/professional-services.jpg",
     previewUrl: "/templates/preview/consultant",
   },
   {
     name: "Portfolio Studio",
     category: "Agencies",
     description: "Showcase your creative work with this stunning portfolio template.",
-    image: "/templates/portfolio-studio.jpg",
+    image: "/images/ai-integration.jpg",
     previewUrl: "/templates/preview/portfolio-studio",
   },
   {
     name: "Local Pro",
     category: "Contractors",
     description: "Perfect for local service businesses with quote forms and galleries.",
-    image: "/templates/local-pro.jpg",
+    image: "/images/ai-web-development.jpg",
     previewUrl: "/templates/preview/local-pro",
   },
   {
     name: "SaaS Launch",
     category: "Technology",
     description: "Launch your SaaS product with this conversion-optimized template.",
-    image: "/templates/saas-launch.jpg",
+    image: "/images/ai-telephony.jpg",
     previewUrl: "/templates/preview/saas-launch",
   },
   {
     name: "Restaurant",
     category: "Food & Beverage",
     description: "Menu displays, reservations, and online ordering in one template.",
-    image: "/templates/restaurant.jpg",
+    image: "/images/website-templates.jpg",
     previewUrl: "/templates/preview/restaurant",
   },
 ]
@@ -99,9 +100,12 @@ export default function TemplatesPage() {
               >
                 {/* Template Preview Image */}
                 <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-white/20">{template.name[0]}</span>
-                  </div>
+                  <Image
+                    src={template.image}
+                    alt={template.name}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
                   {/* Hover Overlay */}
                   <div className="absolute inset-0 flex items-center justify-center gap-3 bg-background/80 opacity-0 transition-opacity group-hover:opacity-100">
                     <Button size="sm" variant="outline" asChild className="border-white/20">

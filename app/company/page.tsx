@@ -2,6 +2,7 @@ import { PageLayout } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { Mail, Phone, MapPin } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 const values = [
   {
@@ -50,16 +51,28 @@ export default function CompanyPage() {
     <PageLayout>
       {/* Hero Section */}
       <section className="border-b border-white/10 px-4 py-20 lg:px-8 lg:py-32">
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
-            About Us
-          </p>
-          <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
-            Building the Future of Web
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Omniweb is on a mission to democratize AI-powered web experiences. We help businesses of all sizes create websites that truly work for them.
-          </p>
+        <div className="mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
+                About Us
+              </p>
+              <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
+                Building the Future of Web
+              </h1>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Omniweb is on a mission to democratize AI-powered web experiences. We help businesses of all sizes create websites that truly work for them.
+              </p>
+            </div>
+            <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10">
+              <Image
+                src="/images/ai-telephony.jpg"
+                alt="Omniweb team and technology"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
       </section>
 

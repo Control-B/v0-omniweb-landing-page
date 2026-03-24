@@ -2,6 +2,7 @@ import { PageLayout } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { BookOpen, Video, FileText, Newspaper, ArrowRight } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 const resourceCategories = [
   {
@@ -63,16 +64,28 @@ export default function ResourcesPage() {
     <PageLayout>
       {/* Hero Section */}
       <section className="border-b border-white/10 px-4 py-20 lg:px-8 lg:py-32">
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
-            Resources
-          </p>
-          <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
-            Learn, Grow, Succeed
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Everything you need to build, optimize, and scale your online presence. From beginner guides to advanced strategies.
-          </p>
+        <div className="mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
+                Resources
+              </p>
+              <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
+                Learn, Grow, Succeed
+              </h1>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Everything you need to build, optimize, and scale your online presence. From beginner guides to advanced strategies.
+              </p>
+            </div>
+            <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10">
+              <Image
+                src="/images/ai-web-development.jpg"
+                alt="AI-powered web development resources"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
       </section>
 

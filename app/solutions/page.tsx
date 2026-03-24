@@ -2,6 +2,7 @@ import { PageLayout } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, ShoppingCart, Briefcase, Building2, Wrench } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 const solutions = [
   {
@@ -10,6 +11,7 @@ const solutions = [
     description: "AI-powered storefronts that showcase your products beautifully and convert browsers into buyers with intelligent recommendations and seamless checkout experiences.",
     features: ["Smart product recommendations", "Conversion-optimized layouts", "Integrated inventory management", "Multi-channel selling"],
     href: "/solutions/ecommerce",
+    image: "/images/ecommerce-solution.jpg",
   },
   {
     icon: Briefcase,
@@ -17,6 +19,7 @@ const solutions = [
     description: "Websites that establish credibility, capture leads, and automate client intake for consultants, lawyers, accountants, and other service providers.",
     features: ["Lead qualification forms", "Appointment scheduling", "Client portals", "Case study showcases"],
     href: "/solutions/professional-services",
+    image: "/images/professional-services.jpg",
   },
   {
     icon: Building2,
@@ -24,6 +27,7 @@ const solutions = [
     description: "Portfolio websites that win clients with stunning case studies, streamlined project inquiries, and automated proposal generation.",
     features: ["Dynamic portfolios", "Project inquiry forms", "Team showcases", "Client testimonials"],
     href: "/solutions/agencies",
+    image: "/images/ai-integration.jpg",
   },
   {
     icon: Wrench,
@@ -31,6 +35,7 @@ const solutions = [
     description: "Local business websites that generate leads, showcase completed projects, and make it easy for customers to request quotes.",
     features: ["Quote request forms", "Project galleries", "Service area maps", "Review integration"],
     href: "/solutions/contractors",
+    image: "/images/ai-web-development.jpg",
   },
 ]
 
@@ -39,16 +44,28 @@ export default function SolutionsPage() {
     <PageLayout>
       {/* Hero Section */}
       <section className="border-b border-white/10 px-4 py-20 lg:px-8 lg:py-32">
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
-            Solutions
-          </p>
-          <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
-            Built for Your Industry
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            Every business is unique. Our AI-powered website systems are tailored to the specific needs of your industry, helping you stand out and convert more customers.
-          </p>
+        <div className="mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
+                Solutions
+              </p>
+              <h1 className="mb-6 text-4xl font-bold tracking-tight lg:text-5xl">
+                Built for Your Industry
+              </h1>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Every business is unique. Our AI-powered website systems are tailored to the specific needs of your industry, helping you stand out and convert more customers.
+              </p>
+            </div>
+            <div className="relative aspect-video overflow-hidden rounded-2xl border border-white/10">
+              <Image
+                src="/images/ai-integration.jpg"
+                alt="AI-powered web solutions"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -59,8 +76,17 @@ export default function SolutionsPage() {
             {solutions.map((solution) => (
               <div
                 key={solution.title}
-                className="group rounded-2xl border border-white/10 bg-card/50 p-8 transition-colors hover:border-white/20"
+                className="group overflow-hidden rounded-2xl border border-white/10 bg-card/50 transition-colors hover:border-white/20"
               >
+                <div className="relative aspect-[16/9] overflow-hidden">
+                  <Image
+                    src={solution.image}
+                    alt={solution.title}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
+                </div>
+                <div className="p-8">
                 <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 to-purple-500/20">
                   <solution.icon className="h-6 w-6 text-cyan-400" />
                 </div>
@@ -83,6 +109,7 @@ export default function SolutionsPage() {
                   Learn more
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
+                </div>
               </div>
             ))}
           </div>
