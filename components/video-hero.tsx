@@ -1,16 +1,10 @@
 "use client"
 
-import { Play } from "lucide-react"
-import { useState } from "react"
-
 interface VideoHeroProps {
-  videoUrl?: string
-  posterUrl?: string
+  youtubeId?: string
 }
 
-export function VideoHero({ videoUrl, posterUrl }: VideoHeroProps) {
-  const [isPlaying, setIsPlaying] = useState(false)
-
+export function VideoHero({ youtubeId = "DqKwuU8v2pU" }: VideoHeroProps) {
   return (
     <div className="relative flex w-full flex-1 flex-col items-center justify-center px-4 py-6 lg:px-8">
       {/* Subtle glow effect behind video */}
@@ -32,26 +26,13 @@ export function VideoHero({ videoUrl, posterUrl }: VideoHeroProps) {
         <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 shadow-2xl shadow-black/50 backdrop-blur-sm">
           {/* Aspect ratio container */}
           <div className="relative aspect-video w-full">
-            {videoUrl && isPlaying ? (
-              <video
-                src={videoUrl}
-                poster={posterUrl}
-                controls
-                autoPlay
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary/80 to-secondary/40">
-                {/* Placeholder with play button */}
-                <button
-                  onClick={() => setIsPlaying(true)}
-                  className="group flex h-20 w-20 items-center justify-center rounded-full border border-border/50 bg-background/80 shadow-lg transition-all hover:scale-105 hover:bg-background lg:h-24 lg:w-24"
-                  aria-label="Play video"
-                >
-                  <Play className="h-8 w-8 text-foreground transition-transform group-hover:scale-110 lg:h-10 lg:w-10" />
-                </button>
-              </div>
-            )}
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&rel=0&modestbranding=1`}
+              title="Omniweb Demo Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="h-full w-full"
+            />
           </div>
         </div>
       </div>
