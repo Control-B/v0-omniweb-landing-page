@@ -39,7 +39,7 @@ export function VideoHero({ youtubeId = "Dz2_7Em3VXo" }: VideoHeroProps) {
           </p>
 
           {/* Headline with gradient */}
-          <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+          <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
             <span className="text-foreground">Build Smarter.</span>
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-purple-500 bg-clip-text text-transparent">
@@ -48,7 +48,7 @@ export function VideoHero({ youtubeId = "Dz2_7Em3VXo" }: VideoHeroProps) {
           </h1>
 
           {/* Supporting text */}
-          <p className="max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base lg:text-lg">
+          <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg lg:text-xl">
             From e-commerce brands to professional services, we build AI-powered websites that present, qualify, and convert your visitors into customers.
           </p>
         </div>
