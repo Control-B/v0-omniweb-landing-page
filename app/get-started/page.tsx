@@ -30,6 +30,12 @@ export default function GetStartedPage() {
     setError(null)
     setLoading(true)
 
+    if (!supabase) {
+      setError("Authentication is temporarily unavailable. Please try again shortly.")
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -54,6 +60,11 @@ export default function GetStartedPage() {
   }
 
   const handleOAuthSignUp = async (provider: "google" | "github") => {
+    if (!supabase) {
+      setError("Authentication is temporarily unavailable. Please try again shortly.")
+      return
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -199,7 +210,7 @@ export default function GetStartedPage() {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loading}
+              disabled={loading || !supabase}
             >
               {loading ? "Creating account..." : "Start Free Trial"}
             </Button>
@@ -217,6 +228,7 @@ export default function GetStartedPage() {
             <Button 
               variant="outline" 
               className="border-white/10 bg-white/5 hover:bg-white/10"
+              disabled={!supabase}
               onClick={() => handleOAuthSignUp("google")}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -242,6 +254,7 @@ export default function GetStartedPage() {
             <Button 
               variant="outline" 
               className="border-white/10 bg-white/5 hover:bg-white/10"
+              disabled={!supabase}
               onClick={() => handleOAuthSignUp("github")}
             >
               <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">

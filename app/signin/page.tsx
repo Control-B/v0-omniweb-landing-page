@@ -19,6 +19,12 @@ export default function SignInPage() {
     setError(null)
     setLoading(true)
 
+    if (!supabase) {
+      setError("Authentication is temporarily unavailable. Please try again shortly.")
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -35,6 +41,11 @@ export default function SignInPage() {
   }
 
   const handleOAuthSignIn = async (provider: "google" | "github") => {
+    if (!supabase) {
+      setError("Authentication is temporarily unavailable. Please try again shortly.")
+      return
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -107,7 +118,7 @@ export default function SignInPage() {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loading}
+              disabled={loading || !supabase}
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
@@ -125,6 +136,7 @@ export default function SignInPage() {
             <Button 
               variant="outline" 
               className="border-white/10 bg-white/5 hover:bg-white/10"
+              disabled={!supabase}
               onClick={() => handleOAuthSignIn("google")}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -150,6 +162,7 @@ export default function SignInPage() {
             <Button 
               variant="outline" 
               className="border-white/10 bg-white/5 hover:bg-white/10"
+              disabled={!supabase}
               onClick={() => handleOAuthSignIn("github")}
             >
               <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
