@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Check } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
 const benefits = [
@@ -23,12 +23,14 @@ export default function GetStartedPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
+  const authAvailable = isSupabaseConfigured()
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
+
+    const supabase = createClient()
 
     if (!supabase) {
       setError("Authentication is temporarily unavailable. Please try again shortly.")
@@ -60,6 +62,8 @@ export default function GetStartedPage() {
   }
 
   const handleOAuthSignUp = async (provider: "google" | "github") => {
+    const supabase = createClient()
+
     if (!supabase) {
       setError("Authentication is temporarily unavailable. Please try again shortly.")
       return
@@ -210,7 +214,7 @@ export default function GetStartedPage() {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loading || !supabase}
+              disabled={loading || !authAvailable}
             >
               {loading ? "Creating account..." : "Start Free Trial"}
             </Button>
@@ -228,7 +232,7 @@ export default function GetStartedPage() {
             <Button 
               variant="outline" 
               className="border-white/10 bg-white/5 hover:bg-white/10"
-              disabled={!supabase}
+              disabled={!authAvailable}
               onClick={() => handleOAuthSignUp("google")}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -254,7 +258,7 @@ export default function GetStartedPage() {
             <Button 
               variant="outline" 
               className="border-white/10 bg-white/5 hover:bg-white/10"
-              disabled={!supabase}
+              disabled={!authAvailable}
               onClick={() => handleOAuthSignUp("github")}
             >
               <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
