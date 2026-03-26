@@ -78,7 +78,7 @@ services:
 
   # ── AI service (FastAPI / Python) ─────────────────────────────────────────
   - name: ai
-    dockerfile_path: Dockerfile
+    dockerfile_path: ./ai/Dockerfile
     source_dir: ./ai
     github:
       repo: Control-B/v0-omniweb-landing-page
