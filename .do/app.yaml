@@ -1,0 +1,139 @@
+name: omniweb
+region: nyc
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Services
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+
+  # ── Frontend (Next.js) ─────────────────────────────────────────────────────
+  - name: frontend
+    dockerfile_path: frontend/Dockerfile
+    source_dir: /
+    github:
+      repo: Control-B/v0-omniweb-landing-page
+      branch: main
+      deploy_on_push: true
+    http_port: 3000
+    instance_size_slug: apps-s-1vcpu-1gb
+    instance_count: 1
+    health_check:
+      http_path: /
+    routes:
+      - path: /
+    envs:
+      # Public vars (exposed to the browser)
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "${NEXT_PUBLIC_SUPABASE_URL}"
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        scope: RUN_AND_BUILD_TIME
+        value: "${NEXT_PUBLIC_SUPABASE_ANON_KEY}"
+      # Internal routing: frontend → backend via App Platform private hostname
+      - key: BACKEND_INTERNAL_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "http://backend:4000"
+      - key: NEXT_PUBLIC_BACKEND_URL
+        scope: RUN_AND_BUILD_TIME
+        value: "${APP_URL}"          # filled automatically by App Platform
+      # Supabase server-side key (not exposed to browser)
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${SUPABASE_SERVICE_ROLE_KEY}"
+      - key: SUPABASE_DB_URL
+        scope: RUN_TIME
+        type: SECRET
+        value: "${SUPABASE_DB_URL}"
+      - key: SUPABASE_PGVECTOR_TABLE
+        scope: RUN_TIME
+        value: "${SUPABASE_PGVECTOR_TABLE}"
+      - key: SUPABASE_PGVECTOR_MATCH_FUNCTION
+        scope: RUN_TIME
+        value: "${SUPABASE_PGVECTOR_MATCH_FUNCTION}"
+      - key: DEEPGRAM_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${DEEPGRAM_API_KEY}"
+
+  # ── Backend (Node / Express) ───────────────────────────────────────────────
+  - name: backend
+    dockerfile_path: backend/Dockerfile
+    source_dir: /
+    github:
+      repo: Control-B/v0-omniweb-landing-page
+      branch: main
+      deploy_on_push: true
+    http_port: 4000
+    instance_size_slug: apps-s-1vcpu-1gb
+    instance_count: 1
+    health_check:
+      http_path: /health
+    routes:
+      - path: /api
+    envs:
+      - key: PORT
+        scope: RUN_TIME
+        value: "4000"
+      # Internal routing: backend → ai via App Platform private hostname
+      - key: AI_SERVICE_URL
+        scope: RUN_TIME
+        value: "http://ai:8000"
+      - key: FRONTEND_ORIGIN
+        scope: RUN_TIME
+        value: "${APP_URL}"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${SUPABASE_SERVICE_ROLE_KEY}"
+      - key: SUPABASE_DB_URL
+        scope: RUN_TIME
+        type: SECRET
+        value: "${SUPABASE_DB_URL}"
+      - key: DEEPGRAM_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${DEEPGRAM_API_KEY}"
+      - key: DIGITALOCEAN_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${DIGITALOCEAN_API_KEY}"
+      - key: DIGITALOCEAN_GENAI_ENDPOINT
+        scope: RUN_TIME
+        value: "${DIGITALOCEAN_GENAI_ENDPOINT}"
+
+  # ── AI service (FastAPI / Python) ─────────────────────────────────────────
+  - name: ai
+    dockerfile_path: ai/Dockerfile
+    source_dir: /
+    github:
+      repo: Control-B/v0-omniweb-landing-page
+      branch: main
+      deploy_on_push: true
+    http_port: 8000
+    instance_size_slug: apps-s-1vcpu-1gb
+    instance_count: 1
+    health_check:
+      http_path: /health
+    envs:
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${SUPABASE_SERVICE_ROLE_KEY}"
+      - key: SUPABASE_DB_URL
+        scope: RUN_TIME
+        type: SECRET
+        value: "${SUPABASE_DB_URL}"
+      - key: SUPABASE_PGVECTOR_TABLE
+        scope: RUN_TIME
+        value: "${SUPABASE_PGVECTOR_TABLE}"
+      - key: SUPABASE_PGVECTOR_MATCH_FUNCTION
+        scope: RUN_TIME
+        value: "${SUPABASE_PGVECTOR_MATCH_FUNCTION}"
+      - key: DIGITALOCEAN_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${DIGITALOCEAN_API_KEY}"
+      - key: DIGITALOCEAN_GENAI_ENDPOINT
+        scope: RUN_TIME
+        value: "${DIGITALOCEAN_GENAI_ENDPOINT}"
