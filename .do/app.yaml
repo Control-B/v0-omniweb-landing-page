@@ -1,9 +1,15 @@
 name: seahorse-app
 region: nyc
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Services
-# ─────────────────────────────────────────────────────────────────────────────
+ingress:
+  rules:
+    - component:
+        name: v0-omniweb-landing-page
+      match:
+        path:
+          prefix: /
+
+
 services:
 
   # ── Frontend / main Next.js app (root of repo) ────────────────────────────
@@ -20,10 +26,7 @@ services:
     instance_count: 1
     health_check:
       http_path: /
-    routes:
-      - path: /
     envs:
-      # ── Supabase ──────────────────────────────────────────────────────────
       - key: NEXT_PUBLIC_SUPABASE_URL
         scope: RUN_AND_BUILD_TIME
         type: SECRET
@@ -46,7 +49,6 @@ services:
       - key: SUPABASE_PGVECTOR_MATCH_FUNCTION
         scope: RUN_AND_BUILD_TIME
         value: "${SUPABASE_PGVECTOR_MATCH_FUNCTION}"
-      # ── Deepgram (voice STT + TTS) ────────────────────────────────────────
       - key: DEEPGRAM_API_KEY
         scope: RUN_AND_BUILD_TIME
         type: SECRET
@@ -54,7 +56,6 @@ services:
       - key: DEEPGRAM_TTS_VOICE
         scope: RUN_AND_BUILD_TIME
         value: "${DEEPGRAM_TTS_VOICE}"
-      # ── DigitalOcean AI ───────────────────────────────────────────────────
       - key: DIGITALOCEAN_API_KEY
         scope: RUN_AND_BUILD_TIME
         type: SECRET
@@ -71,7 +72,6 @@ services:
         scope: RUN_AND_BUILD_TIME
         type: SECRET
         value: "${OMNIWEB_LLM_MODEL}"
-      # ── Internal: Next.js API routes → ai service ─────────────────────────
       - key: FASTAPI_ASSISTANT_URL
         scope: RUN_AND_BUILD_TIME
         value: "http://ai:8000"
@@ -84,13 +84,14 @@ services:
       repo: Control-B/v0-omniweb-landing-page
       branch: main
       deploy_on_push: true
-    http_port: 8000
+    internal_ports:
+      - 8000
     instance_size_slug: apps-s-1vcpu-1gb
     instance_count: 1
     health_check:
       http_path: /health
+      port: 8000
     envs:
-      # ── DigitalOcean AI ───────────────────────────────────────────────────
       - key: DIGITALOCEAN_API_KEY
         scope: RUN_TIME
         type: SECRET
@@ -111,12 +112,10 @@ services:
         scope: RUN_TIME
         type: SECRET
         value: "${OMNIWEB_LLM_MODEL}"
-      # ── Deepgram ──────────────────────────────────────────────────────────
       - key: DEEPGRAM_API_KEY
         scope: RUN_TIME
         type: SECRET
         value: "${DEEPGRAM_API_KEY}"
-      # ── Supabase ──────────────────────────────────────────────────────────
       - key: NEXT_PUBLIC_SUPABASE_URL
         scope: RUN_TIME
         value: "${NEXT_PUBLIC_SUPABASE_URL}"
