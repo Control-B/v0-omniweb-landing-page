@@ -5,6 +5,11 @@ import Link from "next/link"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+
+  if (!supabase) {
+    redirect("/signin")
+  }
+
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {

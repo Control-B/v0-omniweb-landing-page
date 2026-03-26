@@ -1,10 +1,34 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+function hasValidSupabaseUrl(value: string | undefined) {
+  if (!value) {
+    return false
+  }
+
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function isSupabaseConfigured() {
+  return Boolean(
+    hasValidSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim(),
+  )
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
+
+  if (!isSupabaseConfigured()) {
+    return supabaseResponse
+  }
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
