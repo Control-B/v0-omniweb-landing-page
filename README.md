@@ -1,35 +1,41 @@
-# v0-omniweb-landing-page
+# Omniweb Microservices
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+This repository is now split into three service directories so frontend, backend, and AI logic can evolve independently.
 
-## Built with v0
+## Services
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+- `frontend/`: Next.js UI, pages, components, and browser-side assistant experience.
+- `backend/`: Node/Express API service for browser-facing routes like chat, assistant actions, Deepgram token issuance, upload, and file serving.
+- `ai/`: FastAPI service for Omniweb-owned assistant reasoning and automation.
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_rdcer9YGAraSM5QMk2SwR4FeRC41)
+## Local Structure
 
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+```text
+frontend/  -> Next.js app container
+backend/   -> Node API container
+ai/        -> FastAPI AI container
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run with Docker
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+docker compose up --build
+```
 
-## Learn More
+Frontend runs at `http://localhost:3000`.
 
-To learn more, take a look at the following resources:
+## Service Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+- The frontend proxies `/api/*` requests to the backend service via `frontend/next.config.mjs` rewrites.
+- The backend proxies assistant reasoning requests to the AI service.
+- Shared secrets are currently read from the root `.env.local` through `docker-compose.yml`.
 
-<a href="https://v0.app/chat/api/kiro/clone/Control-B/v0-omniweb-landing-page" alt="Open in Kiro"><img src="https://pdgvvgmkdvyeydso.public.blob.vercel-storage.com/open%20in%20kiro.svg?sanitize=true" /></a>
+## Why this split
+
+This layout reduces cross-impact when changing one layer:
+
+- UI and conversation UX changes stay in `frontend/`
+- API and integration changes stay in `backend/`
+- AI logic and automation changes stay in `ai/`
+
+The next step after this structure is to turn shared assistant rules into a dedicated shared config/package so frontend and backend do not duplicate navigation definitions.

@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Pause, Play, Volume2, VolumeX } from "lucide-react"
+
+const MEDIA_PAUSE_EVENT = "omniweb:pause-media"
 
 interface VideoHeroProps {
   youtubeId?: string
@@ -10,6 +12,16 @@ interface VideoHeroProps {
 export function VideoHero({ youtubeId = "Dz2_7Em3VXo" }: VideoHeroProps) {
   const [isMuted, setIsMuted] = useState(true)
   const [isPlaying, setIsPlaying] = useState(true)
+
+  useEffect(() => {
+    const handlePauseMedia = () => {
+      setIsPlaying(false)
+      setIsMuted(true)
+    }
+
+    window.addEventListener(MEDIA_PAUSE_EVENT, handlePauseMedia)
+    return () => window.removeEventListener(MEDIA_PAUSE_EVENT, handlePauseMedia)
+  }, [])
 
   return (
     <div className="relative flex h-full w-full flex-col">

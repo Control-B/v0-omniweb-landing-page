@@ -84,7 +84,7 @@ export default function PricingPage() {
   return (
     <PageLayout>
       {/* Hero Section */}
-      <section className="border-b border-white/10 px-4 py-20 lg:px-8 lg:py-32">
+      <section id="pricing-overview" className="border-b border-white/10 px-4 py-20 lg:px-8 lg:py-32">
         <div className="mx-auto max-w-4xl text-center">
           <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-cyan-400">
             Pricing
@@ -99,7 +99,7 @@ export default function PricingPage() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="px-4 py-20 lg:px-8">
+      <section id="plans" className="px-4 py-20 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-8 lg:grid-cols-3">
             {plans.map((plan) => (
@@ -147,7 +147,7 @@ export default function PricingPage() {
       </section>
 
       {/* FAQs */}
-      <section className="border-t border-white/10 px-4 py-20 lg:px-8">
+      <section id="faq" className="border-t border-white/10 px-4 py-20 lg:px-8">
         <div className="mx-auto max-w-3xl">
           <h2 className="mb-12 text-center text-2xl font-bold">Frequently Asked Questions</h2>
           <div className="space-y-6">
@@ -162,7 +162,7 @@ export default function PricingPage() {
       </section>
 
       {/* CTA */}
-      <section className="border-t border-white/10 px-4 py-20 lg:px-8">
+      <section id="pricing-cta" className="border-t border-white/10 px-4 py-20 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="mb-4 text-3xl font-bold">Ready to Get Started?</h2>
           <p className="mb-8 text-lg text-muted-foreground">

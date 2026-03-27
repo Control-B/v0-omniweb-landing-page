@@ -1,7 +1,6 @@
 import { Header } from "@/components/header"
 import { VideoHero } from "@/components/video-hero"
 import { Footer } from "@/components/footer"
-import { Chatbot } from "@/components/chatbot"
 
 export default function Home() {
   return (
@@ -11,7 +10,6 @@ export default function Home() {
         <VideoHero />
       </main>
       <Footer />
-      <Chatbot />
     </div>
   )
 }

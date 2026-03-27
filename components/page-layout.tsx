@@ -1,6 +1,5 @@
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { Chatbot } from "@/components/chatbot"
 
 interface PageLayoutProps {
   children: React.ReactNode
@@ -14,7 +13,6 @@ export function PageLayout({ children }: PageLayoutProps) {
         {children}
       </main>
       <Footer />
-      <Chatbot />
     </div>
   )
 }

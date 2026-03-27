@@ -99,6 +99,12 @@ function clearConversationMemory() {
   window.sessionStorage.removeItem(VOICE_SESSION_STORAGE_KEY)
 }
 
+function buildAssistantHistory(limit = 10) {
+  return readConversationMemory()
+    .slice(-limit)
+    .map(({ role, content }) => ({ role, content }))
+}
+
 function createVoiceAudioContext() {
   const AudioContextConstructor = window.AudioContext ?? (window as Window & typeof globalThis & {
     webkitAudioContext?: typeof AudioContext
@@ -254,6 +260,8 @@ function VoicePanel({ onSwitchToText }: { onSwitchToText: () => void }) {
   const lastVoiceAutomationAtRef = useRef(0)
   const suppressAgentUntilRef = useRef(0)
   const navigationOverrideRef = useRef(false)
+  const pendingAgentMessagesRef = useRef<string[]>([])
+  const voiceReplyRequestIdRef = useRef(0)
   const noiseFloorRef = useRef(0.004)
   const smoothedLevelRef = useRef(0)
   const speechFramesRef = useRef(0)
@@ -337,7 +345,37 @@ function VoicePanel({ onSwitchToText }: { onSwitchToText: () => void }) {
     }
   }, [])
 
-  const triggerVoiceNavigation = useCallback((action: AssistantAction) => {
+  const flushPendingAgentMessages = useCallback(() => {
+    const ws = wsRef.current
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      return
+    }
+    if (navigationOverrideRef.current || Date.now() < suppressAgentUntilRef.current) {
+      return
+    }
+
+    const nextMessage = pendingAgentMessagesRef.current.shift()
+    if (!nextMessage) {
+      return
+    }
+
+    ws.send(JSON.stringify({
+      type: "InjectAgentMessage",
+      message: nextMessage,
+    }))
+  }, [])
+
+  const injectAgentMessage = useCallback((message: string) => {
+    const content = message.trim()
+    if (!content) {
+      return
+    }
+
+    pendingAgentMessagesRef.current.push(content)
+    flushPendingAgentMessages()
+  }, [flushPendingAgentMessages])
+
+  const triggerVoiceNavigation = useCallback((action: AssistantAction, followUp?: string) => {
     navigationOverrideRef.current = true
     suppressAgentUntilRef.current = Date.now() + 1200
     if (navigationResetRef.current !== null) {
@@ -352,14 +390,9 @@ function VoicePanel({ onSwitchToText }: { onSwitchToText: () => void }) {
 
     navigationResetRef.current = window.setTimeout(() => {
       clearNavigationOverride()
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: "InjectAgentMessage",
-          message: buildVoiceFollowUp(action),
-        }))
-      }
+      injectAgentMessage(followUp ?? buildVoiceFollowUp(action))
     }, 700)
-  }, [clearNavigationOverride, router, stopPlayback])
+  }, [clearNavigationOverride, injectAgentMessage, router, stopPlayback])
 
   const startPushToTalk = useCallback(() => {
     if (talkMode !== "push") return
@@ -388,33 +421,77 @@ function VoicePanel({ onSwitchToText }: { onSwitchToText: () => void }) {
     lastVoiceAutomationRef.current = normalized
     lastVoiceAutomationAtRef.current = now
 
-    const quickAction = inferAssistantAction(message)
+    const requestId = voiceReplyRequestIdRef.current + 1
+    voiceReplyRequestIdRef.current = requestId
 
-    if (quickAction) {
-      triggerVoiceNavigation(quickAction)
-
-      return
-    }
+    stopPlayback()
+    setAgentStatus("thinking")
+    suppressAgentUntilRef.current = Date.now() + 10000
 
     try {
-      const response = await fetch("/api/assistant-action", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, mode: "voice" }),
+        body: JSON.stringify({ messages: buildAssistantHistory() }),
       })
 
-      if (!response.ok) return
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error ?? `Voice assistant request failed (${response.status})`)
+      }
+
+      if (requestId !== voiceReplyRequestIdRef.current) {
+        return
+      }
 
       const payload = await response.json()
+      const content = typeof payload.content === "string" ? payload.content.trim() : ""
       const action = (payload.actions as AssistantAction[] | undefined)?.[0]
 
-      if (!action) return
+      if (action) {
+        triggerVoiceNavigation(action, content || undefined)
+        return
+      }
 
-      triggerVoiceNavigation(action)
+      suppressAgentUntilRef.current = 0
+      injectAgentMessage(content || "I’m here and listening. What would you like to explore next?")
     } catch (voiceAutomationError) {
       console.warn("Voice automation failed:", voiceAutomationError)
+
+      if (requestId !== voiceReplyRequestIdRef.current) {
+        return
+      }
+
+      const quickAction = inferAssistantAction(message)
+      if (quickAction) {
+        triggerVoiceNavigation(quickAction)
+        return
+      }
+
+      try {
+        const actionResponse = await fetch("/api/assistant-action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, mode: "voice" }),
+        })
+
+        if (actionResponse.ok) {
+          const actionPayload = await actionResponse.json()
+          const action = (actionPayload.actions as AssistantAction[] | undefined)?.[0]
+          const content = typeof actionPayload.content === "string" ? actionPayload.content.trim() : ""
+          if (action) {
+            triggerVoiceNavigation(action, content || undefined)
+            return
+          }
+        }
+      } catch (fallbackAutomationError) {
+        console.warn("Voice action fallback failed:", fallbackAutomationError)
+      }
+
+      suppressAgentUntilRef.current = 0
+      injectAgentMessage("I hit a snag on that request. Please try again, and I’ll help you from here.")
     }
-  }, [triggerVoiceNavigation])
+  }, [injectAgentMessage, stopPlayback, triggerVoiceNavigation])
 
   // ── Connect ─────────────────────────────────────────────────────────────────
   const connect = useCallback(async () => {
@@ -545,16 +622,14 @@ function VoicePanel({ onSwitchToText }: { onSwitchToText: () => void }) {
               .slice(-8)
               .map((entry) => `${entry.role === "user" ? "User" : "Assistant"}: ${entry.content}`)
               .join("\n")
-            const basePrompt = `You are the Omniweb AI voice assistant. Omniweb is an AI-powered website platform that helps businesses build, launch, and scale their digital presence faster than ever.
+            const basePrompt = `You are the Omniweb voice transport assistant. Omniweb is an AI-powered website platform that helps businesses build, launch, and scale their digital presence faster than ever.
 
 Guidelines:
-- Keep responses concise and conversational.
-- Help with pricing, templates, solutions, onboarding, customer service, and lead qualification.
-- Direct support issues to support@omniweb.ai.
-- When someone sounds like a buyer, qualify them naturally by asking about their business type, goals, timeline, and budget.
-- Recommend the right page when useful: pricing, templates, solutions, resources, company, or get-started.
-- If the user asks you to open, go to, show, or take them to a page or section, assume the app can navigate there directly.
-- For navigation requests, reply briefly and positively, like "Opening that now" or "Taking you there now." Never say you cannot navigate or tell the user to find the page themselves.
+- Do not answer user questions directly.
+- Do not decide navigation or website actions on your own.
+- The Omniweb app will inject the real assistant response after each user turn.
+- After a user finishes speaking, remain silent and wait for the injected response.
+- If a support request appears, the injected response will handle it.
 - Speak naturally and do not use markdown or bullet formatting.`
             const prompt = memoryContext
               ? `${basePrompt}\n\nRecent conversation context:\n${memoryContext}`
@@ -590,6 +665,7 @@ Guidelines:
             setStatus("connected")
             setAgentStatus("listening")
             markActivity()
+            flushPendingAgentMessages()
 
             processor.onaudioprocess = (e) => {
               const canTransmit = !isMuted && (talkMode === "live" || isPressingToTalk)
@@ -660,6 +736,7 @@ Guidelines:
             stopPlayback()
             setAgentStatus("listening")
             clearNavigationOverride()
+            pendingAgentMessagesRef.current = []
             markActivity()
           }
           if (msg.type === "AgentThinking") {
@@ -676,6 +753,7 @@ Guidelines:
               setAgentStatus("listening")
             }
             markActivity()
+            flushPendingAgentMessages()
           }
           if (msg.type === "ConversationText") {
             if (suppressAgent && msg.role !== "user") {
@@ -703,6 +781,11 @@ Guidelines:
               }
               void handleVoiceAutomation(msg.content)
             }
+          }
+          if (msg.type === "InjectionRefused") {
+            window.setTimeout(() => {
+              flushPendingAgentMessages()
+            }, 300)
           }
           if (msg.type === "Error") {
             setError(msg.description ?? "Deepgram error")
@@ -783,6 +866,8 @@ Guidelines:
     settingsAppliedRef.current = false
     suppressAgentUntilRef.current = 0
     navigationOverrideRef.current = false
+    pendingAgentMessagesRef.current = []
+    voiceReplyRequestIdRef.current += 1
     noiseFloorRef.current = 0.004
     smoothedLevelRef.current = 0
     speechFramesRef.current = 0

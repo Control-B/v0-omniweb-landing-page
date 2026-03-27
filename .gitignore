@@ -13,4 +13,8 @@ next.user-config.*
 # Common ignores
 node_modules
 .next/
-.DS_Store
+.DS_Store.mcp.json
+ai/.venv/
+ai/__pycache__/
+.env.local
+*.pyc
