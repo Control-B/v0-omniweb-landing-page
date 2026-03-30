@@ -47,7 +47,7 @@ export function Header() {
             asChild
             className="gap-2 text-foreground/80 hover:bg-white/10 hover:text-foreground"
           >
-            <a href="tel:+1234567890">
+            <a href="tel:+17275003099">
               <Phone className="h-4 w-4" />
               Call Us
             </a>
@@ -101,7 +101,7 @@ export function Header() {
                 asChild
                 className="justify-start gap-2"
               >
-                <a href="tel:+1234567890">
+                <a href="tel:+17275003099">
                   <Phone className="h-4 w-4" />
                   Call Us
                 </a>
