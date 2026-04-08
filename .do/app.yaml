@@ -76,7 +76,7 @@ services:
         scope: RUN_AND_BUILD_TIME
         value: "http://ai:8000"
 
-  # ── AI service (Multi-tenant FastAPI / Python) ────────────────────────
+  # ── AI service (FastAPI / Python) ─────────────────────────────────────────
   - name: ai
     dockerfile_path: ./ai/Dockerfile
     source_dir: ./ai
@@ -92,39 +92,6 @@ services:
       http_path: /health
       port: 8000
     envs:
-      # Database Configuration
-      - key: DATABASE_URL
-        scope: RUN_TIME
-        type: SECRET
-        value: "${SUPABASE_DB_URL}"
-      - key: SUPABASE_URL
-        scope: RUN_TIME
-        value: "${NEXT_PUBLIC_SUPABASE_URL}"
-      - key: SUPABASE_KEY
-        scope: RUN_TIME
-        value: "${NEXT_PUBLIC_SUPABASE_ANON_KEY}"
-      - key: SUPABASE_SERVICE_KEY
-        scope: RUN_TIME
-        type: SECRET
-        value: "${SUPABASE_SERVICE_ROLE_KEY}"
-      # AI Services
-      - key: OPENAI_API_KEY
-        scope: RUN_TIME
-        type: SECRET
-        value: "${DIGITALOCEAN_API_KEY}"
-      - key: DEEPGRAM_API_KEY
-        scope: RUN_TIME
-        type: SECRET
-        value: "${DEEPGRAM_API_KEY}"
-      - key: LIVEKIT_API_KEY
-        scope: RUN_TIME
-        type: SECRET
-        value: "${LIVEKIT_API_KEY}"
-      - key: LIVEKIT_API_SECRET
-        scope: RUN_TIME
-        type: SECRET
-        value: "${LIVEKIT_API_SECRET}"
-      # DigitalOcean AI Integration (Legacy Compatibility)
       - key: DIGITALOCEAN_API_KEY
         scope: RUN_TIME
         type: SECRET
@@ -145,7 +112,10 @@ services:
         scope: RUN_TIME
         type: SECRET
         value: "${OMNIWEB_LLM_MODEL}"
-      # Legacy Supabase Variables
+      - key: DEEPGRAM_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+        value: "${DEEPGRAM_API_KEY}"
       - key: NEXT_PUBLIC_SUPABASE_URL
         scope: RUN_TIME
         value: "${NEXT_PUBLIC_SUPABASE_URL}"
@@ -166,14 +136,3 @@ services:
       - key: SUPABASE_PGVECTOR_MATCH_FUNCTION
         scope: RUN_TIME
         value: "${SUPABASE_PGVECTOR_MATCH_FUNCTION}"
-      # Security and Performance
-      - key: JWT_SECRET_KEY
-        scope: RUN_TIME
-        type: SECRET
-        value: "${JWT_SECRET_KEY}"
-      - key: ENVIRONMENT
-        scope: RUN_TIME
-        value: "production"
-      - key: LOG_LEVEL
-        scope: RUN_TIME
-        value: "INFO"

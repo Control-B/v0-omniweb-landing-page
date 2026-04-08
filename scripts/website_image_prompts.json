@@ -1,0 +1,244 @@
+[
+  {
+    "id": "solutions-ecommerce",
+    "filename": "solutions-ecommerce.png",
+    "size": "1536x1024",
+    "style_profile": "product_photography",
+    "scene": "Premium e-commerce website hero visual with elevated product cards, refined packaging, glossy hardware and lifestyle product surfaces, and a clean merchandising composition that feels conversion-focused and production-ready.",
+    "environment": "Minimal studio-meets-digital set with subtle glassmorphism UI layers, soft neutral-to-indigo gradient background, premium retail ambiance, and plenty of clean negative space for website copy.",
+    "camera": ["50mm lens", "shallow depth of field", "eye-level perspective", "DSLR-grade sharpness on key products"],
+    "lighting": ["soft studio key light", "subtle rim lighting to separate products from background", "realistic contact shadows", "balanced highlights with no clipping"],
+    "mood": "Premium, trustworthy, modern, polished, sales-ready.",
+    "composition": ["primary product grouping positioned on the right side", "negative space on the left for headline and CTA", "clear foreground, subject, and background layering"],
+    "series_continuity": "Match the wider Omniweb brand direction with restrained blue and purple accents, realistic materials, and a premium commercial-photography feel.",
+    "negative_constraints": ["no people", "no clutter", "no cheap plastic look"]
+  },
+  {
+    "id": "solutions-professional-services",
+    "filename": "solutions-professional-services.png",
+    "size": "1536x1024",
+    "prompt": "Modern AI SaaS website hero section for professional services, clean UI layout, glassmorphism intake panels, refined consulting dashboard, polished desk environment, neon blue and sapphire accents, soft gradient background, subtle glow effects, floating elements, premium trust-driven composition, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "solutions-agencies",
+    "filename": "solutions-agencies.png",
+    "size": "1536x1024",
+    "prompt": "Modern AI SaaS website hero section for a creative agency, clean UI layout, floating portfolio screens, glassmorphism panels, neon purple blue and magenta accents, soft gradient background, subtle glow effects, 3D depth, dynamic but clean composition, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "solutions-contractors",
+    "filename": "solutions-contractors.png",
+    "size": "1536x1024",
+    "prompt": "Modern AI SaaS website hero section for contractors and trades, clean UI layout, glass quote panels, floating project showcase cards, subtle blueprint overlays, luxury home exterior hints, neon teal and blue accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "resources-knowledge-hub",
+    "filename": "resources-knowledge-hub.png",
+    "size": "1536x1024",
+    "style_profile": "futuristic_saas",
+    "scene": "Modern AI knowledge hub hero visual with layered article cards, premium video tiles, and curated content surfaces presented like an editorial technology product.",
+    "environment": "Dark cinematic SaaS environment with soft blue-purple gradients, subtle glassmorphism panels, and a clean background suitable for web overlay copy.",
+    "camera": ["50mm lens", "slight perspective depth", "clean editorial framing"],
+    "lighting": ["soft global illumination", "subtle UI glow", "physically believable reflections and shadows"],
+    "mood": "Intelligent, premium, editorial, calm confidence.",
+    "composition": ["subject cluster on the right", "negative space on the left", "clear depth layering without clutter"],
+    "series_continuity": "Stay visually aligned with Omniweb's premium inner-page style and cool-toned cinematic palette."
+  },
+  {
+    "id": "templates-showcase",
+    "filename": "templates-showcase.png",
+    "size": "1536x1024",
+    "style_profile": "futuristic_saas",
+    "scene": "Premium website templates showcased across elegant floating screens with polished interface previews, refined layout thumbnails, and crisp structure that feels like a top-tier design system.",
+    "environment": "Modern abstract studio with soft gradients, cool tones, restrained amber accent highlights, and clean background falloff for hero text overlays.",
+    "camera": ["50mm lens", "slight angle for depth", "sharp focus on the leading screen"],
+    "lighting": ["soft key lighting", "subtle edge glow", "realistic screen reflections"],
+    "mood": "Premium, future-facing, polished, aspirational.",
+    "composition": ["main preview screen to the right", "supporting screens stepping back into depth", "open space on the left for website messaging"],
+    "series_continuity": "Keep the same premium Omniweb palette and cinematic clarity used across hero visuals."
+  },
+  {
+    "id": "pricing-growth-dashboard",
+    "filename": "pricing-growth-dashboard.png",
+    "size": "1536x1024",
+    "style_profile": "futuristic_saas",
+    "scene": "Analytics-rich pricing hero with elegant revenue cards, pricing tiers, and growth dashboards presented as premium product design rather than generic charts.",
+    "environment": "Clean futuristic workspace with layered glassmorphism panels, blue and purple tonal range, and subtle amber metric highlights against a low-clutter background.",
+    "camera": ["50mm lens", "eye-level hero framing", "crisp focus on the primary dashboard"],
+    "lighting": ["soft studio illumination", "subtle glow from interface surfaces", "balanced exposure and shadow detail"],
+    "mood": "Confident, premium, financially trustworthy.",
+    "composition": ["main dashboard cluster on the right", "headline-safe empty space on the left", "foreground accent panel for depth"],
+    "series_continuity": "Preserve consistency with the Omniweb hero series: premium, cool-toned, cinematic, and uncluttered."
+  },
+  {
+    "id": "company-innovation-team",
+    "filename": "company-innovation-team.png",
+    "size": "1536x1024",
+    "quality": "high",
+    "style_profile": "futuristic_saas",
+    "scene": "AI product innovation studio with multiple elegant screens, strategic planning surfaces, subtle hardware details, and a believable modern office-lab atmosphere that communicates ambitious product development.",
+    "environment": "Refined modern office scene with cool blue-purple tones, soft glassmorphism-inspired elements, premium furniture silhouettes, and a clean cinematic backdrop suitable for website text overlays.",
+    "camera": ["50mm lens", "eye-level perspective", "moderately shallow depth of field", "high-detail commercial photography rendering"],
+    "lighting": ["soft natural daylight mixed with controlled practical lighting", "realistic directional shadows", "subtle rim lighting on screens and surfaces", "balanced HDR exposure"],
+    "mood": "Innovative, trustworthy, ambitious, world-class.",
+    "composition": ["main subject weight on the right side", "negative space on the left for website copy", "clear layered depth from foreground desk elements to background architecture"],
+    "series_continuity": "Maintain a consistent premium Omniweb visual identity with cool tones, realistic materials, and restrained cinematic glow.",
+    "negative_constraints": ["no people", "no faces", "no hands"]
+  },
+  {
+    "id": "resources-guides-tutorials",
+    "filename": "resources-guides-tutorials.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS resource card visual for guides and tutorials, clean UI layout, layered notebook cards, browser guide panels, glassmorphism overlays, neon blue and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "resources-video-library",
+    "filename": "resources-video-library.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS resource card visual for a video library, clean UI layout, floating video thumbnails on glassmorphism screens, neon purple blue and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "resources-case-studies",
+    "filename": "resources-case-studies.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS resource card visual for case studies, clean UI layout, before-and-after dashboards, polished success metric cards, glassmorphism panels, neon orange and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "resources-blog",
+    "filename": "resources-blog.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS resource card visual for a business blog, clean UI layout, editorial article cards, glowing dashboard screens, glassmorphism panels, neon teal and blue accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "resources-podcast",
+    "filename": "resources-podcast.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS resource card visual for a podcast, clean UI layout, premium studio microphone, waveform panels, glassmorphism audio dashboards, neon pink and violet accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "resources-free-templates",
+    "filename": "resources-free-templates.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS resource card visual for free templates, clean UI layout, stacked website layouts and downloadable assets on floating glass displays, neon emerald and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-commerce-pro",
+    "filename": "template-commerce-pro.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for e-commerce, clean UI layout, glassmorphism storefront panels, premium product cards, neon blue purple accents with warm amber retail highlights, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, professional product render, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-consultant-elite",
+    "filename": "template-consultant-elite.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for consulting, clean UI layout, glassmorphism trust and appointment panels, neon blue and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-portfolio-studio",
+    "filename": "template-portfolio-studio.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for agencies and studios, clean UI layout, immersive case study screens, glassmorphism portfolio panels, neon purple and violet accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-local-pro",
+    "filename": "template-local-pro.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for local contractors, clean UI layout, polished service pages, project gallery cards and quote capture panels, neon teal and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-saas-launch",
+    "filename": "template-saas-launch.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for a SaaS launch page, clean UI layout, glowing product dashboard, pricing panels, feature blocks, glassmorphism cards, neon indigo and magenta accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-restaurant",
+    "filename": "template-restaurant.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for a restaurant, clean UI layout, glassmorphism menu and reservation panels, premium food presentation framing, neon red orange and amber accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-wellness-studio",
+    "filename": "template-wellness-studio.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for wellness and fitness, clean UI layout, glassmorphism booking and membership panels, calm premium composition, neon emerald and teal accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-course-creator",
+    "filename": "template-course-creator.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for online courses, clean UI layout, glassmorphism course grid, instructor profile cards and student portal panels, neon indigo and blue accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "template-agency-growth",
+    "filename": "template-agency-growth.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS website template preview for agency growth, clean UI layout, striking services panels, client proof cards and case study layouts, glassmorphism surfaces, neon violet and fuchsia accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-value-innovation",
+    "filename": "company-value-innovation.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS company value visual for innovation, clean UI layout, futuristic product lab, glowing interface experiments, glassmorphism panels, neon yellow orange accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-value-customer-success",
+    "filename": "company-value-customer-success.png",
+    "size": "1024x1024",
+    "quality": "high",
+    "style": "natural",
+    "prompt": "Modern AI SaaS company value visual for customer success, clean UI layout, glowing support dashboard, onboarding journey cards, relationship metrics, glassmorphism panels, neon pink and rose accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no faces, no hands, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-value-transparency",
+    "filename": "company-value-transparency.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS company value visual for transparency, clean UI layout, clear glass interface layers, secure data panels, neon blue and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-value-simplicity",
+    "filename": "company-value-simplicity.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS company value visual for simplicity, clean minimal UI layout, glowing interface panels, balanced composition, neon purple and violet accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-perk-salary",
+    "filename": "company-perk-salary.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS company perk visual for compensation, clean UI layout, refined financial dashboard and success motif, glassmorphism panels, neon gold and cyan accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-perk-remote",
+    "filename": "company-perk-remote.png",
+    "size": "1024x1024",
+    "quality": "high",
+    "style": "natural",
+    "prompt": "Modern AI SaaS company perk visual for remote work, clean UI layout, elegant global collaboration environment, floating world map, connected workstations, glassmorphism panels, neon blue accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no faces, no hands, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-perk-growth",
+    "filename": "company-perk-growth.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS company perk visual for career growth, clean UI layout, upward progression motif, learning tools, modern dashboards, glassmorphism panels, neon teal and purple accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-perk-benefits",
+    "filename": "company-perk-benefits.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS company perk visual for benefits and wellbeing, clean UI layout, balanced lifestyle cues, calm lounge atmosphere, glassmorphism wellness panels, neon warm amber and pink accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-perk-tools",
+    "filename": "company-perk-tools.png",
+    "size": "1024x1024",
+    "prompt": "Modern AI SaaS company perk visual for tools and hardware, clean UI layout, sleek devices, glowing interfaces, productivity setup, glassmorphism panels, neon electric blue accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no text, no logos, no watermark"
+  },
+  {
+    "id": "company-perk-team",
+    "filename": "company-perk-team.png",
+    "size": "1024x1024",
+    "quality": "high",
+    "style": "natural",
+    "prompt": "Modern AI SaaS company perk visual for team culture, clean UI layout, collaborative studio environment, multiple laptops, glowing product walls, glassmorphism panels, neon cyan and violet accents, soft gradient background, subtle glow effects, 3D depth, cinematic lighting, high contrast, ultra detailed, sharp focus, no people, no faces, no hands, no text, no logos, no watermark"
+  }
+]

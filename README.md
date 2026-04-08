@@ -1,41 +1,43 @@
-# Omniweb Microservices
+# Omniweb Landing App
 
-This repository is now split into three service directories so frontend, backend, and AI logic can evolve independently.
+This Next.js app now acts as the customer-facing frontend for the wider `omniweb-ai-platform` stack.
 
-## Services
+## What is wired
 
-- `frontend/`: Next.js UI, pages, components, and browser-side assistant experience.
-- `backend/`: Node/Express API service for browser-facing routes like chat, assistant actions, Deepgram token issuance, upload, and file serving.
-- `ai/`: FastAPI service for Omniweb-owned assistant reasoning and automation.
+- `Supabase Auth`: Sign-in and dashboard protection use the local `@supabase/ssr` client.
+- `Orchestrator`: Dashboard onboarding and Shopify status now call the FastAPI orchestrator with the authenticated Supabase bearer token.
+- `LiveKit`: `/api/livekit/token` now mints short-lived room tokens for the signed-in merchant when LiveKit env vars are present.
+- `Shopify`: The dashboard surfaces install status and install links from the orchestrator's Shopify flow.
+- `DigitalOcean App Platform`: `.do/app.yaml` now targets a DO-first web deployment instead of the old mixed Vercel/App Platform layout.
 
-## Local Structure
-
-```text
-frontend/  -> Next.js app container
-backend/   -> Node API container
-ai/        -> FastAPI AI container
-```
-
-## Run with Docker
+## Required environment variables
 
 ```bash
-docker compose up --build
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+OMNIWEB_ORCHESTRATOR_URL=http://127.0.0.1:8000
+FASTAPI_ASSISTANT_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_SHOPIFY_APP_URL=http://localhost:8787
+NEXT_PUBLIC_LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+OMNIWEB_PUBLIC_TENANT_SLUG=
+LIVEKIT_AGENT_NAME=
+NEXT_PUBLIC_VOICE_TRANSPORT=livekit
+NEXT_PUBLIC_CDN_ORIGIN=https://cdn.omniweb.ai
 ```
 
-Frontend runs at `http://localhost:3000`.
+## Local development
 
-## Service Notes
+Run this app on `http://localhost:3000`, then run the orchestrator from the sibling `omniweb-ai-platform` repository on `http://localhost:8000`.
 
-- The frontend proxies `/api/*` requests to the backend service via `frontend/next.config.mjs` rewrites.
-- The backend proxies assistant reasoning requests to the AI service.
-- Shared secrets are currently read from the root `.env.local` through `docker-compose.yml`.
+```bash
+pnpm install
+pnpm dev
+```
 
-## Why this split
+Once signed in, open `/dashboard` to provision the tenant record, generate Shopify install links, and test LiveKit token issuance.
 
-This layout reduces cross-impact when changing one layer:
+For the public website voice assistant, set `OMNIWEB_PUBLIC_TENANT_SLUG` to the tenant slug that should own the site assistant, set `LIVEKIT_AGENT_NAME` to the LiveKit Cloud agent dispatch name, and set `NEXT_PUBLIC_VOICE_TRANSPORT=livekit` so the chatbot uses LiveKit instead of the legacy Deepgram websocket path.
 
-- UI and conversation UX changes stay in `frontend/`
-- API and integration changes stay in `backend/`
-- AI logic and automation changes stay in `ai/`
-
-The next step after this structure is to turn shared assistant rules into a dedicated shared config/package so frontend and backend do not duplicate navigation definitions.
+To deploy on DigitalOcean App Platform, use `./.do/app.yaml` in this repo for the website and point its API env vars at `https://api.omniweb.ai`.

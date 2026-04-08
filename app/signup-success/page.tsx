@@ -10,7 +10,7 @@ export default function SignUpSuccessPage() {
           <Mail className="h-8 w-8 text-cyan-400" />
         </div>
         
-        <h1 className="mb-2 text-2xl font-bold">Check your email</h1>
+        <h2 className="mb-2 text-2xl font-bold">Check your email</h2>
         <p className="mb-8 text-muted-foreground">
           We sent a confirmation link to your email address. Please click the link to verify your account.
         </p>

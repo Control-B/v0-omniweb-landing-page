@@ -2,410 +2,286 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
+import { motion, AnimatePresence } from "framer-motion"
 import { Header } from "@/components/header"
 import { BigFooter } from "@/components/big-footer"
+import { AIWidget } from "@/components/ai-widget"
 import { Button } from "@/components/ui/button"
 import {
-  Eye,
-  Zap,
   ArrowRight,
-  Star,
   CheckCircle2,
-  Sparkles,
+  Star,
+  Zap,
+  Palette,
   ShoppingCart,
   Briefcase,
-  Building2,
   Wrench,
-  Cpu,
-  UtensilsCrossed,
-  Heart,
+  Camera,
   GraduationCap,
+  Building2,
 } from "lucide-react"
 
-const categories = [
-  { label: "All", icon: Sparkles },
-  { label: "E-Commerce", icon: ShoppingCart },
-  { label: "Professional Services", icon: Briefcase },
-  { label: "Agencies", icon: Building2 },
-  { label: "Contractors", icon: Wrench },
-  { label: "Technology", icon: Cpu },
-  { label: "Food & Beverage", icon: UtensilsCrossed },
-  { label: "Health & Wellness", icon: Heart },
-  { label: "Education", icon: GraduationCap },
-]
+/* ── Data ──────────────────────────────────────────────────────── */
+
+const categories = ["All", "E-Commerce", "Professional", "Contractor", "Agency", "Education"]
 
 const templates = [
   {
-    name: "Commerce Pro",
+    title: "Commerce Pro",
     category: "E-Commerce",
-    description: "A modern e-commerce template with product showcases, cart, and checkout optimized for conversions.",
-    price: 99,
-    originalPrice: 149,
-    rating: 4.9,
-    reviews: 128,
-    badge: "Best Seller",
-    badgeColor: "bg-yellow-500/20 text-yellow-400",
-    gradient: "from-orange-600/30 via-pink-600/20 to-rose-600/30",
-    tags: ["AI Copy", "SEO Ready", "Mobile First"],
-    features: ["Product catalog", "Cart & checkout", "Review system"],
+    description: "High-converting storefront with AI product recommendations, cart recovery, and integrated checkout.",
+    image: "/images/generated/template-commerce-pro.png",
+    features: ["AI product recommendations", "Cart recovery flows", "Multi-currency support"],
+    accent: "text-orange-400",
+    gradient: "from-orange-500/20 to-pink-500/20",
   },
   {
-    name: "Consultant Elite",
-    category: "Professional Services",
-    description: "Clean and professional template for consultants, advisors, and service-based businesses.",
-    price: 79,
-    originalPrice: 119,
-    rating: 4.8,
-    reviews: 94,
-    badge: "Popular",
-    badgeColor: "bg-blue-500/20 text-blue-400",
-    gradient: "from-blue-600/30 via-cyan-600/20 to-blue-600/30",
-    tags: ["Lead Gen", "Booking", "CRM Ready"],
-    features: ["Booking system", "Lead capture forms", "Testimonials"],
+    title: "Local Pro",
+    category: "Contractor",
+    description: "Lead-generating website for contractors with quote request forms, project galleries, and AI intake.",
+    image: "/images/generated/template-local-pro.png",
+    features: ["Quote request forms", "Project galleries", "Service area targeting"],
+    accent: "text-cyan-400",
+    gradient: "from-cyan-500/20 to-teal-500/20",
   },
   {
-    name: "Portfolio Studio",
-    category: "Agencies",
-    description: "Showcase your creative work with this stunning portfolio template built to win clients.",
-    price: 89,
-    originalPrice: null,
-    rating: 4.7,
-    reviews: 67,
-    badge: "New",
-    badgeColor: "bg-emerald-500/20 text-emerald-400",
-    gradient: "from-purple-600/30 via-violet-600/20 to-purple-600/30",
-    tags: ["Portfolio Grid", "Case Studies", "Contact Form"],
-    features: ["Project showcases", "Team profiles", "Awards section"],
+    title: "Consultant Elite",
+    category: "Professional",
+    description: "Authority-building website for consultants with automated client intake and scheduling.",
+    image: "/images/generated/template-consultant-elite.png",
+    features: ["Client intake automation", "Calendar booking", "Case study showcases"],
+    accent: "text-blue-400",
+    gradient: "from-blue-500/20 to-cyan-500/20",
   },
   {
-    name: "Local Pro",
-    category: "Contractors",
-    description: "Perfect for local service businesses with quote forms, project galleries, and Google Reviews.",
-    price: 69,
-    originalPrice: 99,
-    rating: 4.9,
-    reviews: 213,
-    badge: "Top Rated",
-    badgeColor: "bg-cyan-500/20 text-cyan-400",
-    gradient: "from-cyan-600/30 via-teal-600/20 to-cyan-600/30",
-    tags: ["Quote Forms", "Map Integration", "Reviews"],
-    features: ["Service areas", "Quote requests", "Project gallery"],
+    title: "Portfolio Studio",
+    category: "Agency",
+    description: "Stunning portfolio with dynamic case studies, team showcases, and AI-powered project inquiry.",
+    image: "/images/generated/template-portfolio-studio.png",
+    features: ["Dynamic case studies", "Team profiles", "Project inquiry AI"],
+    accent: "text-purple-400",
+    gradient: "from-purple-500/20 to-violet-500/20",
   },
   {
-    name: "SaaS Launch",
-    category: "Technology",
-    description: "Launch your SaaS product with this conversion-optimized template featuring pricing tables.",
-    price: 119,
-    originalPrice: 169,
-    rating: 4.8,
-    reviews: 52,
-    badge: "Premium",
-    badgeColor: "bg-purple-500/20 text-purple-400",
-    gradient: "from-indigo-600/30 via-purple-600/20 to-pink-600/30",
-    tags: ["Pricing Tables", "Feature Showcase", "Waitlist"],
-    features: ["Pricing tables", "Feature grid", "FAQ section"],
-  },
-  {
-    name: "Restaurant",
-    category: "Food & Beverage",
-    description: "Menu displays, online reservations, and ordering all in one stunning restaurant template.",
-    price: 79,
-    originalPrice: null,
-    rating: 4.6,
-    reviews: 41,
-    badge: null,
-    badgeColor: "",
-    gradient: "from-red-600/30 via-orange-600/20 to-yellow-600/30",
-    tags: ["Menu Display", "Reservations", "Online Orders"],
-    features: ["Menu builder", "Table reservations", "Photo gallery"],
-  },
-  {
-    name: "Wellness Studio",
-    category: "Health & Wellness",
-    description: "Calming, beautiful design for yoga studios, fitness coaches, spas, and wellness brands.",
-    price: 79,
-    originalPrice: 109,
-    rating: 4.7,
-    reviews: 38,
-    badge: "New",
-    badgeColor: "bg-emerald-500/20 text-emerald-400",
-    gradient: "from-emerald-600/30 via-teal-600/20 to-green-600/30",
-    tags: ["Class Booking", "Memberships", "Blog"],
-    features: ["Class schedule", "Membership tiers", "Instructor profiles"],
-  },
-  {
-    name: "Course Creator",
+    title: "Course Creator",
     category: "Education",
-    description: "Sell courses, share knowledge, and grow your student base with this educator-first template.",
-    price: 89,
-    originalPrice: 129,
-    rating: 4.5,
-    reviews: 29,
-    badge: null,
-    badgeColor: "",
-    gradient: "from-blue-600/30 via-indigo-600/20 to-violet-600/30",
-    tags: ["Course Grid", "Enrollment", "Testimonials"],
-    features: ["Course listings", "Student portal", "Progress tracking"],
+    description: "Online education platform with course catalogs, enrollment flows, and student engagement AI.",
+    image: "/images/generated/template-course-creator.png",
+    features: ["Course catalogs", "Enrollment automation", "Student engagement AI"],
+    accent: "text-emerald-400",
+    gradient: "from-emerald-500/20 to-green-500/20",
   },
   {
-    name: "Agency Growth",
-    category: "Agencies",
-    description: "Built for marketing and design agencies looking to impress prospects and close more deals.",
-    price: 99,
-    originalPrice: 139,
-    rating: 4.8,
-    reviews: 76,
-    badge: "Popular",
-    badgeColor: "bg-blue-500/20 text-blue-400",
-    gradient: "from-violet-600/30 via-purple-600/20 to-fuchsia-600/30",
-    tags: ["Case Studies", "Client Logos", "Services Grid"],
-    features: ["Services grid", "Client logos", "Process timeline"],
+    title: "Agency Growth",
+    category: "Agency",
+    description: "Growth-focused agency site with lead magnets, automated proposal generation, and pipeline tracking.",
+    image: "/images/generated/template-agency-growth.png",
+    features: ["Lead magnets", "Proposal generation", "Pipeline tracking"],
+    accent: "text-violet-400",
+    gradient: "from-violet-500/20 to-purple-500/20",
   },
 ]
 
-const features = [
-  "AI-generated copy included",
-  "Mobile-first responsive design",
-  "SEO optimized out of the box",
-  "Instant deployment to production",
-  "Unlimited customizations",
-  "Lifetime updates included",
+const processSteps = [
+  { step: "01", title: "Choose a Template", description: "Browse industry-specific templates pre-configured with AI assistants, layouts, and conversion flows." },
+  { step: "02", title: "Customize with AI", description: "Our AI generates copy, adjusts design, and configures workflows based on your business details." },
+  { step: "03", title: "Launch in Minutes", description: "One-click deploy with hosting, SSL, and AI assistants already connected and ready to convert." },
 ]
 
 export default function TemplatesPage() {
-  const [activeCategory, setActiveCategory] = useState("All")
+  const [activeFilter, setActiveFilter] = useState("All")
 
-  const filtered = activeCategory === "All"
-    ? templates
-    : templates.filter((t) => t.category === activeCategory)
+  const filtered = activeFilter === "All" ? templates : templates.filter((t) => t.category === activeFilter)
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#050a12]">
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#06091A]">
+      <div className="pointer-events-none absolute inset-0 kling-canvas" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.24] kling-grid-overlay" />
       <Header />
-      <main className="flex-1 pt-16">
+      <main className="relative flex-1 pt-16">
 
-        {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <section id="templates-overview" className="relative overflow-hidden border-b border-white/10">
-          {/* BG — landing-page style: dark + gradient glow */}
-          <div className="absolute inset-0">
-            <div className="absolute left-1/2 top-0 h-[500px] w-[1000px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[120px]" />
-            <div className="absolute bottom-0 left-0 h-[300px] w-[500px] rounded-full bg-purple-600/10 blur-[100px]" />
-            <div className="absolute bottom-0 right-0 h-[300px] w-[500px] rounded-full bg-cyan-600/10 blur-[100px]" />
-            {/* Subtle mesh */}
-            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)", backgroundSize: "80px 80px" }} />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#050a12]" />
-          </div>
-
-          <div className="relative z-10 mx-auto max-w-6xl px-4 py-24 text-center lg:px-8 lg:py-32">
-            {/* Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-sm font-medium text-yellow-400" style={{ animation: "fadeInUp 0.7s ease both" }}>
-              <Sparkles className="h-3.5 w-3.5" />
-              Professionally Designed Templates
-            </div>
-
-            {/* Headline — Landing page style */}
-            <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight sm:text-6xl lg:text-7xl" style={{ animation: "fadeInUp 0.7s 0.1s ease both" }}>
-              <span className="bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent">Launch Faster with a</span>
-              <br />
-              <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-pink-400 bg-clip-text text-transparent">Beautiful Template</span>
-            </h1>
-
-            <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-white/60 sm:text-xl" style={{ animation: "fadeInUp 0.7s 0.2s ease both" }}>
-              Every template is AI-optimized, mobile-first, and ready to deploy in minutes.
-              Pick your industry, customize your brand, go live today.
-            </p>
-
-            {/* Feature pills */}
-            <div className="mb-12 flex flex-wrap items-center justify-center gap-3" style={{ animation: "fadeInUp 0.7s 0.3s ease both" }}>
-              {features.map((f) => (
-                <span key={f} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-white/60">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-cyan-400" />{f}
-                </span>
-              ))}
-            </div>
-
-            {/* Stats */}
-            <div className="flex flex-wrap items-center justify-center gap-10 text-center" style={{ animation: "fadeInUp 0.7s 0.4s ease both" }}>
-              <div><div className="text-3xl font-bold text-white">50+</div><div className="text-sm text-white/40">Templates</div></div>
-              <div className="h-8 w-px bg-white/10 hidden sm:block" />
-              <div><div className="text-3xl font-bold text-white">4.8★</div><div className="text-sm text-white/40">Avg Rating</div></div>
-              <div className="h-8 w-px bg-white/10 hidden sm:block" />
-              <div><div className="text-3xl font-bold text-white">738</div><div className="text-sm text-white/40">Happy Customers</div></div>
-            </div>
+        {/* ── Hero ─────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden border-b border-white/10 px-6 py-32 lg:py-40">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(59,130,246,0.12),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_0%,rgba(168,85,247,0.08),transparent_50%)]" />
+          <div className="relative z-10 mx-auto max-w-5xl text-center">
+            <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="site-eyebrow mb-6">
+              <span className="text-white">OMNIWEB</span> &nbsp;|&nbsp; <span className="opacity-80">TEMPLATES</span>
+            </motion.p>
+            <motion.h2 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="text-4xl font-bold tracking-tight lg:text-6xl bg-gradient-to-r from-violet-400 to-purple-500 bg-clip-text text-transparent">
+              INDUSTRY-READY TEMPLATES WITH AI BUILT IN
+            </motion.h2>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/60">
+              Start with a conversion-optimized template pre-configured for your industry. Every template includes AI voice, chat, and lead automation from day one.
+            </motion.p>
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Button size="lg" asChild className="h-12 rounded-full bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-500">
+                <Link href="#template-gallery">Browse Templates <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="h-12 rounded-full border-white/20 bg-transparent px-8 text-sm font-semibold text-white hover:bg-white/10">
+                <Link href="/get-started">Start Free Setup</Link>
+              </Button>
+            </motion.div>
           </div>
         </section>
 
-        {/* ── Category Filter ────────────────────────────────────────── */}
-        <section id="categories" className="sticky top-16 z-30 border-b border-white/10 bg-[#050a12]/90 px-4 py-4 backdrop-blur-xl lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {/* ── Template Gallery ────────────────────────────────────── */}
+        <section id="template-gallery" className="bg-[#050811] px-4 py-24 lg:px-8">
+          <div className="mx-auto max-w-[1400px]">
+            <div className="mb-16 text-center">
+              <h2 className="mb-4 text-2xl font-bold tracking-widest text-white uppercase lg:text-3xl">TEMPLATE GALLERY</h2>
+              <p className="mx-auto max-w-xl text-[14px] text-slate-400">Every template is a complete revenue system — not just a design file.</p>
+            </div>
+            <div className="mb-10 flex flex-wrap justify-center gap-3">
               {categories.map((cat) => (
                 <button
-                  key={cat.label}
-                  onClick={() => setActiveCategory(cat.label)}
-                  className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                    activeCategory === cat.label
-                      ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-black shadow-lg"
-                      : "border border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:text-white"
-                  }`}
+                  key={cat}
+                  onClick={() => setActiveFilter(cat)}
+                  className={`relative rounded-full px-5 py-2.5 text-sm font-medium transition-all ${activeFilter === cat ? "text-white" : "border border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10 hover:text-white"}`}
                 >
-                  <cat.icon className="h-3.5 w-3.5" />
-                  {cat.label}
+                  {activeFilter === cat && (
+                    <motion.div layoutId="activeFilterBadge" className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-blue-500/20" initial={false} transition={{ type: "spring", stiffness: 380, damping: 30 }} />
+                  )}
+                  <span className="relative z-10">{cat}</span>
                 </button>
               ))}
             </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeFilter}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+              >
+                {filtered.map((template, i) => (
+                  <motion.div
+                    key={template.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className={`group kling-panel-strong overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br ${template.gradient} transition-all hover:border-white/20`}
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <Image src={template.image} alt={template.title} fill sizes="(min-width: 1024px) 30vw, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/90 via-transparent to-[#050a12]/20" />
+                      <div className="absolute bottom-4 left-4">
+                        <span className={`text-xs font-semibold uppercase tracking-wider ${template.accent}`}>{template.category}</span>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="mb-2 text-lg font-bold text-white">{template.title}</h3>
+                      <p className="mb-4 text-sm leading-relaxed text-white/50">{template.description}</p>
+                      <ul className="mb-6 space-y-2">
+                        {template.features.map((feat) => (
+                          <li key={feat} className="flex items-center gap-2 text-xs text-white/60">
+                            <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${template.accent}`} />{feat}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex gap-3">
+                        <Button size="sm" asChild className="flex-1 rounded-lg bg-white/10 text-xs text-white hover:bg-white/20">
+                          <Link href="/get-started">Use Template</Link>
+                        </Button>
+                        <Button size="sm" variant="outline" className="rounded-lg border-white/10 text-xs text-white/60 hover:bg-white/5 hover:text-white">
+                          Preview
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </section>
 
-        {/* ── Templates Grid ─────────────────────────────────────────── */}
-        <section id="template-grid" className="px-4 py-16 lg:px-8">
+        {/* ─── What's Included — image right ─── */}
+        <section className="px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-6xl">
-            <div className="mb-6 flex items-center justify-between">
-              <p className="text-sm text-white/40">Showing <span className="font-semibold text-white">{filtered.length}</span> templates</p>
-              <select className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/60 focus:outline-none focus:ring-1 focus:ring-cyan-500">
-                <option>Sort: Most Popular</option>
-                <option>Sort: Newest</option>
-                <option>Sort: Price: Low to High</option>
-                <option>Sort: Highest Rated</option>
-              </select>
-            </div>
-
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((template) => (
-                <div key={template.name} className="group flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] transition-all hover:border-white/20 hover:shadow-2xl hover:shadow-black/50">
-                  {/* Preview */}
-                  <div className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${template.gradient}`}>
-                    {/* Mock browser */}
-                    <div className="m-3 overflow-hidden rounded-xl border border-white/10 bg-[#050a12]/90">
-                      <div className="flex items-center gap-1.5 border-b border-white/10 px-3 py-2">
-                        <span className="h-2 w-2 rounded-full bg-red-500/60" />
-                        <span className="h-2 w-2 rounded-full bg-yellow-500/60" />
-                        <span className="h-2 w-2 rounded-full bg-green-500/60" />
-                        <div className="ml-2 h-2 flex-1 rounded-full bg-white/10" />
-                      </div>
-                      <div className="p-3">
-                        <div className={`mb-2 h-16 rounded-lg bg-gradient-to-br ${template.gradient} opacity-60`} />
-                        <div className="space-y-1.5">
-                          <div className="h-2 w-3/4 rounded bg-white/10" />
-                          <div className="h-2 w-1/2 rounded bg-white/10" />
-                          <div className="mt-2 h-5 w-20 rounded-md bg-white/10" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Badge */}
-                    {template.badge && (
-                      <span className={`absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-semibold ${template.badgeColor}`}>
-                        {template.badge}
-                      </span>
-                    )}
-
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/70 opacity-0 transition-all group-hover:opacity-100 backdrop-blur-sm">
-                      <Button size="sm" variant="outline" asChild className="border-white/30 bg-black/40 hover:bg-white/10">
-                        <Link href={`/templates/preview/${template.name.toLowerCase().replace(/\s+/g, "-")}`}>
-                          <Eye className="mr-1.5 h-4 w-4" />Preview
-                        </Link>
-                      </Button>
-                      <Button size="sm" asChild className="bg-gradient-to-r from-yellow-500 to-orange-500 font-semibold text-black hover:from-yellow-600 hover:to-orange-600">
-                        <Link href={`/get-started?template=${template.name.toLowerCase().replace(/\s+/g, "-")}`}>
-                          <Zap className="mr-1.5 h-4 w-4" />Use This
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="mb-3 flex items-start justify-between gap-2">
-                      <div>
-                        <span className="mb-1 block text-xs font-medium text-cyan-400">{template.category}</span>
-                        <h3 className="text-lg font-semibold">{template.name}</h3>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xl font-bold text-white">${template.price}</div>
-                        {template.originalPrice && (
-                          <div className="text-sm text-white/30 line-through">${template.originalPrice}</div>
-                        )}
-                      </div>
-                    </div>
-
-                    <p className="mb-4 flex-1 text-sm leading-relaxed text-white/50">{template.description}</p>
-
-                    {/* Tags */}
-                    <div className="mb-4 flex flex-wrap gap-1.5">
-                      {template.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-white/5 px-2.5 py-1 text-xs text-white/40">{tag}</span>
-                      ))}
-                    </div>
-
-                    {/* Rating */}
-                    <div className="flex items-center justify-between border-t border-white/10 pt-4">
-                      <div className="flex items-center gap-1.5">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-semibold text-white">{template.rating}</span>
-                        <span className="text-xs text-white/30">({template.reviews} reviews)</span>
-                      </div>
-                      <Button size="sm" asChild className="bg-gradient-to-r from-yellow-500 to-orange-500 text-sm font-semibold text-black hover:from-yellow-600 hover:to-orange-600">
-                        <Link href={`/get-started?template=${template.name.toLowerCase().replace(/\s+/g, "-")}`}>
-                          Get Template
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
+            <div className="grid items-start gap-16 lg:grid-cols-2">
+              <div>
+                <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">What&apos;s Included</p>
+                <h2 className="mb-6 text-3xl font-bold lg:text-4xl">Every Template Is a Complete Revenue System</h2>
+                <div className="space-y-5 text-white/60 leading-relaxed">
+                  <p>These aren&apos;t just design files. Every Omniweb template ships with AI voice agents, chat assistants, lead qualification flows, CRM integrations, and conversion-optimized layouts — all pre-configured for your industry.</p>
+                  <p>Choose a template, answer a few questions about your business, and the AI customizes everything — from headlines and CTAs to qualification scripts and follow-up sequences.</p>
+                  <p>You launch with a website that&apos;s already tuned to convert, already connected to your tools, and already answering leads 24/7.</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Custom Template CTA ────────────────────────────────────── */}
-        <section id="custom-design" className="px-4 pb-20 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-yellow-600/10 via-orange-600/5 to-pink-600/10 p-8 lg:p-12">
-              <div className="absolute -left-10 -top-10 h-64 w-64 rounded-full bg-yellow-600/15 blur-[80px]" />
-              <div className="absolute -bottom-10 -right-10 h-64 w-64 rounded-full bg-orange-600/15 blur-[80px]" />
-              <div className="relative z-10 grid items-center gap-8 lg:grid-cols-2">
-                <div>
-                  <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-yellow-400">Bespoke Design</p>
-                  <h2 className="mb-4 text-3xl font-bold lg:text-4xl">Need Something Completely Custom?</h2>
-                  <p className="mb-6 text-lg leading-relaxed text-white/60">
-                    Our design team will build a template that is 100% unique to your brand — from color palette to layout to copy.
-                  </p>
-                  <ul className="space-y-2">
-                    {["Dedicated designer assigned to your project", "3 revision rounds included", "Delivered in 5 business days", "Source files included"].map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-white/70">
-                        <CheckCircle2 className="h-4 w-4 text-yellow-400" />{f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="flex flex-col gap-4">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                    <div className="mb-3 text-2xl font-bold">Custom Design</div>
-                    <div className="mb-1 text-4xl font-bold text-yellow-400">$499</div>
-                    <div className="mb-6 text-sm text-white/40">one-time payment</div>
-                    <Button size="lg" asChild className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 font-semibold text-black hover:from-yellow-600 hover:to-orange-600">
-                      <Link href="/get-started?plan=custom">Start Custom Order <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                    </Button>
+              </div>
+              <div>
+                <div className="kling-panel-strong overflow-hidden rounded-[2rem]">
+                  <div className="relative aspect-[16/10]">
+                    <Image src="/images/website-templates.jpg" alt="Website templates showcase" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/85 via-transparent to-[#050a12]/20" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* ── How It Works ───────────────────────────────────────── */}
+        <section className="bg-[#050811] px-4 py-24 lg:px-8 text-center text-white">
+          <div className="mx-auto max-w-[1200px]">
+            <div className="mb-20">
+              <h2 className="text-2xl font-bold tracking-widest uppercase lg:text-3xl">HOW IT WORKS</h2>
+            </div>
+            <div className="grid gap-12 lg:grid-cols-3">
+              {processSteps.map((step, i) => (
+                <motion.div
+                  key={step.step}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: i * 0.15 }}
+                  className="flex flex-col items-center"
+                >
+                  <div className="relative mb-8 flex h-40 w-[80%] items-center justify-center overflow-hidden rounded-xl border border-[#1e293b]/50 bg-[#0A0F2A]">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.15),transparent_60%)]" />
+                    <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#3b82f6] to-[#0ea5e9] shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                      <span className="text-3xl font-extrabold text-white">{i + 1}</span>
+                    </div>
+                  </div>
+                  <h3 className="mb-3 text-[17px] font-bold text-white tracking-wide">{step.title}</h3>
+                  <p className="text-[14px] leading-relaxed text-slate-400 max-w-[85%]">{step.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── AI Widget CTA ──────────────────────────────────────── */}
+        <section className="border-t border-white/10 bg-white/[0.02] px-4 py-20 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            <AIWidget title="Not sure which template fits?" description="Describe your business and the AI will recommend the best template, customization options, and launch plan." />
+          </div>
+        </section>
+
+        {/* ── Final CTA ──────────────────────────────────────────── */}
+        <section className="bg-[#050811] px-4 py-24 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="mx-auto max-w-[1000px] text-center"
+          >
+            <div className="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-r from-[#211d51] via-[#10234a] to-[#0e3b52] px-8 py-16 shadow-2xl border border-white/5">
+              <div className="relative z-10">
+                <h2 className="mb-4 text-[26px] font-bold uppercase tracking-wider text-white lg:text-[32px]">READY TO LAUNCH YOUR AI-POWERED WEBSITE?</h2>
+                <p className="mb-10 text-[15px] text-white/80">Pick a template, customize with AI, and go live in minutes.</p>
+                <Button size="lg" asChild className="h-12 rounded-lg bg-[#3b82f6] px-8 text-[13px] font-bold uppercase tracking-wider text-white hover:bg-[#2563eb]">
+                  <Link href="/get-started">START FOR FREE <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+
       </main>
-
       <BigFooter />
-
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
     </div>
   )
 }

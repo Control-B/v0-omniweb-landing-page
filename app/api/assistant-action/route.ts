@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { buildAssistantFallback } from "@/lib/assistant-navigation"
+import { getOrchestratorBaseUrl } from "@/lib/platform/config"
 
 export const runtime = "nodejs"
 
 export async function POST(req: NextRequest) {
-  const assistantBaseUrl = process.env.FASTAPI_ASSISTANT_URL ?? "http://127.0.0.1:8000"
+  const assistantBaseUrl = getOrchestratorBaseUrl()
   const body = await req.json().catch(() => ({}))
 
   try {

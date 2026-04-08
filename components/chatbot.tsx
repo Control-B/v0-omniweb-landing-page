@@ -8,6 +8,8 @@ import {
   normalizeIntentText,
   type AssistantAction,
 } from "@/lib/assistant-navigation"
+import { ASSISTANT_OPEN_EVENT, type AssistantOpenMode } from "@/lib/assistant-events"
+import { FloatingAIAssistantButton } from "@/components/floating-ai-assistant-button"
 import {
   Mic,
   MicOff,
@@ -1357,6 +1359,30 @@ export function Chatbot() {
     window.sessionStorage.setItem(CHATBOT_UI_STORAGE_KEY, JSON.stringify({ isOpen, mode }))
   }, [isOpen, mode])
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    const handleAssistantOpen = (event: Event) => {
+      const customEvent = event as CustomEvent<{ mode?: AssistantOpenMode }>
+      const nextMode = customEvent.detail?.mode ?? "select"
+
+      setIsOpen(true)
+
+      if (nextMode === "voice" || nextMode === "text") {
+        pauseSiteMedia(nextMode)
+        setMode(nextMode)
+        return
+      }
+
+      setMode("select")
+    }
+
+    window.addEventListener(ASSISTANT_OPEN_EVENT, handleAssistantOpen)
+    return () => window.removeEventListener(ASSISTANT_OPEN_EVENT, handleAssistantOpen)
+  }, [])
+
   const handleClose = () => { setIsOpen(false); setMode("select") }
   const handleSelectMode = (nextMode: "voice" | "text") => {
     pauseSiteMedia(nextMode)
@@ -1429,20 +1455,7 @@ export function Chatbot() {
       )}
 
       {/* FAB */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 shadow-lg shadow-purple-500/30 transition-all hover:scale-105 active:scale-95"
-        aria-label="Open AI assistant"
-      >
-        {isOpen ? (
-          <X className="h-6 w-6 text-white" />
-        ) : (
-          <div className="relative">
-            <Bot className="h-6 w-6 text-white" />
-            <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-purple-600 bg-cyan-400 animate-pulse" />
-          </div>
-        )}
-      </button>
+      <FloatingAIAssistantButton isOpen={isOpen} onClick={() => setIsOpen(!isOpen)} />
     </>
   )
 }

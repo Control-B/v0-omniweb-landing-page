@@ -33,7 +33,7 @@ export default function AdminPage() {
             Back to Site
           </Button>
         </Link>
-        <h1 className="text-lg font-semibold text-foreground">Video Upload</h1>
+        <h2 className="text-lg font-semibold text-foreground">Video Upload</h2>
       </header>
 
       {/* Main content */}

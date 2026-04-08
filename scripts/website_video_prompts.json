@@ -1,0 +1,23 @@
+[
+  {
+    "id": "solutions-hero-1",
+    "filename": "solutions-hero-1.mp4",
+    "seconds": 4,
+    "size": "1280x720",
+    "prompt": "Cinematic AI web design building animation. Dark mode dashboard, deep navy blue background, glowing neon blue lines automatically drawing a wireframe website. Sleek glassmorphism sections sliding into place, 3D tilt effect, hyperrealistic render, no text, no logos."
+  },
+  {
+    "id": "solutions-hero-2",
+    "filename": "solutions-hero-2.mp4",
+    "seconds": 4,
+    "size": "1280x720",
+    "prompt": "Abstract representation of AI writing code. A dark screen with glowing streams of data turning into interactive web components, buttons popping out from the void, fluid particle effects, ultra-high definition, cinematic lighting, modern interface, no text."
+  },
+  {
+    "id": "solutions-hero-3",
+    "filename": "solutions-hero-3.mp4",
+    "seconds": 4,
+    "size": "1280x720",
+    "prompt": "Fast paced showcase of a web interface assembling itself using AI. Floating dark mode cards with neon purple and cyan accents locking into a grid, smooth physics-based animation, professional SaaS layout, glossy reflections, volumetric lighting, no text, hyper-detailed."
+  }
+]

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Header } from "@/components/header"
 import { BigFooter } from "@/components/big-footer"
 import { Button } from "@/components/ui/button"
@@ -18,9 +19,6 @@ import {
   Users,
   Briefcase,
   Globe,
-  Linkedin,
-  Twitter,
-  Award,
   Rocket,
   TrendingUp,
   CheckCircle2,
@@ -55,20 +53,12 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
 }
 
 const values = [
-  { icon: Lightbulb, title: "Innovation First", description: "We push the boundaries of what's possible with AI and web technology to deliver cutting-edge solutions that never existed before.", color: "from-yellow-500/20 to-orange-500/20", accent: "text-yellow-400" },
-  { icon: Heart, title: "Customer Success", description: "Your success is our success. We measure every decision by the real results our customers achieve with their websites.", color: "from-pink-500/20 to-rose-500/20", accent: "text-pink-400" },
-  { icon: Shield, title: "Radical Transparency", description: "No hidden fees, no surprises. We are upfront about our pricing, processes, timelines, and limitations.", color: "from-blue-500/20 to-cyan-500/20", accent: "text-blue-400" },
-  { icon: Target, title: "Simplicity", description: "Powerful technology should feel simple. We obsess over removing friction from every interaction our customers have.", color: "from-purple-500/20 to-violet-500/20", accent: "text-purple-400" },
+  { icon: Lightbulb, title: "Innovation First", description: "We push the boundaries of what's possible with AI and web technology to deliver cutting-edge solutions that never existed before.", color: "from-yellow-500/20 to-orange-500/20", accent: "text-yellow-400", image: "/images/generated/company-value-innovation.png" },
+  { icon: Heart, title: "Customer Success", description: "Your success is our success. We measure every decision by the real results our customers achieve with their websites.", color: "from-pink-500/20 to-rose-500/20", accent: "text-pink-400", image: "/images/generated/company-value-customer-success.png" },
+  { icon: Shield, title: "Radical Transparency", description: "No hidden fees, no surprises. We are upfront about our pricing, processes, timelines, and limitations.", color: "from-blue-500/20 to-cyan-500/20", accent: "text-blue-400", image: "/images/generated/company-value-transparency.png" },
+  { icon: Target, title: "Simplicity", description: "Powerful technology should feel simple. We obsess over removing friction from every interaction our customers have.", color: "from-purple-500/20 to-violet-500/20", accent: "text-purple-400", image: "/images/generated/company-value-simplicity.png" },
 ]
 
-const team = [
-  { name: "Alex Chen", role: "CEO & Co-Founder", bio: "Former tech lead at a Fortune 500 with 15 years in AI and web. Obsessed with building products that make businesses unstoppable.", twitter: "#", linkedin: "#", gradient: "from-blue-500/30 to-cyan-500/30" },
-  { name: "Sarah Mitchell", role: "CTO & Co-Founder", bio: "PhD in Machine Learning with a passion for making AI accessible to every business, not just the big players.", twitter: "#", linkedin: "#", gradient: "from-purple-500/30 to-violet-500/30" },
-  { name: "Marcus Johnson", role: "Head of Design", bio: "Award-winning designer with 12 years crafting conversion-optimized experiences for global brands.", twitter: "#", linkedin: "#", gradient: "from-cyan-500/30 to-teal-500/30" },
-  { name: "Emily Rodriguez", role: "Head of Customer Success", bio: "Built and scaled CS teams at 3 startups. Dedicated to ensuring every Omniweb customer achieves their goals.", twitter: "#", linkedin: "#", gradient: "from-orange-500/30 to-pink-500/30" },
-  { name: "David Park", role: "Head of Engineering", bio: "Previously at Stripe and Vercel. Leads our platform engineering team with a focus on reliability and speed.", twitter: "#", linkedin: "#", gradient: "from-emerald-500/30 to-green-500/30" },
-  { name: "Aisha Osei", role: "Head of Marketing", bio: "Growth marketer who scaled two B2B SaaS companies from zero to $10M ARR. Now doing the same for Omniweb.", twitter: "#", linkedin: "#", gradient: "from-yellow-500/30 to-orange-500/30" },
-]
 
 const stats = [
   { value: 5000, suffix: "+", label: "Websites Built" },
@@ -95,29 +85,87 @@ const openRoles = [
 ]
 
 const perks = [
-  { icon: DollarSign, title: "Competitive Salary", description: "Top-of-market pay with equity for every employee." },
-  { icon: Globe, title: "Remote First", description: "Work from anywhere in the world. Seriously." },
-  { icon: TrendingUp, title: "Career Growth", description: "Clear paths for advancement and a $2K learning budget." },
-  { icon: Coffee, title: "Great Benefits", description: "Full health, dental, vision + unlimited PTO policy." },
-  { icon: Zap, title: "Latest Tools", description: "$1K/year for hardware and software of your choosing." },
-  { icon: Users, title: "Amazing Team", description: "Work with some of the brightest minds in AI and web." },
+  { icon: DollarSign, title: "Competitive Salary", description: "Top-of-market pay with equity for every employee.", image: "/images/generated/company-perk-salary.png" },
+  { icon: Globe, title: "Remote First", description: "Work from anywhere in the world. Seriously.", image: "/images/generated/company-perk-remote.png" },
+  { icon: TrendingUp, title: "Career Growth", description: "Clear paths for advancement and a $2K learning budget.", image: "/images/generated/company-perk-growth.png" },
+  { icon: Coffee, title: "Great Benefits", description: "Full health, dental, vision + unlimited PTO policy.", image: "/images/generated/company-perk-benefits.png" },
+  { icon: Zap, title: "Latest Tools", description: "$1K/year for hardware and software of your choosing.", image: "/images/generated/company-perk-tools.png" },
+  { icon: Users, title: "Amazing Team", description: "Work with some of the brightest minds in AI and web.", image: "/images/generated/company-perk-team.png" },
 ]
 
-const pressItems = [
-  { outlet: "TechCrunch", quote: "Omniweb is redefining what it means to have an AI-powered online presence.", date: "Jan 2026" },
-  { outlet: "Forbes", quote: "One of the 25 most exciting AI startups to watch in 2026.", date: "Feb 2026" },
-  { outlet: "Product Hunt", quote: "#1 Product of the Day — transforming how businesses build their web presence.", date: "Mar 2026" },
-]
+
+const YOUTUBE_ORIGIN = "https://www.youtube-nocookie.com"
 
 export default function CompanyPage() {
   const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", message: "" })
   const [isMuted, setIsMuted] = useState(true)
   const [isPlaying, setIsPlaying] = useState(true)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  const postPlayerMessage = (payload: Record<string, unknown>) => {
+    iframeRef.current?.contentWindow?.postMessage(JSON.stringify(payload), YOUTUBE_ORIGIN)
+  }
+
+  const syncPlayerState = () => {
+    postPlayerMessage({ event: "listening" })
+    postPlayerMessage({
+      event: "command",
+      func: isMuted ? "mute" : "unMute",
+      args: [],
+    })
+    postPlayerMessage({
+      event: "command",
+      func: isPlaying ? "playVideo" : "pauseVideo",
+      args: [],
+    })
+  }
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== YOUTUBE_ORIGIN && event.origin !== "https://www.youtube.com") return
+      
+      try {
+        const data = JSON.parse(event.data)
+        
+        // YouTube API infoDelivery sends playerState changes
+        // playerState 0 = ended
+        if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) {
+          postPlayerMessage({ event: "command", func: "seekTo", args: [0, true] })
+          postPlayerMessage({ event: "command", func: "playVideo", args: [] })
+        }
+      } catch (e) {
+        // Ignore unparseable messages
+      }
+    }
+
+    window.addEventListener("message", handleMessage)
+
+    return () => window.removeEventListener("message", handleMessage)
+  }, [])
+
+  // Control YouTube via the postMessage API instead of remounting the iframe key
+  useEffect(() => {
+    postPlayerMessage({
+      event: "command",
+      func: isPlaying ? "playVideo" : "pauseVideo",
+      args: [],
+    })
+  }, [isPlaying])
+
+  useEffect(() => {
+    postPlayerMessage({
+      event: "command",
+      func: isMuted ? "mute" : "unMute",
+      args: [],
+    })
+  }, [isMuted])
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#050a12]">
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#050a12]">
+      <div className="pointer-events-none absolute inset-0 kling-canvas" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.24] kling-grid-overlay" />
       <Header />
-      <main className="flex-1 pt-16">
+      <main className="relative flex-1 pt-16">
 
         {/* ── Hero (Landing-page style) ──────────────────────────────── */}
         <section className="relative overflow-hidden border-b border-white/10">
@@ -136,14 +184,14 @@ export default function CompanyPage() {
                   <Building className="h-3.5 w-3.5" />
                   About Omniweb
                 </div>
-                <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight lg:text-7xl" style={{ animation: "fadeInUp 0.7s 0.1s ease both" }}>
-                  <span className="bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent">Building the</span>
+                <h2 className="site-h2 mb-6" style={{ animation: "fadeInUp 0.7s 0.1s ease both" }}>
+                  <span className="site-display-tone-dark">Building the</span>
                   <br />
-                  <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">Future of the Web</span>
-                </h1>
-                <p className="mb-8 max-w-xl text-lg leading-relaxed text-white/60" style={{ animation: "fadeInUp 0.7s 0.2s ease both" }}>
+                  <span className="site-display-accent">Future of the Web</span>
+                </h2>
+                <h3 className="site-h3 mb-8 max-w-xl" style={{ animation: "fadeInUp 0.7s 0.2s ease both" }}>
                   Omniweb is on a mission to democratize AI-powered web experiences. We help businesses of all sizes — from solo contractors to enterprise brands — create websites that truly work for them.
-                </p>
+                </h3>
                 <div className="flex flex-col items-start gap-4 sm:flex-row" style={{ animation: "fadeInUp 0.7s 0.3s ease both" }}>
                   <Button size="lg" asChild className="h-14 bg-gradient-to-r from-blue-600 to-purple-600 px-8 text-base font-semibold hover:from-blue-700 hover:to-purple-700">
                     <Link href="/get-started">Start Building Free <ArrowRight className="ml-2 h-5 w-5" /></Link>
@@ -157,11 +205,12 @@ export default function CompanyPage() {
               {/* Video + Stats */}
               <div className="relative flex flex-col gap-4" style={{ animation: "fadeInUp 0.7s 0.3s ease both" }}>
                 {/* Video embed */}
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black" style={{ aspectRatio: "16/9" }}>
+                <div className="kling-panel-strong relative overflow-hidden rounded-2xl" style={{ aspectRatio: "16/9" }}>
                   <div className="absolute -bottom-[15%] -top-[10%] left-0 right-0">
                     <iframe
-                      key={`${isMuted}-${isPlaying}`}
-                      src={`https://www.youtube-nocookie.com/embed/Dz2_7Em3VXo?autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=Dz2_7Em3VXo&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en`}
+                      ref={iframeRef}
+                      onLoad={syncPlayerState}
+                      src={`https://www.youtube-nocookie.com/embed/Dz2_7Em3VXo?enablejsapi=1&autoplay=1&mute=1&loop=0&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en`}
                       title="Omniweb Demo Video"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       className="pointer-events-none h-full w-full scale-110"
@@ -189,7 +238,7 @@ export default function CompanyPage() {
                 {/* Stats strip below video */}
                 <div className="grid grid-cols-4 gap-3">
                   {stats.map((stat) => (
-                    <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 py-3 text-center">
+                    <div key={stat.label} className="kling-stat-card rounded-xl py-3 text-center">
                       <div className="text-xl font-bold text-white leading-none mb-1">
                         <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                       </div>
@@ -218,8 +267,21 @@ export default function CompanyPage() {
                 </div>
               </div>
 
-              {/* Milestone Timeline */}
               <div>
+                <div className="kling-panel-strong mb-8 overflow-hidden rounded-[2rem]">
+                  <div className="relative aspect-[16/10]">
+                    <Image
+                      src="/images/generated/company-innovation-team.png"
+                      alt="Omniweb team innovation visual"
+                      fill
+                      sizes="(min-width: 1024px) 40vw, 100vw"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/85 via-transparent to-[#050a12]/20" />
+                  </div>
+                </div>
+
+                {/* Milestone Timeline */}
                 <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">Key Milestones</p>
                 <h2 className="mb-6 text-3xl font-bold lg:text-4xl">How We Got Here</h2>
                 <div className="relative space-y-6">
@@ -244,12 +306,12 @@ export default function CompanyPage() {
         {/* ── Mission ────────────────────────────────────────────────── */}
         <section className="border-y border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-cyan-600/20 px-8 py-16">
+            <div className="kling-panel-strong relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-cyan-600/20 px-8 py-16">
               <div className="absolute -left-16 -top-16 h-64 w-64 rounded-full bg-blue-600/20 blur-[80px]" />
               <div className="absolute -bottom-16 -right-16 h-64 w-64 rounded-full bg-purple-600/20 blur-[80px]" />
               <div className="relative z-10">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/20">
-                  <Rocket className="h-8 w-8 text-cyan-400" />
+                <div className="site-icon-chip mx-auto mb-6 flex h-16 w-16">
+                  <Rocket className="h-8 w-8 site-icon-accent" />
                 </div>
                 <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-cyan-400">Our Mission</p>
                 <h2 className="mb-6 text-3xl font-bold lg:text-5xl">Democratize AI-Powered Websites for Every Business on Earth</h2>
@@ -271,9 +333,10 @@ export default function CompanyPage() {
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {values.map((value) => (
-                <div key={value.title} className={`group rounded-2xl border border-white/10 bg-gradient-to-br ${value.color} p-6 transition-all hover:border-white/20`}>
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/10">
-                    <value.icon className={`h-6 w-6 ${value.accent}`} />
+                <div key={value.title} className={`kling-panel group rounded-2xl bg-gradient-to-br ${value.color} p-6 transition-all hover:border-white/20`}>
+                  <div className="relative mb-5 aspect-[5/4] overflow-hidden rounded-2xl border border-white/10 bg-black/25">
+                    <Image src={value.image} alt={value.title} fill sizes="(min-width: 1024px) 20vw, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.03]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/85 via-transparent to-[#050a12]/20" />
                   </div>
                   <h3 className="mb-3 text-lg font-semibold">{value.title}</h3>
                   <p className="text-sm leading-relaxed text-white/55">{value.description}</p>
@@ -283,62 +346,6 @@ export default function CompanyPage() {
           </div>
         </section>
 
-        {/* ── Team ───────────────────────────────────────────────────── */}
-        <section className="border-t border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-16 text-center">
-              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">The People</p>
-              <h2 className="mb-4 text-3xl font-bold lg:text-4xl">Meet the Team</h2>
-              <p className="mx-auto max-w-xl text-white/50">We are a group of builders, designers, and growth experts who love what we do.</p>
-            </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {team.map((member) => (
-                <div key={member.name} className="group flex flex-col rounded-2xl border border-white/10 bg-white/5 p-6 transition-all hover:border-white/20">
-                  <div className="mb-4 flex items-start justify-between">
-                    <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${member.gradient} text-xl font-bold text-white`}>
-                      {member.name.split(" ").map((n) => n[0]).join("")}
-                    </div>
-                    <div className="flex gap-2">
-                      <a href={member.twitter} className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/30 transition-colors hover:border-white/30 hover:text-white">
-                        <Twitter className="h-3.5 w-3.5" />
-                      </a>
-                      <a href={member.linkedin} className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/30 transition-colors hover:border-white/30 hover:text-white">
-                        <Linkedin className="h-3.5 w-3.5" />
-                      </a>
-                    </div>
-                  </div>
-                  <h3 className="mb-1 font-semibold">{member.name}</h3>
-                  <p className="mb-3 text-sm text-cyan-400">{member.role}</p>
-                  <p className="flex-1 text-sm leading-relaxed text-white/50">{member.bio}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Press ──────────────────────────────────────────────────── */}
-        <section className="border-t border-white/10 px-4 py-24 lg:px-8">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-16 text-center">
-              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">As Seen In</p>
-              <h2 className="text-3xl font-bold lg:text-4xl">In the Press</h2>
-            </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {pressItems.map((item) => (
-                <div key={item.outlet} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10">
-                      <Award className="h-5 w-5 text-yellow-400" />
-                    </div>
-                    <span className="text-xs text-white/30">{item.date}</span>
-                  </div>
-                  <p className="mb-4 text-sm leading-relaxed italic text-white/60">&ldquo;{item.quote}&rdquo;</p>
-                  <p className="font-semibold text-white">{item.outlet}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* ── Careers ────────────────────────────────────────────────── */}
         <section id="careers" className="border-t border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
@@ -352,8 +359,11 @@ export default function CompanyPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   {perks.map((perk) => (
-                    <div key={perk.title} className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <perk.icon className="mb-2 h-5 w-5 text-cyan-400" />
+                    <div key={perk.title} className="kling-panel rounded-xl p-4">
+                      <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-black/25">
+                        <Image src={perk.image} alt={perk.title} fill sizes="(min-width: 1024px) 20vw, 100vw" className="object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/85 via-transparent to-[#050a12]/20" />
+                      </div>
                       <div className="mb-1 text-sm font-semibold">{perk.title}</div>
                       <div className="text-xs leading-relaxed text-white/40">{perk.description}</div>
                     </div>
@@ -365,16 +375,16 @@ export default function CompanyPage() {
                 <p className="mb-6 text-sm font-semibold uppercase tracking-widest text-white/40">Open Positions ({openRoles.length})</p>
                 <div className="space-y-3">
                   {openRoles.map((role) => (
-                    <div key={role.title} className="group flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
+                    <div key={role.title} className="kling-panel group flex items-center justify-between rounded-xl p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
                       <div>
                         <div className="font-medium">{role.title}</div>
                         <div className="flex items-center gap-3 text-xs text-white/40">
-                          <span className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{role.department}</span>
-                          <span className="flex items-center gap-1"><Globe className="h-3 w-3" />{role.location}</span>
-                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{role.type}</span>
+                          <span className="flex items-center gap-1"><Briefcase className="site-icon-accent h-3 w-3" />{role.department}</span>
+                          <span className="flex items-center gap-1"><Globe className="site-icon-accent h-3 w-3" />{role.location}</span>
+                          <span className="flex items-center gap-1"><Clock className="site-icon-accent h-3 w-3" />{role.type}</span>
                         </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-white/30 transition-all group-hover:translate-x-1 group-hover:text-cyan-400" />
+                      <ChevronRight className="site-icon-accent h-4 w-4 transition-all group-hover:translate-x-1" />
                     </div>
                   ))}
                 </div>
@@ -399,27 +409,27 @@ export default function CompanyPage() {
               <div>
                 <h3 className="mb-8 text-xl font-semibold">Contact Information</h3>
                 <div className="mb-8 space-y-5">
-                  <a href="mailto:support@omniweb.ai" className="group flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/20">
-                      <Mail className="h-5 w-5 text-cyan-400" />
+                  <a href="mailto:support@omniweb.ai" className="kling-panel group flex items-center gap-4 rounded-xl p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
+                    <div className="site-icon-chip flex h-10 w-10 rounded-lg">
+                      <Mail className="h-5 w-5" />
                     </div>
                     <div>
                       <div className="text-xs text-white/40">Email</div>
                       <div className="font-medium transition-colors group-hover:text-cyan-400">support@omniweb.ai</div>
                     </div>
                   </a>
-                  <a href="tel:+1234567890" className="group flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/20">
-                      <Phone className="h-5 w-5 text-cyan-400" />
+                  <a href="tel:+1234567890" className="kling-panel group flex items-center gap-4 rounded-xl p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
+                    <div className="site-icon-chip flex h-10 w-10 rounded-lg">
+                      <Phone className="h-5 w-5" />
                     </div>
                     <div>
                       <div className="text-xs text-white/40">Phone</div>
                       <div className="font-medium transition-colors group-hover:text-cyan-400">+1 (234) 567-890</div>
                     </div>
                   </a>
-                  <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/20">
-                      <MapPin className="h-5 w-5 text-cyan-400" />
+                  <div className="kling-panel flex items-center gap-4 rounded-xl p-4">
+                    <div className="site-icon-chip flex h-10 w-10 rounded-lg">
+                      <MapPin className="h-5 w-5" />
                     </div>
                     <div>
                       <div className="text-xs text-white/40">Headquarters</div>
@@ -438,8 +448,8 @@ export default function CompanyPage() {
                       { label: "Investors", href: "#" },
                       { label: "Developer API", href: "#" },
                     ].map((link) => (
-                      <a key={link.label} href={link.href} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white/60 transition-colors hover:border-white/20 hover:text-white">
-                        <ChevronRight className="h-3.5 w-3.5" />{link.label}
+                      <a key={link.label} href={link.href} className="kling-panel flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm text-white/60 transition-colors hover:border-white/20 hover:text-white">
+                        <ChevronRight className="site-icon-accent h-3.5 w-3.5" />{link.label}
                       </a>
                     ))}
                   </div>
@@ -497,7 +507,7 @@ export default function CompanyPage() {
         {/* ── Final CTA ──────────────────────────────────────────────── */}
         <section className="border-t border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-cyan-600/20 px-8 py-16">
+            <div className="kling-panel-strong relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-cyan-600/20 px-8 py-16">
               <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-blue-600/20 blur-[80px]" />
               <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-purple-600/20 blur-[80px]" />
               <div className="relative z-10">
@@ -512,9 +522,9 @@ export default function CompanyPage() {
                   </Button>
                 </div>
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-white/40">
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-cyan-400" />Free 14-day trial</span>
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-cyan-400" />No credit card needed</span>
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-cyan-400" />Cancel anytime</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="site-icon-accent h-4 w-4" />Free 14-day trial</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="site-icon-accent h-4 w-4" />No credit card needed</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="site-icon-accent h-4 w-4" />Cancel anytime</span>
                 </div>
               </div>
             </div>

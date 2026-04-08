@@ -45,7 +45,7 @@ export function BigFooter() {
             href="mailto:support@omniweb.ai"
             className="inline-flex items-center gap-2 text-sm text-white/70 transition-colors hover:text-white"
           >
-            <Mail className="h-4 w-4" />
+            <Mail className="site-icon-accent h-4 w-4" />
             support@omniweb.ai
           </a>
           <div className="flex items-center gap-3">
@@ -56,7 +56,7 @@ export function BigFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.label}
-                className="rounded-full border border-white/10 p-2 text-white/60 transition-colors hover:border-white/30 hover:text-white"
+                className="site-social-icon rounded-full p-2"
               >
                 <social.icon className="h-4 w-4" />
               </a>

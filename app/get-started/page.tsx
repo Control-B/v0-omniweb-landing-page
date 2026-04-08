@@ -81,9 +81,11 @@ export default function GetStartedPage() {
   }
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="relative flex min-h-dvh overflow-hidden bg-[#050a12] text-white">
+      <div className="pointer-events-none absolute inset-0 kling-canvas" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.28] kling-grid-overlay" />
       {/* Left Side - Benefits */}
-      <div className="hidden w-1/2 flex-col justify-between bg-gradient-to-br from-cyan-500/10 to-purple-500/10 p-12 lg:flex">
+      <div className="relative hidden w-1/2 flex-col justify-between border-r border-white/10 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 p-12 lg:flex">
         <div>
           <Link href="/" className="text-2xl font-bold">
             Omniweb
@@ -100,8 +102,8 @@ export default function GetStartedPage() {
           <ul className="space-y-4">
             {benefits.map((benefit) => (
               <li key={benefit} className="flex items-center gap-3">
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-cyan-500/20">
-                  <Check className="h-4 w-4 text-cyan-400" />
+                <div className="site-icon-chip flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+                  <Check className="h-4 w-4" />
                 </div>
                 <span className="text-muted-foreground">{benefit}</span>
               </li>
@@ -114,8 +116,8 @@ export default function GetStartedPage() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex flex-1 items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
+      <div className="relative flex flex-1 items-center justify-center px-4 py-12">
+        <div className="kling-panel-strong w-full max-w-md rounded-[2rem] p-8 sm:p-10">
           {/* Mobile Logo */}
           <div className="mb-8 text-center lg:hidden">
             <Link href="/" className="inline-block text-2xl font-bold">
@@ -123,7 +125,7 @@ export default function GetStartedPage() {
             </Link>
           </div>
 
-          <h1 className="mb-2 text-2xl font-bold">Create your account</h1>
+          <h2 className="mb-2 text-2xl font-bold">Create your account</h2>
           <p className="mb-8 text-sm text-muted-foreground">
             Get started with your 14-day free trial
           </p>

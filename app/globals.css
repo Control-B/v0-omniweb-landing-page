@@ -75,8 +75,9 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: var(--font-geist), 'Geist', 'Geist Fallback';
+  --font-mono: var(--font-geist-mono), 'Geist Mono', 'Geist Mono Fallback';
+  --font-heading: var(--font-roboto-condensed), 'Roboto Condensed', var(--font-oswald), 'Oswald', 'Arial Narrow', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -124,6 +125,172 @@
   }
 }
 
+@layer utilities {
+  .site-eyebrow {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.24em;
+    color: rgb(34 211 238 / 1);
+  }
+
+  .site-h1 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+    text-wrap: balance;
+    background-image: linear-gradient(135deg, #ffffff 0%, #22d3ee 30%, #3b82f6 58%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 10px 30px rgba(59, 130, 246, 0.35));
+    font-size: clamp(3.2rem, 2.35rem + 2.9vw, 6.4rem);
+  }
+
+  .site-h2 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    text-wrap: balance;
+    background-image: linear-gradient(135deg, #ffffff 0%, #22d3ee 30%, #3b82f6 58%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.3));
+    font-size: clamp(1.85rem, 1.5rem + 1.5vw, 3.4rem);
+  }
+
+  .site-h3 {
+    font-family: var(--font-heading);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    text-wrap: balance;
+    background-image: linear-gradient(135deg, #ffffff 0%, #22d3ee 30%, #3b82f6 58%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.25));
+    font-size: clamp(1.28rem, 1.12rem + 0.46vw, 1.75rem);
+  }
+
+  .site-display-title,
+  .site-hero-title,
+  .site-page-title,
+  .site-section-title,
+  .site-display-tone-dark,
+  .site-display-tone-light,
+  .site-display-accent {
+    font-family: var(--font-heading);
+  }
+
+  .site-display-title,
+  .site-hero-title,
+  .site-page-title,
+  .site-section-title,
+  .site-display-tone-dark,
+  .site-display-tone-light,
+  .site-display-accent {
+    background-image: linear-gradient(135deg, #ffffff 0%, #22d3ee 30%, #3b82f6 58%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .site-display-title,
+  .site-hero-title,
+  .site-page-title,
+  .site-section-title {
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 0.92;
+    text-wrap: balance;
+    filter: drop-shadow(0 10px 30px rgba(8, 47, 73, 0.28));
+    font-size: clamp(3.2rem, 2.35rem + 2.9vw, 6.4rem);
+  }
+
+  .site-subheading {
+    font-family: var(--font-heading);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    text-wrap: balance;
+    background-image: linear-gradient(135deg, #ffffff 0%, #22d3ee 30%, #3b82f6 58%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 8px 24px rgba(59, 130, 246, 0.25));
+    font-size: clamp(1.28rem, 1.12rem + 0.46vw, 1.75rem);
+  }
+
+  .site-section-shell {
+    padding-inline: 1rem;
+    padding-block: 5rem;
+  }
+
+  .site-section-shell-tight {
+    padding-inline: 1rem;
+    padding-block: 4rem;
+  }
+
+  .site-section-shell-wide {
+    padding-inline: 1rem;
+    padding-block: 6rem;
+  }
+
+  .site-shell {
+    margin-inline: auto;
+    max-width: 72rem;
+  }
+
+  .site-shell-narrow {
+    margin-inline: auto;
+    max-width: 64rem;
+  }
+
+  .site-shell-wide {
+    margin-inline: auto;
+    max-width: 88rem;
+  }
+
+  .site-section-copy {
+    color: rgb(226 232 240 / 0.92);
+    font-size: clamp(0.98rem, 0.94rem + 0.18vw, 1.08rem);
+    line-height: 1.8;
+    text-wrap: pretty;
+  }
+
+  @media (min-width: 1024px) {
+    .site-section-shell,
+    .site-section-shell-tight,
+    .site-section-shell-wide {
+      padding-inline: 2rem;
+    }
+
+    .site-section-shell {
+      padding-block: 6rem;
+    }
+
+    .site-section-shell-tight {
+      padding-block: 5rem;
+    }
+
+    .site-section-shell-wide {
+      padding-block: 7rem;
+    }
+  }
+
+  .site-copy-on-dark {
+    color: rgb(203 213 225 / 0.82);
+  }
+
+  .site-copy-on-light {
+    color: rgb(51 65 85 / 0.86);
+  }
+}
+
 /* Marquee animation */
 @keyframes marquee {
   0% {
@@ -135,5 +302,5 @@
 }
 
 .animate-marquee {
-  animation: marquee 30s linear infinite;
+  animation: marquee 20s linear infinite;
 }

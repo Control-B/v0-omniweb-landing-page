@@ -7,19 +7,13 @@ from typing import Literal
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env.local")
 load_dotenv(BASE_DIR.parent / ".env.local")
 
-# Import the multi-tenant AI system
-from app.main import create_app
-
-# Create the integrated app with multi-tenant capabilities
-app = create_app()
-
-# Keep existing legacy endpoints for backward compatibility
-from pydantic import BaseModel, Field
+app = FastAPI(title="Omniweb Assistant API", version="0.1.0")
 
 
 class ChatMessage(BaseModel):

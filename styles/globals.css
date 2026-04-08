@@ -123,3 +123,130 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .site-icon-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(168, 85, 247, 0.16), rgba(236, 72, 153, 0.18));
+    color: rgb(191 219 254);
+    box-shadow: 0 14px 34px rgba(59, 130, 246, 0.14);
+  }
+
+  .site-icon-chip-warm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    border: 1px solid rgba(251, 146, 60, 0.2);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.18), rgba(236, 72, 153, 0.16), rgba(168, 85, 247, 0.18));
+    color: rgb(254 215 170);
+    box-shadow: 0 14px 34px rgba(249, 115, 22, 0.14);
+  }
+
+  .site-icon-chip-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(34, 211, 238, 0.16), rgba(59, 130, 246, 0.18));
+    color: rgb(167 243 208);
+    box-shadow: 0 14px 34px rgba(16, 185, 129, 0.14);
+  }
+
+  .site-icon-chip-gold {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    border: 1px solid rgba(250, 204, 21, 0.2);
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.18), rgba(249, 115, 22, 0.16), rgba(236, 72, 153, 0.18));
+    color: rgb(254 240 138);
+    box-shadow: 0 14px 34px rgba(234, 179, 8, 0.14);
+  }
+
+  .site-icon-accent {
+    color: rgb(147 197 253);
+  }
+
+  .site-icon-accent-warm {
+    color: rgb(253 186 116);
+  }
+
+  .site-icon-accent-success {
+    color: rgb(110 231 183);
+  }
+
+  .site-social-icon {
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(168, 85, 247, 0.12), rgba(236, 72, 153, 0.14));
+    color: rgb(191 219 254);
+    box-shadow: 0 10px 26px rgba(59, 130, 246, 0.12);
+    transition: border-color 150ms ease, color 150ms ease, transform 150ms ease;
+  }
+
+  .site-social-icon:hover {
+    border-color: rgba(192, 132, 252, 0.3);
+    color: rgb(255 255 255);
+    transform: translateY(-1px);
+  }
+
+  .kling-canvas {
+    background:
+      radial-gradient(circle at 14% 12%, rgba(59, 130, 246, 0.18), transparent 22%),
+      radial-gradient(circle at 86% 16%, rgba(168, 85, 247, 0.18), transparent 24%),
+      radial-gradient(circle at 50% 72%, rgba(34, 211, 238, 0.12), transparent 28%),
+      linear-gradient(180deg, #04070d 0%, #050a12 40%, #07111d 100%);
+  }
+
+  .kling-grid-overlay {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 92%);
+  }
+
+  .kling-panel {
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    background: linear-gradient(180deg, rgba(9, 15, 28, 0.88), rgba(7, 12, 22, 0.76));
+    box-shadow:
+      0 30px 90px rgba(0, 0, 0, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .kling-panel-strong {
+    border: 1px solid rgba(96, 165, 250, 0.16);
+    background:
+      linear-gradient(180deg, rgba(8, 13, 25, 0.94), rgba(5, 10, 18, 0.88)),
+      linear-gradient(135deg, rgba(59, 130, 246, 0.06), rgba(168, 85, 247, 0.04));
+    box-shadow:
+      0 36px 120px rgba(0, 0, 0, 0.42),
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+  }
+
+  .kling-pill {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .kling-stat-card {
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    background: linear-gradient(180deg, rgba(10, 16, 28, 0.82), rgba(7, 12, 22, 0.7));
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+}
