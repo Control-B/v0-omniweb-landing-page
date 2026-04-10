@@ -41,6 +41,7 @@ export function Footer({ variant = "default" }: FooterProps) {
             </a>
             <Link href="/terms" className="transition hover:text-white">Terms of Use</Link>
             <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
+            <Link href="/sms-consent" className="transition hover:text-white">SMS Consent</Link>
           </div>
 
           <div className="flex items-center gap-2">
@@ -108,6 +109,7 @@ export function Footer({ variant = "default" }: FooterProps) {
           <div className="flex flex-wrap gap-4 text-sm text-white/45 lg:justify-end">
             <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
             <Link href="/terms" className="transition hover:text-white">Terms</Link>
+            <Link href="/sms-consent" className="transition hover:text-white">SMS Consent</Link>
           </div>
         </div>
       </div>
