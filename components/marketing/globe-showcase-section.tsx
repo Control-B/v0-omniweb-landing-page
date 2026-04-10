@@ -50,16 +50,16 @@ export function GlobeShowcaseSection() {
       <div className="pointer-events-none absolute inset-0 z-[3] bg-[radial-gradient(circle_at_50%_38%,rgba(34,211,238,0.12),transparent_22%),radial-gradient(circle_at_70%_30%,rgba(139,92,246,0.12),transparent_24%),radial-gradient(circle_at_35%_72%,rgba(16,185,129,0.1),transparent_20%)]" />
 
       {/* ── Desktop: two-row layout — copy on top, cards below ── */}
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-6 py-14 lg:px-8 lg:pt-10 lg:pb-6">
-        {/* Copy — sits in normal flow so it never overlaps cards */}
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center px-6 py-14 lg:px-8 lg:pt-14 lg:pb-6">
+        {/* Copy — centered at top */}
         <motion.div
           style={{ y: copyY }}
-          className="max-w-2xl text-left"
+          className="w-full max-w-3xl text-center"
         >
           <div className="site-eyebrow inline-flex items-center rounded-full border border-cyan-300/35 bg-cyan-400/12 px-4 py-1.5 text-cyan-200 backdrop-blur-md shadow-[0_18px_60px_rgba(34,211,238,0.18)]">
             Revenue Orbit
           </div>
-          <h2 className="site-h2 mt-4 max-w-3xl text-3xl lg:text-4xl">
+          <h2 className="site-h2 mt-4 text-3xl lg:text-4xl">
             Put AI specialists around every customer conversation.
           </h2>
         </motion.div>
