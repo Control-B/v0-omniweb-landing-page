@@ -48,6 +48,7 @@ export function PageHeroWithVideo({
   const [isMuted, setIsMuted] = useState(true)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [localVideoFailed, setLocalVideoFailed] = useState(false)
+  const [isLargeDesktop, setIsLargeDesktop] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const activeLocalVideo = localVideos?.[currentVideoIndex]
@@ -149,6 +150,20 @@ export function PageHeroWithVideo({
     }
   }, [hasWorkingLocalVideo])
 
+  useEffect(() => {
+    if (size !== "large") return
+
+    const mediaQuery = window.matchMedia("(min-width: 1024px)")
+    const handleChange = (event: MediaQueryListEvent | MediaQueryList) => {
+      setIsLargeDesktop(event.matches)
+    }
+
+    handleChange(mediaQuery)
+    mediaQuery.addEventListener("change", handleChange)
+
+    return () => mediaQuery.removeEventListener("change", handleChange)
+  }, [size])
+
   const handleVideoEnded = () => {
     if (localVideos && localVideos.length > 1) {
       setCurrentVideoIndex((prev) => (prev + 1) % localVideos.length)
@@ -157,40 +172,56 @@ export function PageHeroWithVideo({
     }
   }
 
+  const renderVideoMedia = ({
+    className,
+    objectClassName,
+    isBackground = false,
+  }: {
+    className?: string
+    objectClassName?: string
+    isBackground?: boolean
+  }) => {
+    if (hasWorkingLocalVideo) {
+      return (
+        <video
+          ref={videoRef}
+          key={activeLocalVideo}
+          autoPlay
+          muted={isMuted}
+          playsInline
+          loop
+          preload="auto"
+          onEnded={handleVideoEnded}
+          onError={() => setLocalVideoFailed(true)}
+          className={cn(className, objectClassName)}
+        >
+          <source src={activeLocalVideo} type="video/mp4" />
+        </video>
+      )
+    }
+
+    return (
+      <iframe
+        ref={iframeRef}
+        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en&enablejsapi=1`}
+        title={videoTitle}
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        className={cn(className, objectClassName, !isBackground && "pointer-events-none")}
+        style={isBackground ? { position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" } : undefined}
+      />
+    )
+  }
+
   return (
     <section id={id} className={cn(
       "relative overflow-hidden border-b border-white/10 bg-[#050a12]",
       size === "large" && "min-h-dvh"
     )}>
       {/* ─── FULL-SCREEN VIDEO BACKGROUND (large hero only) ─── */}
-      {size === "large" && (
-        <div className="absolute inset-0 z-0 flex items-center justify-center bg-[#050a12]">
-          {hasWorkingLocalVideo ? (
-            <video
-              ref={videoRef}
-              key={activeLocalVideo}
-              autoPlay
-              muted={isMuted}
-              playsInline
-              loop
-              preload="auto"
-              onEnded={handleVideoEnded}
-              onError={() => setLocalVideoFailed(true)}
-              className="h-full w-full scale-[0.94] object-contain"
-            >
-              <source src={activeLocalVideo} type="video/mp4" />
-            </video>
-          ) : (
-            <iframe
-              ref={iframeRef}
-              src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en&enablejsapi=1`}
-              title={videoTitle}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              className="pointer-events-none h-full w-full scale-[1.01] object-cover"
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-            />
-          )}
+      {size === "large" && isLargeDesktop && (
+        <div className="absolute inset-0 z-0 hidden items-center justify-center bg-[#050a12] lg:flex">
+          {renderVideoMedia({ className: "h-full w-full", objectClassName: "scale-[0.94] object-contain", isBackground: true })}
           {/* Light overlays — just enough for text legibility without dimming the video */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/60 via-transparent to-transparent" />
@@ -221,7 +252,7 @@ export function PageHeroWithVideo({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
-          className="absolute right-4 top-20 z-20 lg:right-8 lg:top-24"
+          className="absolute right-4 top-4 z-30 hidden lg:right-8 lg:top-24 lg:block"
         >
           <button
             onClick={() => void toggleMute()}
@@ -237,17 +268,40 @@ export function PageHeroWithVideo({
         className={cn(
           "relative z-10",
           size === "large"
-            ? "flex min-h-dvh flex-col justify-end px-6 pb-12 pt-32 lg:px-12 lg:pb-16"
+            ? "flex min-h-dvh flex-col px-6 pb-12 pt-24 lg:justify-end lg:px-12 lg:pb-16 lg:pt-32"
             : "mx-auto grid max-w-7xl gap-12 px-4 py-14 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center lg:px-8 lg:py-20"
         )}
       >
+        {size === "large" && !isLargeDesktop && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.55, ease: "easeOut" }}
+            className="relative mb-8 lg:hidden"
+          >
+            <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#04070d] shadow-2xl shadow-black/35 aspect-video">
+              {renderVideoMedia({ className: "h-full w-full", objectClassName: "object-cover" })}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/30 via-transparent to-black/10" />
+
+              <button
+                onClick={() => void toggleMute()}
+                className="absolute right-3 top-3 z-20 inline-flex h-9 items-center gap-2 rounded-full border border-white/20 bg-black/55 px-3.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90 backdrop-blur-md transition hover:bg-black/70"
+                aria-label={isMuted ? "Play narrator with sound" : "Mute narrator"}
+              >
+                {isMuted ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+                {isMuted ? "Play with sound" : "Mute narrator"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         <div className={cn(size === "large" ? "max-w-2xl" : "max-w-3xl")}>
           {size !== "large" && (
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className={cn("site-eyebrow", size === "large" ? "mb-3 text-[11px] tracking-[0.2em]" : "mb-5")}
+              className="site-eyebrow mb-5"
             >
               {eyebrow}
             </motion.p>
@@ -258,7 +312,7 @@ export function PageHeroWithVideo({
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15, duration: 0.6, ease: "easeOut" }}
-              className={cn("site-h2", size === "large" && "text-[clamp(1.5rem,1.2rem+1.2vw,2.6rem)]")}
+              className="site-h2"
             >
               {title}
             </motion.h2>
@@ -385,7 +439,7 @@ export function PageHeroWithVideo({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2, duration: 0.5 }}
-            className="fixed bottom-6 right-6 z-50 flex gap-2"
+            className="fixed bottom-6 right-6 z-50 hidden gap-2 lg:flex"
           >
             <button
               onClick={() => setIsPlaying((value) => !value)}

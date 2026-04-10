@@ -100,7 +100,7 @@ export function SolutionHeroBlock({
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-            className={reversed ? "lg:order-2 lg:text-left" : ""}
+            className={`order-2 ${reversed ? "lg:order-2 lg:text-left" : "lg:order-1"}`}
             style={{ direction: "ltr" }}
           >
             <div className={`mb-5 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium ${a.badge}`}>
@@ -138,7 +138,7 @@ export function SolutionHeroBlock({
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
-            className={`relative flex flex-col gap-5 ${reversed ? "lg:order-1" : ""}`}
+            className={`order-1 relative flex flex-col gap-5 ${reversed ? "lg:order-1" : "lg:order-2"}`}
             style={{ direction: "ltr" }}
           >
             {/* Video container */}
