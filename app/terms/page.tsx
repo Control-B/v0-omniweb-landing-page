@@ -1,4 +1,4 @@
-import { BigFooter } from "@/components/big-footer"
+import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 
 const sections = [
@@ -175,7 +175,7 @@ export default function TermsPage() {
           </div>
         </section>
       </main>
-      <BigFooter />
+      <Footer />
     </div>
   )
 }

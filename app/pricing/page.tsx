@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Header } from "@/components/header"
-import { BigFooter } from "@/components/big-footer"
+import { Footer } from "@/components/footer"
 import { AIWidget } from "@/components/ai-widget"
 import { PricingCard } from "@/components/pricing-card"
 import { Button } from "@/components/ui/button"
@@ -299,7 +299,7 @@ export default function PricingPage() {
         </section>
 
       </main>
-      <BigFooter />
+      <Footer />
     </div>
   )
 }

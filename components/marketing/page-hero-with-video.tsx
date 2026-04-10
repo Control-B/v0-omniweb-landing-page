@@ -269,7 +269,7 @@ export function PageHeroWithVideo({
           "relative z-10",
           size === "large"
             ? "flex min-h-dvh flex-col px-6 pb-12 pt-24 lg:justify-end lg:px-12 lg:pb-16 lg:pt-32"
-            : "mx-auto grid max-w-7xl gap-12 px-4 py-14 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center lg:px-8 lg:py-20"
+            : "mx-auto grid max-w-7xl gap-12 px-4 py-14 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center lg:px-8 lg:py-20 overflow-hidden"
         )}
       >
         {size === "large" && !isLargeDesktop && (
@@ -374,15 +374,15 @@ export function PageHeroWithVideo({
             initial={{ opacity: 0, y: 32, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.7, ease: "easeOut" }}
-            className="relative"
+            className="relative w-full min-w-0"
           >
             <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-cyan-500/15 via-blue-500/10 to-purple-500/15 blur-3xl" />
-            <div className="kling-panel-strong relative overflow-hidden rounded-[2rem]">
+            <div className="kling-panel-strong relative w-full overflow-hidden rounded-[2rem]">
               <div className="flex items-center justify-between border-b border-white/10 px-5 py-3 text-xs uppercase tracking-[0.25em] text-white/35">
                 <span>{videoTitle}</span>
                 <span>{videoSlotLabel ?? "Replace with page-specific explainer"}</span>
               </div>
-              <div className="relative overflow-hidden bg-[#04070d] aspect-video">
+              <div className="relative w-full overflow-hidden bg-[#04070d] aspect-video max-h-[56vw] sm:max-h-none">
                 {hasWorkingLocalVideo ? (
                   <video
                     ref={videoRef}

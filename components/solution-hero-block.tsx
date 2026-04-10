@@ -138,11 +138,11 @@ export function SolutionHeroBlock({
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-80px" }}
             transition={{ duration: 0.6, delay: 0.15, ease: [0.25, 0.1, 0.25, 1] }}
-            className={`order-1 relative flex flex-col gap-5 ${reversed ? "lg:order-1" : "lg:order-2"}`}
+            className={`order-1 relative flex w-full min-w-0 flex-col gap-5 ${reversed ? "lg:order-1" : "lg:order-2"}`}
             style={{ direction: "ltr" }}
           >
             {/* Video container */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-2xl shadow-black/30" style={{ aspectRatio: "16/9" }}>
+            <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-2xl shadow-black/30" style={{ aspectRatio: "16/9" }}>
               {videos.length > 0 ? (
                 videos.map((src, i) => (
                   <video

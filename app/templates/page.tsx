@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { Header } from "@/components/header"
-import { BigFooter } from "@/components/big-footer"
+import { Footer } from "@/components/footer"
 import { AIWidget } from "@/components/ai-widget"
 import { Button } from "@/components/ui/button"
 import {
@@ -281,7 +281,7 @@ export default function TemplatesPage() {
         </section>
 
       </main>
-      <BigFooter />
+      <Footer />
     </div>
   )
 }

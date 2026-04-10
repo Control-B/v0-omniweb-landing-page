@@ -257,7 +257,7 @@ export default function FeaturesPage() {
               { src: "/media/e-commerce store.mp4", label: "E-Commerce" },
               { src: "/media/Beautiful lady store.mp4", label: "Beauty & Fashion" },
             ].map((v, i) => (
-              <div key={`mv-${i}`} className="relative flex-shrink-0 overflow-hidden rounded-2xl border border-white/10" style={{ width: "540px", height: "440px" }}>
+              <div key={`mv-${i}`} className="relative w-[min(540px,80vw)] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10" style={{ aspectRatio: "540/440" }}>
                 <video src={v.src} muted autoPlay loop playsInline preload="auto" className="h-full w-full object-cover" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6">
                   <span className="text-xs font-semibold tracking-wide text-white/90">{v.label}</span>

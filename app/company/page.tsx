@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Header } from "@/components/header"
-import { BigFooter } from "@/components/big-footer"
+import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -567,7 +567,7 @@ export default function CompanyPage() {
         </section>
       </main>
 
-      <BigFooter />
+      <Footer />
 
       <style>{`
         @keyframes fadeInUp {

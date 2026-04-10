@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { Header } from "@/components/header"
-import { BigFooter } from "@/components/big-footer"
+import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import {
   ArrowRight,
@@ -877,7 +877,7 @@ export default function SolutionsPage() {
 
       </main>
 
-      <BigFooter />
+      <Footer />
 
       <style>{`
         @keyframes fadeInUp {
