@@ -17,7 +17,6 @@ import {
   Lightbulb,
   Shield,
   Users,
-  Briefcase,
   Globe,
   Rocket,
   TrendingUp,
@@ -26,8 +25,6 @@ import {
   Send,
   Building,
   Clock,
-  DollarSign,
-  Coffee,
   Zap,
   Pause,
   Play,
@@ -74,25 +71,6 @@ const milestones = [
   { year: "2025", title: "1,000 Websites Live", description: "Crossed the milestone of 1,000 active websites built on the platform." },
   { year: "2026", title: "5,000+ Customers", description: "Now serving over 5,000 businesses across 12 countries with AI-powered web solutions." },
 ]
-
-const openRoles = [
-  { title: "Senior Full-Stack Engineer", department: "Engineering", location: "Remote", type: "Full-time" },
-  { title: "AI/ML Engineer", department: "Engineering", location: "Remote", type: "Full-time" },
-  { title: "Product Designer", department: "Design", location: "San Francisco / Remote", type: "Full-time" },
-  { title: "Customer Success Manager", department: "Customer Success", location: "Remote", type: "Full-time" },
-  { title: "Growth Marketing Manager", department: "Marketing", location: "Remote", type: "Full-time" },
-  { title: "Sales Development Rep", department: "Sales", location: "Remote", type: "Full-time" },
-]
-
-const perks = [
-  { icon: DollarSign, title: "Competitive Salary", description: "Top-of-market pay with equity for every employee.", image: "/images/generated/company-perk-salary.png" },
-  { icon: Globe, title: "Remote First", description: "Work from anywhere in the world. Seriously.", image: "/images/generated/company-perk-remote.png" },
-  { icon: TrendingUp, title: "Career Growth", description: "Clear paths for advancement and a $2K learning budget.", image: "/images/generated/company-perk-growth.png" },
-  { icon: Coffee, title: "Great Benefits", description: "Full health, dental, vision + unlimited PTO policy.", image: "/images/generated/company-perk-benefits.png" },
-  { icon: Zap, title: "Latest Tools", description: "$1K/year for hardware and software of your choosing.", image: "/images/generated/company-perk-tools.png" },
-  { icon: Users, title: "Amazing Team", description: "Work with some of the brightest minds in AI and web.", image: "/images/generated/company-perk-team.png" },
-]
-
 
 const YOUTUBE_ORIGIN = "https://www.youtube-nocookie.com"
 
@@ -347,51 +325,108 @@ export default function CompanyPage() {
         </section>
 
 
-        {/* ── Careers ────────────────────────────────────────────────── */}
-        <section id="careers" className="border-t border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
+        {/* ── Why Omniweb ─────────────────────────────────────────── */}
+        <section className="border-t border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-6xl">
-            <div className="mb-16 grid items-start gap-12 lg:grid-cols-2">
-              <div>
-                <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">Join Us</p>
-                <h2 className="mb-6 text-3xl font-bold lg:text-4xl">Build the Future With Us</h2>
-                <p className="mb-8 text-lg leading-relaxed text-white/60">
-                  We are a remote-first team of ambitious, kind humans who move fast and take ownership. If you want to work on hard problems that matter, we want to hear from you.
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  {perks.map((perk) => (
-                    <div key={perk.title} className="kling-panel rounded-xl p-4">
-                      <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-black/25">
-                        <Image src={perk.image} alt={perk.title} fill sizes="(min-width: 1024px) 20vw, 100vw" className="object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/85 via-transparent to-[#050a12]/20" />
-                      </div>
-                      <div className="mb-1 text-sm font-semibold">{perk.title}</div>
-                      <div className="text-xs leading-relaxed text-white/40">{perk.description}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="mb-14 text-center">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">Why Omniweb</p>
+              <h2 className="mb-4 text-3xl font-bold lg:text-4xl">Everything you need to grow with AI</h2>
+              <p className="mx-auto max-w-2xl text-lg leading-relaxed text-white/55">
+                Omniweb combines AI voice agents, chat assistants, lead automation, and smart websites into one platform — so your business never misses a lead, day or night.
+              </p>
+            </div>
 
-              <div>
-                <p className="mb-6 text-sm font-semibold uppercase tracking-widest text-white/40">Open Positions ({openRoles.length})</p>
-                <div className="space-y-3">
-                  {openRoles.map((role) => (
-                    <div key={role.title} className="kling-panel group flex items-center justify-between rounded-xl p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
-                      <div>
-                        <div className="font-medium">{role.title}</div>
-                        <div className="flex items-center gap-3 text-xs text-white/40">
-                          <span className="flex items-center gap-1"><Briefcase className="site-icon-accent h-3 w-3" />{role.department}</span>
-                          <span className="flex items-center gap-1"><Globe className="site-icon-accent h-3 w-3" />{role.location}</span>
-                          <span className="flex items-center gap-1"><Clock className="site-icon-accent h-3 w-3" />{role.type}</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="site-icon-accent h-4 w-4 transition-all group-hover:translate-x-1" />
-                    </div>
-                  ))}
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  icon: Zap,
+                  color: "text-cyan-400",
+                  bg: "from-cyan-500/15 to-blue-500/10",
+                  border: "border-cyan-500/20",
+                  title: "Instant Lead Response",
+                  description: "AI agents respond to every inbound call, chat, and form within seconds — before a competitor can even pick up the phone.",
+                  stat: "< 2s",
+                  statLabel: "avg. response time",
+                },
+                {
+                  icon: TrendingUp,
+                  color: "text-violet-400",
+                  bg: "from-violet-500/15 to-purple-500/10",
+                  border: "border-violet-500/20",
+                  title: "More Conversions",
+                  description: "Turn website visitors into booked appointments and qualified opportunities with AI that guides buyers through every step.",
+                  stat: "+38%",
+                  statLabel: "conversion lift",
+                },
+                {
+                  icon: Clock,
+                  color: "text-emerald-400",
+                  bg: "from-emerald-500/15 to-teal-500/10",
+                  border: "border-emerald-500/20",
+                  title: "30+ Hours Saved Weekly",
+                  description: "Automate repetitive qualification, intake, follow-up, and CRM entry so your team focuses entirely on closing.",
+                  stat: "30+",
+                  statLabel: "hrs saved / week",
+                },
+                {
+                  icon: Users,
+                  color: "text-blue-400",
+                  bg: "from-blue-500/15 to-sky-500/10",
+                  border: "border-blue-500/20",
+                  title: "Works for Any Industry",
+                  description: "Built for Shopify stores, contractors, professionals, and service businesses. Omniweb adapts to your workflow and your customers.",
+                  stat: "12+",
+                  statLabel: "industries served",
+                },
+                {
+                  icon: Shield,
+                  color: "text-amber-400",
+                  bg: "from-amber-500/15 to-yellow-500/10",
+                  border: "border-amber-500/20",
+                  title: "Always On, Never Missed",
+                  description: "24/7 coverage across voice, chat, and SMS means zero missed opportunities — even on holidays, evenings, and weekends.",
+                  stat: "24/7",
+                  statLabel: "availability",
+                },
+                {
+                  icon: Rocket,
+                  color: "text-pink-400",
+                  bg: "from-pink-500/15 to-rose-500/10",
+                  border: "border-pink-500/20",
+                  title: "Live in Days, Not Months",
+                  description: "Omniweb is ready to deploy in days. No long onboarding, no developer required — just connect, configure, and convert.",
+                  stat: "3",
+                  statLabel: "day avg. setup",
+                },
+              ].map((benefit) => (
+                <div
+                  key={benefit.title}
+                  className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${benefit.bg} ${benefit.border} p-6 backdrop-blur-sm`}
+                >
+                  <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl border ${benefit.border} bg-black/20`}>
+                    <benefit.icon className={`h-5 w-5 ${benefit.color}`} />
+                  </div>
+                  <div className={`mb-1 text-3xl font-bold ${benefit.color}`}>{benefit.stat}</div>
+                  <div className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-white/40">{benefit.statLabel}</div>
+                  <h3 className="mb-2 text-base font-semibold text-white">{benefit.title}</h3>
+                  <p className="text-sm leading-7 text-white/55">{benefit.description}</p>
                 </div>
-                <Button size="lg" asChild className="mt-6 w-full bg-gradient-to-r from-cyan-600 to-blue-600 font-semibold hover:from-cyan-700 hover:to-blue-700">
-                  <Link href="/company/careers">View All Openings <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                </Button>
-              </div>
+              ))}
+            </div>
+
+            <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <a
+                href="/get-started"
+                className="inline-flex h-12 items-center gap-2 rounded-lg bg-[#3b82f6] px-7 text-[13px] font-bold uppercase tracking-wider text-white transition hover:bg-[#2563eb]"
+              >
+                Get Started Free <ArrowRight className="h-4 w-4" />
+              </a>
+              <a
+                href="/pricing"
+                className="inline-flex h-12 items-center gap-2 rounded-lg border border-white/15 px-7 text-[13px] font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
+              >
+                See Pricing
+              </a>
             </div>
           </div>
         </section>
