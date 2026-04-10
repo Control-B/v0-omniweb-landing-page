@@ -40,7 +40,7 @@ export function Footer({ variant = "default" }: FooterProps) {
               support@omniweb.ai
             </a>
             <Link href="/terms" className="transition hover:text-white">Terms of Use</Link>
-            <Link href="/privacy" className="transition hover:text-white">Privacy</Link>
+            <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
           </div>
 
           <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ export function Footer({ variant = "default" }: FooterProps) {
             ))}
           </div>
           <div className="flex flex-wrap gap-4 text-sm text-white/45 lg:justify-end">
-            <Link href="/privacy" className="transition hover:text-white">Privacy</Link>
+            <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
             <Link href="/terms" className="transition hover:text-white">Terms</Link>
           </div>
         </div>
