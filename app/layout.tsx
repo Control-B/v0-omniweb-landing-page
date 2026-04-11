@@ -10,24 +10,10 @@ const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald", weight: [
 const robotoCondensed = Roboto_Condensed({ subsets: ["latin"], variable: "--font-roboto-condensed", weight: ["400", "500", "600", "700"] })
 
 export const metadata: Metadata = {
-  title: 'Omniweb - AI-Powered Websites That Convert',
+  title: 'Omniweb AI',
   description: 'Omniweb builds, hosts, and sells AI-powered website systems and templates for e-commerce brands, contractors, and professionals.',
-  generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
+    icon: '/icon.svg',
     apple: '/apple-icon.png',
   },
 }
