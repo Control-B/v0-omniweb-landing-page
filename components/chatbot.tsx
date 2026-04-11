@@ -24,7 +24,7 @@ export function Chatbot() {
         async
       />
       {/* @ts-expect-error – web component not in JSX types */}
-      <elevenlabs-convai agent-id={AGENT_ID} variant="compact" />
+      <elevenlabs-convai agent-id={AGENT_ID} />
     </>
   )
 }
