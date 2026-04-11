@@ -5,6 +5,7 @@ import { Conversation } from "@elevenlabs/client"
 import type { DisconnectionDetails, MessagePayload } from "@elevenlabs/client"
 
 const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
+const WELCOME_MESSAGE = "Tell me the problem you’re trying to solve, and I’ll qualify your needs, recommend the right solution, and answer questions so you can move forward faster by text or voice."
 
 type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"
@@ -19,13 +20,14 @@ export function VoiceOrb() {
   const [textInput, setTextInput] = useState("")
   const [isMuted, setIsMuted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [chatMode, setChatMode] = useState<ChatMode>("voice")
+  const [chatMode, setChatMode] = useState<ChatMode>("text")
 
   const convRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const chatBufferRef = useRef<string>("")
   const pendingTextRef = useRef<string | null>(null)
-  const chatModeRef = useRef<ChatMode>("voice")
+  const chatModeRef = useRef<ChatMode>("text")
+  const hasSpokenWelcomeRef = useRef(false)
 
   // Keep ref in sync with state so callbacks always see the latest value
   useEffect(() => { chatModeRef.current = chatMode }, [chatMode])
@@ -33,6 +35,29 @@ export function VoiceOrb() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [messages])
+
+  const playWelcome = useCallback(() => {
+    if (typeof window === "undefined" || hasSpokenWelcomeRef.current) return
+    const synth = window.speechSynthesis
+    if (!synth) return
+    synth.cancel()
+    const utterance = new SpeechSynthesisUtterance(WELCOME_MESSAGE)
+    utterance.rate = 1
+    utterance.pitch = 1
+    utterance.volume = 1
+    synth.speak(utterance)
+    hasSpokenWelcomeRef.current = true
+  }, [])
+
+  const handleOpen = useCallback(() => {
+    setExpanded(true)
+    setChatMode("text")
+    setError(null)
+    if (messages.length === 0) {
+      setMessages([{ role: "agent", text: WELCOME_MESSAGE }])
+    }
+    playWelcome()
+  }, [messages.length, playWelcome])
 
   /* ── shared session options (everything except textOnly) ── */
   const sessionCallbacks = useCallback(() => ({
@@ -164,8 +189,12 @@ export function VoiceOrb() {
     setExpanded(false)
     setMessages([])
     setError(null)
-    setChatMode("voice")
+    setChatMode("text")
     chatBufferRef.current = ""
+    hasSpokenWelcomeRef.current = false
+    if (typeof window !== "undefined") {
+      window.speechSynthesis?.cancel()
+    }
   }, [endConversation])
 
   const selectVoice = useCallback(async () => {
@@ -204,7 +233,7 @@ export function VoiceOrb() {
         `}</style>
 
         <button
-          onClick={() => setExpanded(true)}
+          onClick={handleOpen}
           className="fixed bottom-6 right-6 z-[10000] group cursor-pointer"
           style={{ outline: "none", border: "none", background: "none", padding: 0 }}
           aria-label="Open voice assistant"
@@ -344,6 +373,19 @@ export function VoiceOrb() {
           <div className="flex items-center justify-center py-3 border-b border-gray-50 gap-2 px-4">
             {!isActive && !isBusy ? (
               <>
+                  <button
+                    onClick={selectText}
+                    className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
+                      chatMode === "text"
+                        ? "bg-gray-900 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                    </svg>
+                    Text chat
+                  </button>
                 <button
                   onClick={selectVoice}
                   className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
@@ -356,19 +398,6 @@ export function VoiceOrb() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
                   </svg>
                   Voice call
-                </button>
-                <button
-                  onClick={selectText}
-                  className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
-                    chatMode === "text"
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                  </svg>
-                  Text chat
                 </button>
               </>
             ) : isBusy ? (
