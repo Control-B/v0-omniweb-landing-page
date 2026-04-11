@@ -6,6 +6,7 @@ import type { DisconnectionDetails, MessagePayload } from "@elevenlabs/client"
 
 const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
 const WELCOME_MESSAGE = "Tell me the problem you’re trying to solve, and I’ll qualify your needs, recommend the right solution, and answer questions so you can move forward faster by text or voice."
+const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
 type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"
@@ -28,6 +29,7 @@ export function VoiceOrb() {
   const pendingTextRef = useRef<string | null>(null)
   const chatModeRef = useRef<ChatMode>("text")
   const hasSpokenWelcomeRef = useRef(false)
+  const welcomeAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // Keep ref in sync with state so callbacks always see the latest value
   useEffect(() => { chatModeRef.current = chatMode }, [chatMode])
@@ -38,15 +40,37 @@ export function VoiceOrb() {
 
   const playWelcome = useCallback(() => {
     if (typeof window === "undefined" || hasSpokenWelcomeRef.current) return
-    const synth = window.speechSynthesis
-    if (!synth) return
-    synth.cancel()
-    const utterance = new SpeechSynthesisUtterance(WELCOME_MESSAGE)
-    utterance.rate = 1
-    utterance.pitch = 1
-    utterance.volume = 1
-    synth.speak(utterance)
-    hasSpokenWelcomeRef.current = true
+
+    void (async () => {
+      try {
+        const response = await fetch(`${ENGINE_BASE_URL}/api/chat/welcome-audio`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ text: WELCOME_MESSAGE }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`Welcome audio failed: ${response.status}`)
+        }
+
+        const audioBlob = await response.blob()
+        const audioUrl = URL.createObjectURL(audioBlob)
+
+        if (welcomeAudioRef.current) {
+          welcomeAudioRef.current.pause()
+          URL.revokeObjectURL(welcomeAudioRef.current.src)
+        }
+
+        const audio = new Audio(audioUrl)
+        welcomeAudioRef.current = audio
+        await audio.play()
+        hasSpokenWelcomeRef.current = true
+      } catch (error) {
+        console.error("[VoiceOrb] Failed to play ElevenLabs welcome audio", error)
+      }
+    })()
   }, [])
 
   const handleOpen = useCallback(() => {
@@ -192,8 +216,12 @@ export function VoiceOrb() {
     setChatMode("text")
     chatBufferRef.current = ""
     hasSpokenWelcomeRef.current = false
-    if (typeof window !== "undefined") {
-      window.speechSynthesis?.cancel()
+    if (welcomeAudioRef.current) {
+      welcomeAudioRef.current.pause()
+      if (welcomeAudioRef.current.src.startsWith("blob:")) {
+        URL.revokeObjectURL(welcomeAudioRef.current.src)
+      }
+      welcomeAudioRef.current = null
     }
   }, [endConversation])
 
