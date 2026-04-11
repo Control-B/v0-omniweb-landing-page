@@ -9,6 +9,7 @@ const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
 type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"
 type ConvMode = "listening" | "speaking"
+type ChatMode = "voice" | "text"
 
 export function VoiceOrb() {
   const [expanded, setExpanded] = useState(false)
@@ -18,17 +19,18 @@ export function VoiceOrb() {
   const [textInput, setTextInput] = useState("")
   const [isMuted, setIsMuted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [chatMode, setChatMode] = useState<ChatMode>("voice")
 
   const convRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  // Track the streaming text response being built from delta parts
   const chatBufferRef = useRef<string>("")
+  const pendingTextRef = useRef<string | null>(null)
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [messages])
 
-  const startConversation = useCallback(async () => {
+  const startConversation = useCallback(async (muteOnStart = false) => {
     if (convRef.current) return
     setStatus("connecting")
     setError(null)
@@ -36,33 +38,37 @@ export function VoiceOrb() {
       const conv = await Conversation.startSession({
         agentId: AGENT_ID,
         connectionType: "websocket",
-        onConnect: () => setStatus("connected"),
+        onConnect: () => {
+          setStatus("connected")
+          if (muteOnStart) {
+            conv.setMicMuted(true)
+            setIsMuted(true)
+          }
+          // Send any pending text message once connected
+          const pending = pendingTextRef.current
+          if (pending) {
+            pendingTextRef.current = null
+            conv.sendUserMessage(pending)
+          }
+        },
         onDisconnect: (_d: DisconnectionDetails) => {
           setStatus("disconnected")
           convRef.current = null
           setIsMuted(false)
         },
-        // onMessage fires for VOICE interactions:
-        //   - agent_response (agent speaking)
-        //   - user_transcript (user speaking via mic)
         onMessage: (p: MessagePayload) => {
           const role = p.role === "agent" ? ("agent" as const) : ("user" as const)
           setMessages(prev => {
             const last = prev[prev.length - 1]
-            // Voice transcript streaming — replace last message of same role
             if (last?.role === role) return [...prev.slice(0, -1), { role, text: p.message }]
             return [...prev, { role, text: p.message }]
           })
         },
-        // onAgentChatResponsePart fires for TEXT chat responses
-        // when user sends text via sendUserMessage()
         onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
           if (part.type === "start") {
-            // New response starting — reset buffer, add new agent message
             chatBufferRef.current = part.text
             setMessages(prev => [...prev, { role: "agent", text: part.text }])
           } else if (part.type === "delta") {
-            // Append delta text to buffer, update last agent message
             chatBufferRef.current += part.text
             const fullText = chatBufferRef.current
             setMessages(prev => {
@@ -73,10 +79,7 @@ export function VoiceOrb() {
               return [...prev, { role: "agent", text: fullText }]
             })
           } else if (part.type === "stop") {
-            // Response complete — ensure final text is set
-            if (part.text) {
-              chatBufferRef.current += part.text
-            }
+            if (part.text) chatBufferRef.current += part.text
             const finalText = chatBufferRef.current
             setMessages(prev => {
               const lastIdx = prev.length - 1
@@ -100,6 +103,7 @@ export function VoiceOrb() {
     } catch (e: any) {
       setError(e?.message ?? "Connection failed")
       setStatus("disconnected")
+      pendingTextRef.current = null
     }
   }, [])
 
@@ -108,6 +112,7 @@ export function VoiceOrb() {
     convRef.current = null
     setStatus("disconnected")
     setIsMuted(false)
+    pendingTextRef.current = null
   }, [])
 
   const toggleMute = useCallback(() => {
@@ -117,21 +122,43 @@ export function VoiceOrb() {
     setIsMuted(next)
   }, [isMuted])
 
-  const sendText = useCallback(() => {
+  const sendText = useCallback(async () => {
     const t = textInput.trim()
-    if (!t || !convRef.current) return
-    convRef.current.sendUserMessage(t)
-    setMessages(prev => [...prev, { role: "user" as const, text: t }])
+    if (!t) return
     setTextInput("")
-  }, [textInput])
+    setMessages(prev => [...prev, { role: "user" as const, text: t }])
+
+    // Already connected — send immediately
+    if (convRef.current) {
+      convRef.current.sendUserMessage(t)
+      return
+    }
+    // Not connected — queue message, connect with muted mic
+    pendingTextRef.current = t
+    await startConversation(true)
+  }, [textInput, startConversation])
 
   const handleClose = useCallback(async () => {
     await endConversation()
     setExpanded(false)
     setMessages([])
     setError(null)
+    setChatMode("voice")
     chatBufferRef.current = ""
   }, [endConversation])
+
+  const selectVoice = useCallback(() => {
+    setChatMode("voice")
+    if (!convRef.current) startConversation(false)
+  }, [startConversation])
+
+  const selectText = useCallback(() => {
+    setChatMode("text")
+    if (convRef.current) {
+      convRef.current.setMicMuted(true)
+      setIsMuted(true)
+    }
+  }, [])
 
   const isActive = status === "connected"
   const isBusy = status === "connecting"
@@ -151,7 +178,7 @@ export function VoiceOrb() {
         `}</style>
 
         <button
-          onClick={() => { setExpanded(true); if (!isActive && !isBusy) startConversation() }}
+          onClick={() => setExpanded(true)}
           className="fixed bottom-6 right-6 z-[10000] group cursor-pointer"
           style={{ outline: "none", border: "none", background: "none", padding: 0 }}
           aria-label="Open voice assistant"
@@ -192,7 +219,6 @@ export function VoiceOrb() {
       {/* Mobile backdrop */}
       <div className="fixed inset-0 z-[9998] bg-black/30 sm:hidden" onClick={handleClose} />
 
-      {/* Panel — mobile: near full screen, desktop: fixed 380x560 bottom-right */}
       <div
         className="fixed z-[9999] flex flex-col overflow-hidden bg-white rounded-2xl shadow-2xl border border-gray-200/60 inset-2 top-16 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[560px]"
         style={{ animation: "panel-in .25s ease-out" }}
@@ -209,12 +235,16 @@ export function VoiceOrb() {
             <div>
               <div className="text-sm font-semibold text-gray-900">Omniweb AI</div>
               <div className="text-xs text-gray-400">
-                {isActive ? (mode === "speaking" ? "Speaking…" : "Listening…") : isBusy ? "Connecting…" : "Ready to chat"}
+                {isActive
+                  ? chatMode === "voice"
+                    ? mode === "speaking" ? "Speaking…" : "Listening…"
+                    : "Text chat"
+                  : isBusy ? "Connecting…" : "Choose how to chat"}
               </div>
             </div>
           </div>
           <div className="flex items-center gap-0.5">
-            {isActive && (
+            {isActive && chatMode === "voice" && (
               <button
                 onClick={toggleMute}
                 className={`p-2 rounded-full transition-colors ${isMuted ? "bg-red-50 text-red-500" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"}`}
@@ -246,9 +276,7 @@ export function VoiceOrb() {
                 <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 1px 3px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.12)" }} />
               </div>
               <p className="text-[15px] font-semibold text-gray-800">How can I help you?</p>
-              <p className="text-xs text-gray-400 mt-1.5 max-w-[220px]">
-                {isActive ? "I'm listening — speak or type below" : "Tap the button below to start"}
-              </p>
+              <p className="text-xs text-gray-400 mt-1.5 max-w-[220px]">Choose voice or text below to get started</p>
             </div>
           )}
 
@@ -270,7 +298,7 @@ export function VoiceOrb() {
             </div>
           ))}
 
-          {isActive && mode === "speaking" && messages.length > 0 && (
+          {isActive && mode === "speaking" && chatMode === "voice" && messages.length > 0 && (
             <div className="flex justify-start">
               <div className="w-6 h-6 rounded-full overflow-hidden mr-2 mt-1 flex-shrink-0">
                 <div className="w-full h-full" style={{ background: CONIC_SM, animation: "orb-spin 4s linear infinite" }} />
@@ -286,30 +314,76 @@ export function VoiceOrb() {
 
         {/* ── Bottom controls ── */}
         <div className="border-t border-gray-100 bg-white">
-          <div className="flex items-center justify-center py-3 border-b border-gray-50">
-            {status === "disconnected" ? (
-              <button onClick={startConversation} className="flex items-center gap-2 bg-gray-900 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-gray-800 transition-colors shadow-sm">
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-                Start a call
-              </button>
+          {/* Mode selector / call controls */}
+          <div className="flex items-center justify-center py-3 border-b border-gray-50 gap-2 px-4">
+            {!isActive && !isBusy ? (
+              <>
+                <button
+                  onClick={selectVoice}
+                  className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
+                    chatMode === "voice"
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                  </svg>
+                  Voice call
+                </button>
+                <button
+                  onClick={selectText}
+                  className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
+                    chatMode === "text"
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                  </svg>
+                  Text chat
+                </button>
+              </>
             ) : isBusy ? (
               <div className="flex items-center gap-2 text-gray-400 text-sm py-2.5">
                 <div className="w-4 h-4 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" /> Connecting…
               </div>
             ) : (
-              <button onClick={endConversation} className="flex items-center gap-2 bg-red-500 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-red-600 transition-colors">End call</button>
+              <div className="flex items-center gap-2 w-full">
+                {chatMode === "voice" && (
+                  <button onClick={endConversation} className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-red-600 transition-colors">End call</button>
+                )}
+                {chatMode === "text" && (
+                  <button
+                    onClick={async () => { await endConversation(); setChatMode("voice") }}
+                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors px-2 py-1"
+                  >
+                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                    </svg>
+                    Switch to voice
+                  </button>
+                )}
+              </div>
             )}
           </div>
+
+          {/* Text input */}
           <div className="flex items-center gap-2 p-3">
             <input
               value={textInput}
               onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity() }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText() } }}
-              placeholder={isActive ? "Type a message…" : "Start a call to chat"}
-              disabled={!isActive}
+              placeholder={chatMode === "text" ? "Type a message…" : isActive ? "Type a message…" : "Select text chat to type"}
+              disabled={chatMode === "voice" && !isActive}
               className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 disabled:opacity-40 transition-all"
             />
-            <button onClick={sendText} disabled={!isActive || !textInput.trim()} className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-25 transition-all flex-shrink-0">
+            <button
+              onClick={sendText}
+              disabled={(chatMode === "voice" && !isActive) || !textInput.trim()}
+              className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-25 transition-all flex-shrink-0"
+            >
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg>
             </button>
           </div>
