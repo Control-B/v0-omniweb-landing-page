@@ -262,8 +262,8 @@ export function Header() {
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-200">
-            O
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-indigo-500">
+            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.5 6L9 18h6.5L14.5 26 23 14h-6.5L17.5 6z" fill="white" stroke="white" strokeWidth="1" strokeLinejoin="round"/></svg>
           </span>
           <span className="text-xl font-bold tracking-tight text-foreground">
             Omniweb

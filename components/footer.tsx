@@ -68,8 +68,8 @@ export function Footer({ variant = "default" }: FooterProps) {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1.4fr_1fr_auto] lg:px-8">
         <div>
           <div className="flex items-center gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-100">
-              O
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500">
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.5 6L9 18h6.5L14.5 26 23 14h-6.5L17.5 6z" fill="white" stroke="white" strokeWidth="1" strokeLinejoin="round"/></svg>
             </span>
             <span className="text-lg font-semibold text-white">Omniweb</span>
           </div>
