@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 
@@ -19,6 +19,16 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const authAvailable = isSupabaseConfigured()
+
+  useEffect(() => {
+    if (authAvailable) return
+
+    const timeout = window.setTimeout(() => {
+      window.location.assign(ENGINE_LOGIN_URL)
+    }, 1500)
+
+    return () => window.clearTimeout(timeout)
+  }, [authAvailable])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,7 +96,7 @@ export default function SignInPage() {
             <div className="mb-6 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
               <div className="text-sm font-semibold text-foreground">Temporary AI Engine access</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                The Omniweb landing-page account system is not wired yet, but the AI Engine dashboard is live and ready to use.
+                The Omniweb landing-page account system is not wired yet, so you’ll be redirected to the live AI Engine login in a moment.
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {TEMPORARY_ACCOUNTS.map((account) => (
@@ -100,9 +110,9 @@ export default function SignInPage() {
               <Button
                 type="button"
                 className="mt-4 w-full bg-blue-600 hover:bg-blue-700"
-                onClick={() => window.location.href = ENGINE_LOGIN_URL}
+                onClick={() => window.location.assign(ENGINE_LOGIN_URL)}
               >
-                Open AI Engine Login
+                Open AI Engine Login Now
               </Button>
             </div>
           )}
