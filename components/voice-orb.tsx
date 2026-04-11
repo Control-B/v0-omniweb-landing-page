@@ -21,6 +21,8 @@ export function VoiceOrb() {
 
   const convRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  // Track the streaming text response being built from delta parts
+  const chatBufferRef = useRef<string>("")
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
@@ -40,17 +42,55 @@ export function VoiceOrb() {
           convRef.current = null
           setIsMuted(false)
         },
+        // onMessage fires for VOICE interactions:
+        //   - agent_response (agent speaking)
+        //   - user_transcript (user speaking via mic)
         onMessage: (p: MessagePayload) => {
           const role = p.role === "agent" ? ("agent" as const) : ("user" as const)
           setMessages(prev => {
             const last = prev[prev.length - 1]
+            // Voice transcript streaming — replace last message of same role
             if (last?.role === role) return [...prev.slice(0, -1), { role, text: p.message }]
             return [...prev, { role, text: p.message }]
           })
         },
+        // onAgentChatResponsePart fires for TEXT chat responses
+        // when user sends text via sendUserMessage()
+        onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
+          if (part.type === "start") {
+            // New response starting — reset buffer, add new agent message
+            chatBufferRef.current = part.text
+            setMessages(prev => [...prev, { role: "agent", text: part.text }])
+          } else if (part.type === "delta") {
+            // Append delta text to buffer, update last agent message
+            chatBufferRef.current += part.text
+            const fullText = chatBufferRef.current
+            setMessages(prev => {
+              const lastIdx = prev.length - 1
+              if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
+                return [...prev.slice(0, lastIdx), { role: "agent", text: fullText }]
+              }
+              return [...prev, { role: "agent", text: fullText }]
+            })
+          } else if (part.type === "stop") {
+            // Response complete — ensure final text is set
+            if (part.text) {
+              chatBufferRef.current += part.text
+            }
+            const finalText = chatBufferRef.current
+            setMessages(prev => {
+              const lastIdx = prev.length - 1
+              if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
+                return [...prev.slice(0, lastIdx), { role: "agent", text: finalText }]
+              }
+              return prev
+            })
+            chatBufferRef.current = ""
+          }
+        },
         onError: (msg: string) => { console.error("[VoiceOrb]", msg); setError(msg) },
-        onModeChange: ({ mode: m }) => setMode(m),
-        onStatusChange: ({ status: s }) => {
+        onModeChange: ({ mode: m }: { mode: ConvMode }) => setMode(m),
+        onStatusChange: ({ status: s }: { status: string }) => {
           if (s === "connected") setStatus("connected")
           else if (s === "connecting") setStatus("connecting")
           else setStatus("disconnected")
@@ -90,6 +130,7 @@ export function VoiceOrb() {
     setExpanded(false)
     setMessages([])
     setError(null)
+    chatBufferRef.current = ""
   }, [endConversation])
 
   const isActive = status === "connected"
