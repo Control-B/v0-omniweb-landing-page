@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     // For private blobs, return the pathname to serve via API route
     return NextResponse.json({ pathname: blob.pathname })
   } catch (error) {
-    console.error('[v0] Upload error:', error)
+    console.error('[Omniweb] Upload error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Upload failed'
     return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
