@@ -5,7 +5,7 @@ import { Conversation } from "@elevenlabs/client"
 import type { DisconnectionDetails, MessagePayload } from "@elevenlabs/client"
 
 const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
-const WELCOME_MESSAGE = "Tell me the problem you’re trying to solve, and I’ll qualify your needs, recommend the right solution, and answer questions so you can move forward faster by text or voice."
+const WELCOME_MESSAGE = "Hi, I’d love to help you today, so tell me the problem you’re trying to solve, and I’ll understand your needs, recommend the right solution, and answer your questions so you can move forward faster by text or voice. Talk to me."
 const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
 type Message = { role: "user" | "agent"; text: string }
