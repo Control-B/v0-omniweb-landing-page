@@ -431,31 +431,6 @@ export function PageHeroWithVideo({
             </div>
           </motion.div>
         )}
-
-        {/* Floating mute/unmute for fullscreen hero */}
-        {size === "large" && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2, duration: 0.5 }}
-            className="fixed bottom-6 right-6 z-50 hidden gap-2 lg:flex"
-          >
-            <button
-              onClick={() => setIsPlaying((value) => !value)}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/80 backdrop-blur-lg transition hover:bg-black/80"
-              aria-label={isPlaying ? "Pause hero video" : "Play hero video"}
-            >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </button>
-            <button
-              onClick={() => void toggleMute()}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/80 backdrop-blur-lg transition hover:bg-black/80"
-              aria-label={isMuted ? "Play hero video with sound" : "Mute hero video"}
-            >
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </button>
-          </motion.div>
-        )}
       </div>
     </section>
   )
