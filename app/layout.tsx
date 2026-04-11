@@ -12,10 +12,6 @@ const robotoCondensed = Roboto_Condensed({ subsets: ["latin"], variable: "--font
 export const metadata: Metadata = {
   title: 'Omniweb AI',
   description: 'Omniweb builds, hosts, and sells AI-powered website systems and templates for e-commerce brands, contractors, and professionals.',
-  icons: {
-    icon: '/icon.svg',
-    apple: '/apple-icon.png',
-  },
 }
 
 export default function RootLayout({

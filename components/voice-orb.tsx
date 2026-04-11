@@ -25,79 +25,100 @@ export function VoiceOrb() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const chatBufferRef = useRef<string>("")
   const pendingTextRef = useRef<string | null>(null)
+  const chatModeRef = useRef<ChatMode>("voice")
+
+  // Keep ref in sync with state so callbacks always see the latest value
+  useEffect(() => { chatModeRef.current = chatMode }, [chatMode])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [messages])
 
-  const startConversation = useCallback(async (muteOnStart = false) => {
+  /* ── shared session options (everything except textOnly) ── */
+  const sessionCallbacks = useCallback(() => ({
+    agentId: AGENT_ID,
+    connectionType: "websocket" as const,
+    onConnect: () => {
+      setStatus("connected")
+      // Send any pending text message once connected
+      const pending = pendingTextRef.current
+      if (pending) {
+        pendingTextRef.current = null
+        // Small delay to ensure socket is fully ready
+        setTimeout(() => { convRef.current?.sendUserMessage(pending) }, 100)
+      }
+    },
+    onDisconnect: (_d: DisconnectionDetails) => {
+      setStatus("disconnected")
+      convRef.current = null
+      setIsMuted(false)
+    },
+    onMessage: (p: MessagePayload) => {
+      const role = p.role === "agent" ? ("agent" as const) : ("user" as const)
+      setMessages(prev => {
+        const last = prev[prev.length - 1]
+        if (last?.role === role) return [...prev.slice(0, -1), { role, text: p.message }]
+        return [...prev, { role, text: p.message }]
+      })
+    },
+    onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
+      if (part.type === "start") {
+        chatBufferRef.current = part.text
+        setMessages(prev => [...prev, { role: "agent", text: part.text }])
+      } else if (part.type === "delta") {
+        chatBufferRef.current += part.text
+        const fullText = chatBufferRef.current
+        setMessages(prev => {
+          const lastIdx = prev.length - 1
+          if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
+            return [...prev.slice(0, lastIdx), { role: "agent", text: fullText }]
+          }
+          return [...prev, { role: "agent", text: fullText }]
+        })
+      } else if (part.type === "stop") {
+        if (part.text) chatBufferRef.current += part.text
+        const finalText = chatBufferRef.current
+        setMessages(prev => {
+          const lastIdx = prev.length - 1
+          if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
+            return [...prev.slice(0, lastIdx), { role: "agent", text: finalText }]
+          }
+          return prev
+        })
+        chatBufferRef.current = ""
+      }
+    },
+    onError: (msg: string) => { console.error("[VoiceOrb]", msg); setError(msg) },
+    onModeChange: ({ mode: m }: { mode: ConvMode }) => setMode(m),
+    onStatusChange: ({ status: s }: { status: string }) => {
+      if (s === "connected") setStatus("connected")
+      else if (s === "connecting") setStatus("connecting")
+      else setStatus("disconnected")
+    },
+  }), [])
+
+  const startVoiceSession = useCallback(async () => {
     if (convRef.current) return
     setStatus("connecting")
     setError(null)
     try {
+      const conv = await Conversation.startSession(sessionCallbacks())
+      convRef.current = conv
+    } catch (e: any) {
+      setError(e?.message ?? "Connection failed")
+      setStatus("disconnected")
+    }
+  }, [sessionCallbacks])
+
+  const startTextSession = useCallback(async () => {
+    if (convRef.current) return
+    setStatus("connecting")
+    setError(null)
+    try {
+      // textOnly: true → uses TextConversation → NO microphone access needed
       const conv = await Conversation.startSession({
-        agentId: AGENT_ID,
-        connectionType: "websocket",
-        onConnect: () => {
-          setStatus("connected")
-          if (muteOnStart) {
-            conv.setMicMuted(true)
-            setIsMuted(true)
-          }
-          // Send any pending text message once connected
-          const pending = pendingTextRef.current
-          if (pending) {
-            pendingTextRef.current = null
-            conv.sendUserMessage(pending)
-          }
-        },
-        onDisconnect: (_d: DisconnectionDetails) => {
-          setStatus("disconnected")
-          convRef.current = null
-          setIsMuted(false)
-        },
-        onMessage: (p: MessagePayload) => {
-          const role = p.role === "agent" ? ("agent" as const) : ("user" as const)
-          setMessages(prev => {
-            const last = prev[prev.length - 1]
-            if (last?.role === role) return [...prev.slice(0, -1), { role, text: p.message }]
-            return [...prev, { role, text: p.message }]
-          })
-        },
-        onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
-          if (part.type === "start") {
-            chatBufferRef.current = part.text
-            setMessages(prev => [...prev, { role: "agent", text: part.text }])
-          } else if (part.type === "delta") {
-            chatBufferRef.current += part.text
-            const fullText = chatBufferRef.current
-            setMessages(prev => {
-              const lastIdx = prev.length - 1
-              if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-                return [...prev.slice(0, lastIdx), { role: "agent", text: fullText }]
-              }
-              return [...prev, { role: "agent", text: fullText }]
-            })
-          } else if (part.type === "stop") {
-            if (part.text) chatBufferRef.current += part.text
-            const finalText = chatBufferRef.current
-            setMessages(prev => {
-              const lastIdx = prev.length - 1
-              if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-                return [...prev.slice(0, lastIdx), { role: "agent", text: finalText }]
-              }
-              return prev
-            })
-            chatBufferRef.current = ""
-          }
-        },
-        onError: (msg: string) => { console.error("[VoiceOrb]", msg); setError(msg) },
-        onModeChange: ({ mode: m }: { mode: ConvMode }) => setMode(m),
-        onStatusChange: ({ status: s }: { status: string }) => {
-          if (s === "connected") setStatus("connected")
-          else if (s === "connecting") setStatus("connecting")
-          else setStatus("disconnected")
-        },
+        ...sessionCallbacks(),
+        textOnly: true,
       })
       convRef.current = conv
     } catch (e: any) {
@@ -105,7 +126,7 @@ export function VoiceOrb() {
       setStatus("disconnected")
       pendingTextRef.current = null
     }
-  }, [])
+  }, [sessionCallbacks])
 
   const endConversation = useCallback(async () => {
     try { await convRef.current?.endSession() } catch {}
@@ -133,10 +154,10 @@ export function VoiceOrb() {
       convRef.current.sendUserMessage(t)
       return
     }
-    // Not connected — queue message, connect with muted mic
+    // Not connected yet — queue message and connect (text mode, no mic)
     pendingTextRef.current = t
-    await startConversation(true)
-  }, [textInput, startConversation])
+    await startTextSession()
+  }, [textInput, startTextSession])
 
   const handleClose = useCallback(async () => {
     await endConversation()
@@ -147,18 +168,23 @@ export function VoiceOrb() {
     chatBufferRef.current = ""
   }, [endConversation])
 
-  const selectVoice = useCallback(() => {
-    setChatMode("voice")
-    if (!convRef.current) startConversation(false)
-  }, [startConversation])
-
-  const selectText = useCallback(() => {
-    setChatMode("text")
-    if (convRef.current) {
-      convRef.current.setMicMuted(true)
-      setIsMuted(true)
+  const selectVoice = useCallback(async () => {
+    // If switching from text session, end it first
+    if (convRef.current && chatModeRef.current === "text") {
+      await endConversation()
     }
-  }, [])
+    setChatMode("voice")
+    if (!convRef.current) startVoiceSession()
+  }, [startVoiceSession, endConversation])
+
+  const selectText = useCallback(async () => {
+    // If switching from voice session, end it first
+    if (convRef.current && chatModeRef.current === "voice") {
+      await endConversation()
+    }
+    setChatMode("text")
+    // Don't auto-connect — connect when user sends first message
+  }, [endConversation])
 
   const isActive = status === "connected"
   const isBusy = status === "connecting"
@@ -373,7 +399,7 @@ export function VoiceOrb() {
           <div className="flex items-center gap-2 p-3">
             <input
               value={textInput}
-              onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity() }}
+              onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity?.() }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText() } }}
               placeholder={chatMode === "text" ? "Type a message…" : isActive ? "Type a message…" : "Select text chat to type"}
               disabled={chatMode === "voice" && !isActive}
