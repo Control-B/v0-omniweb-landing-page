@@ -26,12 +26,10 @@ export function VoiceOrb() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [messages])
 
-  /* ── SDK helpers ── */
   const startConversation = useCallback(async () => {
     if (convRef.current) return
     setStatus("connecting")
     setError(null)
-
     try {
       const conv = await Conversation.startSession({
         agentId: AGENT_ID,
@@ -50,10 +48,7 @@ export function VoiceOrb() {
             return [...prev, { role, text: p.message }]
           })
         },
-        onError: (msg: string) => {
-          console.error("[VoiceOrb]", msg)
-          setError(msg)
-        },
+        onError: (msg: string) => { console.error("[VoiceOrb]", msg); setError(msg) },
         onModeChange: ({ mode: m }) => setMode(m),
         onStatusChange: ({ status: s }) => {
           if (s === "connected") setStatus("connected")
@@ -100,111 +95,75 @@ export function VoiceOrb() {
   const isActive = status === "connected"
   const isBusy = status === "connecting"
 
-  /* ─────────────────── COLLAPSED: pill widget ─────────────────── */
+  const CONIC = "conic-gradient(from 0deg, #0a4f8c, #2792DC, #9ce6e6, #ffffff, #2792DC, #0a4f8c, #9ce6e6, #ffffff, #0a4f8c)"
+  const CONIC_SM = "conic-gradient(from 0deg, #0a4f8c, #2792DC, #9ce6e6, #fff, #2792DC, #0a4f8c)"
+
+  /* ════════════════════ SHINY METALLIC DISK (collapsed) ════════════════════ */
   if (!expanded) {
     return (
       <>
         <style jsx global>{`
-          @keyframes vo-orb { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-          @keyframes vo-ring { 0%{box-shadow:0 0 0 0 rgba(39,146,220,.45)} 100%{box-shadow:0 0 0 14px rgba(39,146,220,0)} }
+          @keyframes orb-spin   { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+          @keyframes orb-pulse  { 0%,100% { transform: scale(1); opacity: 1 } 50% { transform: scale(1.08); opacity: .85 } }
+          @keyframes orb-ring   { 0% { box-shadow: 0 0 0 0 rgba(39,146,220,.5) } 100% { box-shadow: 0 0 0 18px rgba(39,146,220,0) } }
+          @keyframes orb-glow   { 0%,100% { filter: brightness(1) } 50% { filter: brightness(1.2) } }
         `}</style>
-        <div className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-[10000] flex items-center">
-          {/* Pill container */}
-          <div className="flex items-center bg-white rounded-full shadow-xl border border-gray-200/80 p-1.5 gap-1">
-            {/* Orb avatar */}
-            <button
-              onClick={() => { setExpanded(true) }}
-              className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-[#2792dc] to-[#9ce6e6] flex items-center justify-center flex-shrink-0 cursor-pointer transition-transform hover:scale-105"
-            >
-              {isActive && (
-                <div className="absolute inset-0 rounded-full" style={{ animation: "vo-ring 1.5s ease-out infinite" }} />
-              )}
-              {/* Orb shine effect */}
-              <div className="absolute inset-0 rounded-full overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-white/20 rounded-full blur-sm" />
-              </div>
-              {isActive ? (
-                <div className="flex items-end gap-[2px] h-4 z-10">
-                  {[6, 10, 7, 12, 5].map((h, i) => (
-                    <span key={i} className="w-[2.5px] bg-white rounded-full animate-bounce" style={{ height: h, animationDelay: `${i * 120}ms` }} />
-                  ))}
-                </div>
-              ) : (
-                <svg width="18" height="18" fill="white" viewBox="0 0 24 24" className="z-10">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                </svg>
-              )}
-            </button>
 
-            {/* Start / End call button */}
-            {isActive ? (
-              <button
-                onClick={endConversation}
-                className="flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium rounded-full px-4 py-2.5 hover:bg-gray-800 transition-colors"
-              >
-                End
-              </button>
-            ) : isBusy ? (
-              <div className="flex items-center gap-2 px-4 py-2.5 text-gray-400 text-sm">
-                <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-              </div>
-            ) : (
-              <button
-                onClick={startConversation}
-                className="flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium rounded-full px-4 py-2.5 hover:bg-gray-800 transition-colors"
-              >
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
-                </svg>
-                Start a call
-              </button>
-            )}
+        <button
+          onClick={() => { setExpanded(true); if (!isActive && !isBusy) startConversation() }}
+          className="fixed bottom-6 right-6 z-[10000] group cursor-pointer"
+          style={{ outline: "none", border: "none", background: "none", padding: 0 }}
+          aria-label="Open voice assistant"
+        >
+          {isActive && (
+            <div className="absolute inset-[-6px] rounded-full" style={{ animation: "orb-ring 2s ease-out infinite" }} />
+          )}
 
-            {/* Expand arrow */}
-            <button
-              onClick={() => setExpanded(true)}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              title="Expand"
-            >
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 14h6m0 0v6m0-6L3 21M20 10h-6m0 0V4m0 6l7-7" />
-              </svg>
-            </button>
+          <div
+            className="relative w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full overflow-hidden shadow-2xl transition-transform duration-300 group-hover:scale-110"
+            style={{
+              animation: isActive ? "orb-glow 2s ease-in-out infinite" : isBusy ? "orb-pulse 1.5s ease-in-out infinite" : undefined,
+            }}
+          >
+            <div className="absolute inset-0 rounded-full" style={{ background: CONIC, animation: isActive ? "orb-spin 6s linear infinite" : "orb-spin 20s linear infinite" }} />
+            <div className="absolute inset-[3px] rounded-full" style={{ background: "radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 50%), radial-gradient(ellipse at 65% 70%, rgba(39,146,220,0.3) 0%, transparent 60%)" }} />
+            <div className="absolute inset-[2px] rounded-full" style={{ background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.08) 40%, transparent 70%)" }} />
+            <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.15)" }} />
           </div>
-        </div>
+
+          {isActive && <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-green-400 rounded-full border-2 border-white shadow-sm" />}
+          {isBusy && <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-amber-400 rounded-full border-2 border-white shadow-sm animate-pulse" />}
+        </button>
       </>
     )
   }
 
-  /* ─────────────────── EXPANDED: full chat panel ─────────────────── */
+  /* ════════════════════ EXPANDED CHAT PANEL ════════════════════ */
   return (
     <>
+      <style jsx global>{`
+        @keyframes orb-spin  { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
+        @keyframes orb-ring  { 0% { box-shadow: 0 0 0 0 rgba(39,146,220,.5) } 100% { box-shadow: 0 0 0 14px rgba(39,146,220,0) } }
+        @keyframes orb-glow  { 0%,100% { filter: brightness(1) } 50% { filter: brightness(1.15) } }
+        @keyframes panel-in  { from { opacity:0; transform: translateY(16px) scale(0.95) } to { opacity:1; transform: translateY(0) scale(1) } }
+      `}</style>
+
       {/* Mobile backdrop */}
       <div className="fixed inset-0 z-[9998] bg-black/30 sm:hidden" onClick={handleClose} />
 
+      {/* Panel — mobile: near full screen, desktop: fixed 380x560 bottom-right */}
       <div
-        className={[
-          "fixed z-[9999] flex flex-col overflow-hidden",
-          "bg-white rounded-2xl shadow-2xl border border-gray-200",
-          "bottom-2 right-2 left-2 top-16",
-          "sm:bottom-6 sm:right-6 sm:left-auto sm:top-auto sm:w-[380px] sm:h-[540px]",
-        ].join(" ")}
+        className="fixed z-[9999] flex flex-col overflow-hidden bg-white rounded-2xl shadow-2xl border border-gray-200/60 inset-2 top-16 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[560px]"
+        style={{ animation: "panel-in .25s ease-out" }}
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-[#2792dc] to-[#9ce6e6] flex items-center justify-center flex-shrink-0">
-              {isActive && mode === "speaking" && (
-                <div className="absolute inset-0 rounded-full" style={{ animation: "vo-ring 1.5s ease-out infinite" }} />
-              )}
-              <div className="absolute inset-0 rounded-full overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-white/20 rounded-full blur-sm" />
-              </div>
-              <svg width="16" height="16" fill="white" viewBox="0 0 24 24" className="z-10">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-              </svg>
+            <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+              <div className="absolute inset-0 rounded-full" style={{ background: CONIC, animation: isActive ? "orb-spin 6s linear infinite" : "orb-spin 20s linear infinite" }} />
+              <div className="absolute inset-[2px] rounded-full" style={{ background: "radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.5) 0%, transparent 50%)" }} />
+              <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.5), inset 0 -1px 1px rgba(0,0,0,0.1)" }} />
+              {isActive && <div className="absolute -top-px -right-px w-2.5 h-2.5 bg-green-400 rounded-full border-[1.5px] border-white" />}
             </div>
             <div>
               <div className="text-sm font-semibold text-gray-900">Omniweb AI</div>
@@ -214,41 +173,19 @@ export function VoiceOrb() {
             </div>
           </div>
           <div className="flex items-center gap-0.5">
-            {/* Mute */}
             {isActive && (
               <button
-                onClick={(e) => { e.stopPropagation(); toggleMute() }}
+                onClick={toggleMute}
                 className={`p-2 rounded-full transition-colors ${isMuted ? "bg-red-50 text-red-500" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"}`}
-                title={isMuted ? "Unmute mic" : "Mute mic"}
+                title={isMuted ? "Unmute" : "Mute"}
               >
-                {isMuted ? (
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-                  </svg>
-                )}
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                  {isMuted && <line x1="3" y1="3" x2="21" y2="21" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />}
+                </svg>
               </button>
             )}
-            {/* Collapse */}
-            <button
-              onClick={() => setExpanded(false)}
-              className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              title="Collapse"
-            >
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M15 15v4.5m0-4.5h4.5m-4.5 0l5.25 5.25" />
-              </svg>
-            </button>
-            {/* Close & end */}
-            <button
-              onClick={handleClose}
-              className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-              title="End & close"
-            >
+            <button onClick={handleClose} className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors" title="Close">
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -257,127 +194,86 @@ export function VoiceOrb() {
         </div>
 
         {/* ── Messages ── */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#fafafa]">
-          {error && (
-            <div className="bg-red-50 text-red-600 text-xs rounded-xl px-3 py-2 border border-red-100">
-              {error}
-            </div>
-          )}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50/50 to-white">
+          {error && <div className="bg-red-50 text-red-600 text-xs rounded-xl px-3 py-2 border border-red-100">{error}</div>}
+
           {messages.length === 0 && !error && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#2792dc] to-[#9ce6e6] flex items-center justify-center mb-4 shadow-lg shadow-blue-200/50">
-                <div className="absolute w-16 h-16 rounded-full overflow-hidden">
-                  <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-white/20 rounded-full blur-sm" />
-                </div>
-                <svg width="28" height="28" fill="white" viewBox="0 0 24 24" className="z-10">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                </svg>
+            <div className="flex flex-col items-center justify-center h-full text-center pb-8">
+              <div className="relative w-20 h-20 rounded-full overflow-hidden mb-5 shadow-xl" style={{ animation: isActive ? "orb-glow 2s ease-in-out infinite" : undefined }}>
+                <div className="absolute inset-0 rounded-full" style={{ background: CONIC, animation: isActive ? "orb-spin 6s linear infinite" : "orb-spin 20s linear infinite" }} />
+                <div className="absolute inset-[3px] rounded-full" style={{ background: "radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.5) 0%, transparent 50%)" }} />
+                <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 1px 3px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.12)" }} />
               </div>
               <p className="text-[15px] font-semibold text-gray-800">How can I help you?</p>
-              <p className="text-xs text-gray-400 mt-1 max-w-[240px]">Start a voice call or type a message below</p>
+              <p className="text-xs text-gray-400 mt-1.5 max-w-[220px]">
+                {isActive ? "I'm listening — speak or type below" : "Tap the button below to start"}
+              </p>
             </div>
           )}
+
           {messages.map((m, i) => (
-            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in-0 slide-in-from-bottom-1`}>
+            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               {m.role === "agent" && (
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2792dc] to-[#9ce6e6] flex items-center justify-center mr-2 mt-1 flex-shrink-0">
-                  <svg width="10" height="10" fill="white" viewBox="0 0 24 24">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                  </svg>
+                <div className="w-6 h-6 rounded-full overflow-hidden mr-2 mt-1 flex-shrink-0">
+                  <div className="w-full h-full" style={{ background: CONIC_SM }} />
                 </div>
               )}
-              <div
-                className={[
-                  "max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed",
-                  m.role === "user"
-                    ? "bg-gray-900 text-white rounded-2xl rounded-br-sm"
-                    : "bg-white text-gray-800 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100",
-                ].join(" ")}
-              >
+              <div className={[
+                "max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed",
+                m.role === "user"
+                  ? "bg-gray-900 text-white rounded-2xl rounded-br-sm"
+                  : "bg-white text-gray-800 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100",
+              ].join(" ")}>
                 {m.text}
               </div>
             </div>
           ))}
+
           {isActive && mode === "speaking" && messages.length > 0 && (
             <div className="flex justify-start">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2792dc] to-[#9ce6e6] flex items-center justify-center mr-2 mt-1 flex-shrink-0">
-                <svg width="10" height="10" fill="white" viewBox="0 0 24 24">
-                  <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                  <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                </svg>
+              <div className="w-6 h-6 rounded-full overflow-hidden mr-2 mt-1 flex-shrink-0">
+                <div className="w-full h-full" style={{ background: CONIC_SM, animation: "orb-spin 4s linear infinite" }} />
               </div>
               <div className="bg-white rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 px-4 py-3">
                 <div className="flex gap-1">
-                  {[0, 150, 300].map(d => (
-                    <span key={d} className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
-                  ))}
+                  {[0, 150, 300].map(d => <span key={d} className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />)}
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* ── Bottom bar ── */}
+        {/* ── Bottom controls ── */}
         <div className="border-t border-gray-100 bg-white">
-          {/* Call controls */}
-          <div className="flex items-center justify-center py-3 gap-2 border-b border-gray-50">
+          <div className="flex items-center justify-center py-3 border-b border-gray-50">
             {status === "disconnected" ? (
-              <button
-                onClick={startConversation}
-                className="flex items-center gap-2 bg-gray-900 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-gray-800 transition-colors shadow-sm"
-              >
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/>
-                </svg>
+              <button onClick={startConversation} className="flex items-center gap-2 bg-gray-900 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-gray-800 transition-colors shadow-sm">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
                 Start a call
               </button>
             ) : isBusy ? (
               <div className="flex items-center gap-2 text-gray-400 text-sm py-2.5">
-                <div className="w-4 h-4 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
-                Connecting…
+                <div className="w-4 h-4 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" /> Connecting…
               </div>
             ) : (
-              <button
-                onClick={endConversation}
-                className="flex items-center gap-2 bg-red-500 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-red-600 transition-colors"
-              >
-                End
-              </button>
+              <button onClick={endConversation} className="flex items-center gap-2 bg-red-500 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-red-600 transition-colors">End call</button>
             )}
           </div>
-
-          {/* Text input — always visible */}
           <div className="flex items-center gap-2 p-3">
             <input
               value={textInput}
-              onChange={(e) => {
-                setTextInput(e.target.value)
-                convRef.current?.sendUserActivity()
-              }}
+              onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity() }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText() } }}
               placeholder={isActive ? "Type a message…" : "Start a call to chat"}
               disabled={!isActive}
               className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 disabled:opacity-40 transition-all"
             />
-            <button
-              onClick={sendText}
-              disabled={!isActive || !textInput.trim()}
-              className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-25 transition-all flex-shrink-0"
-            >
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-              </svg>
+            <button onClick={sendText} disabled={!isActive || !textInput.trim()} className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-25 transition-all flex-shrink-0">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg>
             </button>
           </div>
         </div>
       </div>
-
-      {/* Floating keyframes */}
-      <style jsx global>{`
-        @keyframes vo-ring { 0%{box-shadow:0 0 0 0 rgba(39,146,220,.45)} 100%{box-shadow:0 0 0 14px rgba(39,146,220,0)} }
-      `}</style>
     </>
   )
 }
