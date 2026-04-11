@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Oswald, Roboto_Condensed } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
-import { Chatbot } from '@/components/chatbot'
+import { VoiceOrb } from '@/components/voice-orb'
 import './globals.css'
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
@@ -41,7 +41,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geist.variable} ${geistMono.variable} ${oswald.variable} ${robotoCondensed.variable} font-sans antialiased`}>
         {children}
-        <Chatbot />
+        <VoiceOrb />
         <Analytics />
       </body>
     </html>
