@@ -5,9 +5,9 @@ import Script from "next/script"
 /**
  * ElevenLabs Conversational AI Widget
  *
- * Replaces the previous Deepgram + DigitalOcean AI chatbot with the
- * ElevenLabs convai widget. Supports both voice calls and text chat
- * out of the box — no custom WebSocket code needed.
+ * Widget attributes override the server-side config, ensuring
+ * the correct variant and behaviour regardless of ElevenLabs
+ * dashboard changes.
  *
  * Agent is managed from the Omniweb Admin dashboard at:
  *   https://omniweb-engine-rs6fr.ondigitalocean.app/admin
@@ -23,6 +23,21 @@ export function Chatbot() {
         strategy="lazyOnload"
         async
       />
+      {/* Scale down the widget on mobile via a wrapper */}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          elevenlabs-convai {
+            transform: scale(0.85);
+            transform-origin: bottom right;
+          }
+        }
+        @media (max-width: 400px) {
+          elevenlabs-convai {
+            transform: scale(0.75);
+            transform-origin: bottom right;
+          }
+        }
+      `}</style>
       {/* @ts-expect-error – web component not in JSX types */}
       <elevenlabs-convai agent-id={AGENT_ID} />
     </>
