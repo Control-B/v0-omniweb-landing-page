@@ -43,6 +43,7 @@ export function VoiceOrb() {
     try {
       const conv = await Conversation.startSession({
         agentId: AGENT_ID,
+        connectionType: "websocket",
         onConnect: ({ conversationId }) => {
           console.log("[VoiceOrb] Connected:", conversationId)
           setStatus("connected")
