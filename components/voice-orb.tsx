@@ -501,7 +501,7 @@ export function VoiceOrb() {
               >
                 {languageOptions.map((option) => (
                   <option key={option.code} value={option.code}>
-                    {LANGUAGE_FLAGS[option.code] ?? "🌐"} {option.label}{option.default ? " (default)" : ""}
+                    {option.label}{option.default ? " (default)" : ""}
                   </option>
                 ))}
               </select>
