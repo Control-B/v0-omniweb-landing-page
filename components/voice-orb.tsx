@@ -63,8 +63,7 @@ export function VoiceOrb() {
   const chatBufferRef = useRef<string>("")
   const pendingTextRef = useRef<string | null>(null)
   const chatModeRef = useRef<ChatMode>("text")
-  const hasSpokenWelcomeRef = useRef(false)
-  const welcomeAudioRef = useRef<HTMLAudioElement | null>(null)
+
 
   const selectedLanguageOption = languageOptions.find(option => option.code === selectedLanguage) ?? languageOptions[0]
 
@@ -102,45 +101,6 @@ export function VoiceOrb() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [messages])
 
-  const playWelcome = useCallback(() => {
-    if (typeof window === "undefined" || hasSpokenWelcomeRef.current) return
-
-    void (async () => {
-      try {
-        const response = await fetch(`${ENGINE_BASE_URL}/api/chat/welcome-audio`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: WELCOME_MESSAGE,
-            language: selectedLanguage,
-            voice_id: selectedLanguageOption?.voice_id,
-          }),
-        })
-
-        if (!response.ok) {
-          throw new Error(`Welcome audio failed: ${response.status}`)
-        }
-
-        const audioBlob = await response.blob()
-        const audioUrl = URL.createObjectURL(audioBlob)
-
-        if (welcomeAudioRef.current) {
-          welcomeAudioRef.current.pause()
-          URL.revokeObjectURL(welcomeAudioRef.current.src)
-        }
-
-        const audio = new Audio(audioUrl)
-        welcomeAudioRef.current = audio
-        await audio.play()
-        hasSpokenWelcomeRef.current = true
-      } catch (error) {
-        console.error("[VoiceOrb] Failed to play ElevenLabs welcome audio", error)
-      }
-    })()
-  }, [selectedLanguage, selectedLanguageOption?.voice_id])
-
   const handleOpen = useCallback(() => {
     setExpanded(true)
     setChatMode("text")
@@ -148,8 +108,7 @@ export function VoiceOrb() {
     if (messages.length === 0) {
       setMessages([{ role: "agent", text: WELCOME_MESSAGE }])
     }
-    playWelcome()
-  }, [messages.length, playWelcome])
+  }, [messages.length])
 
   /* ── shared session options (everything except textOnly) ── */
   const sessionCallbacks = useCallback(() => ({
@@ -157,8 +116,7 @@ export function VoiceOrb() {
     connectionType: "websocket" as const,
     overrides: {
       agent: {
-        first_message: "",
-        language: selectedLanguage as any,
+          language: selectedLanguage as any,
       },
       ...(selectedLanguageOption?.voice_id
         ? {
@@ -296,14 +254,6 @@ export function VoiceOrb() {
     setError(null)
     setChatMode("text")
     chatBufferRef.current = ""
-    hasSpokenWelcomeRef.current = false
-    if (welcomeAudioRef.current) {
-      welcomeAudioRef.current.pause()
-      if (welcomeAudioRef.current.src.startsWith("blob:")) {
-        URL.revokeObjectURL(welcomeAudioRef.current.src)
-      }
-      welcomeAudioRef.current = null
-    }
   }, [endConversation])
 
   const selectVoice = useCallback(async () => {
