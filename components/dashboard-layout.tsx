@@ -28,7 +28,7 @@ export function DashboardLayout({ firstName, email }: DashboardLayoutProps) {
     contactEmail: email,
     contactPhone: "",
     goals: "Increase qualified leads and automate follow-up",
-    integrations: "HubSpot, Google Calendar, Stripe",
+    integrations: "HubSpot, Google Calendar, Payments",
   })
 
   const completion = useMemo(() => Math.round(((currentStep + 1) / onboardingSteps.length) * 100), [currentStep])
@@ -118,7 +118,7 @@ export function DashboardLayout({ firstName, email }: DashboardLayoutProps) {
             <Sparkles className="h-5 w-5 text-cyan-300" />
             <div>
               <h2 className="text-2xl font-semibold text-white">{onboardingSteps[currentStep].label}</h2>
-              <p className="mt-1 text-sm text-slate-400">This scaffold can save to `/api/onboard` and `businesses` in Supabase.</p>
+              <p className="mt-1 text-sm text-slate-400">This scaffold can save to `/api/onboard` and `businesses` in the platform database.</p>
             </div>
           </div>
           <div className="mt-6 space-y-4">

@@ -17,7 +17,7 @@ const features = [
     icon: PhoneCall,
     title: "AI Voice Agents",
     benefit: "Answer instantly",
-    summary: "Use LiveKit-powered voice agents to answer calls, qualify urgency, collect details, and route buyers without missing revenue after hours.",
+    summary: "Use AI-powered voice agents to answer calls, qualify urgency, collect details, and route buyers without missing revenue after hours.",
     bullets: ["24/7 inbound handling", "Lead qualification scripts", "Booking and routing logic"],
     image: "/images/AI Voice room.png",
   },

@@ -228,12 +228,12 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
       const payload = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        throw new Error(payload.error || 'Failed to generate LiveKit token')
+        throw new Error(payload.error || 'Failed to generate voice token')
       }
 
       setLiveKit(payload)
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to generate LiveKit token')
+      setError(error instanceof Error ? error.message : 'Failed to generate voice token')
     } finally {
       setLiveKitLoading(false)
     }
@@ -254,7 +254,7 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
         <div>
           <h2 className="text-3xl font-bold">Omniweb Control Center</h2>
           <p className="text-muted-foreground">
-            Tenant provisioning, Shopify onboarding, and LiveKit voice testing all meet here.
+            Tenant provisioning, Shopify onboarding, and voice testing all meet here.
           </p>
         </div>
         <form action="/auth/signout" method="post">
@@ -296,13 +296,13 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
         <div className="rounded-2xl border border-white/10 bg-card/50 p-5">
           <div className="mb-3 flex items-center gap-3">
             <Mic className="h-5 w-5 text-cyan-400" />
-            <h2 className="font-semibold">LiveKit Voice</h2>
+            <h2 className="font-semibold">Voice Agent</h2>
           </div>
           <p className="text-sm text-muted-foreground">
             {liveKit?.configured
               ? `Token ready for room ${liveKit.room}.`
               : onboarding?.assistant_config.voice_enabled
-                ? 'Generate a test token once your LiveKit env vars are set.'
+                ? 'Generate a test token once your voice env vars are set.'
                 : 'Voice is disabled for this workspace.'}
           </p>
         </div>
@@ -315,7 +315,7 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
             <div>
               <h2 className="text-xl font-semibold">Create your workspace</h2>
               <p className="text-sm text-muted-foreground">
-                This provisions your tenant in the platform database and unlocks Shopify + LiveKit setup.
+                This provisions your tenant in the platform database and unlocks Shopify + voice setup.
               </p>
             </div>
           </div>
@@ -416,7 +416,7 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
                 checked={form.enable_voice}
                 onChange={(event) => setForm((current) => ({ ...current, enable_voice: event.target.checked }))}
               />
-              Enable LiveKit voice setup
+              Enable voice setup
             </label>
             <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-background/40 px-4 py-3 text-sm">
               <input
@@ -510,7 +510,7 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-card/50 p-6">
-              <h2 className="text-xl font-semibold">LiveKit token test</h2>
+              <h2 className="text-xl font-semibold">Voice token test</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 Generate a short-lived token for the current authenticated merchant and tenant room.
               </p>

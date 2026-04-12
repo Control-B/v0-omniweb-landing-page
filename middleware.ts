@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 const COOKIE_NAME = 'omniweb_token'
 
 /**
- * Lightweight middleware — no Supabase, no DB calls.
+ * Lightweight middleware — no external auth, no DB calls.
  *
  * Checks whether the `omniweb_token` cookie exists and is a
  * non-expired JWT (we only inspect the exp claim, NOT the signature —

@@ -54,7 +54,7 @@ const featureGroups = [
     icon: Mic,
     title: "AI Voice Agents",
     benefit: "Never miss a lead",
-    summary: "LiveKit-powered voice agents answer inbound calls, qualify the opportunity, and push the right next step without waiting on your team.",
+    summary: "AI-powered voice agents answer inbound calls, qualify the opportunity, and push the right next step without waiting on your team.",
     bullets: ["Answer sales calls after hours", "Qualify urgency, budget, and fit", "Route to booking or callback flows"],
   },
   {

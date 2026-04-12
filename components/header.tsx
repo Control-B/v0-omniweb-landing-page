@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
       {
         label: "AI voice agents",
         href: "/features#voice-agents",
-        description: "LiveKit-powered voice agents that answer, qualify, and book while your team focuses on closing.",
+        description: "AI-powered voice agents that answer, qualify, and book while your team focuses on closing.",
         icon: LayoutTemplate,
         iconClassName: "text-fuchsia-200",
         iconChipClassName: "border-fuchsia-500/35 bg-gradient-to-br from-fuchsia-500/22 to-purple-500/18 shadow-[0_12px_30px_rgba(217,70,239,0.18)]",

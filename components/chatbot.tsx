@@ -3,10 +3,10 @@
 import Script from "next/script"
 
 /**
- * ElevenLabs Conversational AI Widget
+ * Omniweb Conversational AI Widget
  *
  * Widget attributes override the server-side config, ensuring
- * the correct variant and behaviour regardless of ElevenLabs
+ * the correct variant and behaviour regardless of
  * dashboard changes.
  *
  * Agent is managed from the Omniweb Admin dashboard at:

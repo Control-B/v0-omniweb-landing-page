@@ -89,7 +89,7 @@ export function VoiceOrb() {
           })
         }
       } catch (fetchError) {
-        console.error("[VoiceOrb] Failed to load ElevenLabs language options", fetchError)
+        console.error("[VoiceOrb] Failed to load language options", fetchError)
       }
     })()
   }, [])
