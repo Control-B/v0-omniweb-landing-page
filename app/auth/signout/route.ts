@@ -1,13 +1,8 @@
-import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { NextResponse } from 'next/server'
+import { clearSessionCookie } from '@/lib/auth/engine'
 
 export async function POST(request: Request) {
-  const supabase = await createClient()
-
-  if (supabase) {
-    await supabase.auth.signOut()
-  }
-  
+  await clearSessionCookie()
   const { origin } = new URL(request.url)
-  return NextResponse.redirect(`${origin}/signin`)
+  return NextResponse.redirect(`${origin}/signin`, { status: 303 })
 }

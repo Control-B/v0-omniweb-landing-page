@@ -1,23 +1,10 @@
-import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
+import { NextResponse } from 'next/server'
 
+/**
+ * Legacy OAuth callback — no longer used since we removed Supabase auth.
+ * If someone hits this URL, just redirect them to signin.
+ */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/dashboard"
-
-  if (code) {
-    const supabase = await createClient()
-
-    if (!supabase) {
-      return NextResponse.redirect(`${origin}/signin`)
-    }
-
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
-  }
-
-  return NextResponse.redirect(`${origin}/auth/error`)
+  const { origin } = new URL(request.url)
+  return NextResponse.redirect(`${origin}/signin`)
 }

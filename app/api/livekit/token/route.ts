@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { AccessToken } from 'livekit-server-sdk'
 import { getLiveKitServerUrl } from '@/lib/platform/config'
-import { createClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/engine'
 import { fetchOrchestratorJson, PlatformRequestError } from '@/lib/platform/orchestrator'
 
 export const runtime = 'nodejs'
@@ -29,21 +29,12 @@ export async function GET() {
     )
   }
 
-  const supabase = await createClient()
-  if (!supabase) {
-    return NextResponse.json({ configured: false, error: 'Supabase auth is not configured' }, { status: 503 })
-  }
-
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession()
-
-  if (error || !session?.user) {
+  const session = await getSession()
+  if (!session) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
   }
 
-  let room = `omniweb-${session.user.id}`
+  let room = `omniweb-${session.user.client_id}`
   let tenantSlug: string | null = null
 
   try {
@@ -57,8 +48,8 @@ export async function GET() {
   }
 
   const token = new AccessToken(apiKey, apiSecret, {
-    identity: session.user.id,
-    name: session.user.user_metadata?.first_name || session.user.email || session.user.id,
+    identity: session.user.client_id,
+    name: session.user.email || session.user.client_id,
     ttl: '10m',
     metadata: JSON.stringify({
       email: session.user.email,

@@ -254,7 +254,7 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
         <div>
           <h2 className="text-3xl font-bold">Omniweb Control Center</h2>
           <p className="text-muted-foreground">
-            Supabase auth, tenant provisioning, Shopify onboarding, and LiveKit voice testing all meet here.
+            Tenant provisioning, Shopify onboarding, and LiveKit voice testing all meet here.
           </p>
         </div>
         <form action="/auth/signout" method="post">
@@ -274,7 +274,7 @@ export function DashboardShell({ user }: { user: DashboardUser }) {
         <div className="rounded-2xl border border-white/10 bg-card/50 p-5">
           <div className="mb-3 flex items-center gap-3">
             <UserRoundCheck className="h-5 w-5 text-cyan-400" />
-            <h2 className="font-semibold">Supabase Auth</h2>
+            <h2 className="font-semibold">Auth Status</h2>
           </div>
           <p className="text-sm text-muted-foreground">Signed in as {user.email || 'authenticated user'}.</p>
         </div>

@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { createClient } from '@/lib/supabase/server'
+import { getSession } from '@/lib/auth/engine'
 import { getOrchestratorBaseUrl } from '@/lib/platform/config'
 
 export class PlatformRequestError extends Error {
@@ -16,22 +16,9 @@ export class PlatformRequestError extends Error {
 }
 
 export async function getAuthenticatedSession() {
-  const supabase = await createClient()
+  const session = await getSession()
 
-  if (!supabase) {
-    throw new PlatformRequestError('Supabase auth is not configured', 503, null)
-  }
-
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession()
-
-  if (error) {
-    throw new PlatformRequestError(error.message, 401, null)
-  }
-
-  if (!session?.access_token || !session.user) {
+  if (!session) {
     throw new PlatformRequestError('Authentication required', 401, null)
   }
 
