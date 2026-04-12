@@ -11,7 +11,7 @@ const globeFeaturePoints = [
     accent: "from-cyan-400/30 via-sky-400/20 to-blue-500/25",
     border: "border-cyan-300/30",
     glow: "shadow-[0_24px_80px_rgba(34,211,238,0.18)]",
-    position: "left-[4%] top-[12%]",
+    position: "left-[4%] top-[6%]",
   },
   {
     title: "AI Sales Specialist",
@@ -19,7 +19,7 @@ const globeFeaturePoints = [
     accent: "from-violet-400/28 via-fuchsia-400/18 to-blue-500/22",
     border: "border-violet-300/30",
     glow: "shadow-[0_24px_80px_rgba(139,92,246,0.18)]",
-    position: "right-[4%] top-[16%]",
+    position: "right-[4%] top-[10%]",
   },
   {
     title: "AI Lead Qualification Expert",
@@ -27,7 +27,7 @@ const globeFeaturePoints = [
     accent: "from-emerald-400/28 via-cyan-300/16 to-teal-400/24",
     border: "border-emerald-300/30",
     glow: "shadow-[0_24px_80px_rgba(16,185,129,0.18)]",
-    position: "left-1/2 top-[62%] -translate-x-1/2",
+    position: "left-1/2 top-[50%] -translate-x-1/2",
   },
 ]
 
@@ -50,7 +50,7 @@ export function GlobeShowcaseSection() {
       <div className="pointer-events-none absolute inset-0 z-[3] bg-[radial-gradient(circle_at_50%_38%,rgba(34,211,238,0.12),transparent_22%),radial-gradient(circle_at_70%_30%,rgba(139,92,246,0.12),transparent_24%),radial-gradient(circle_at_35%_72%,rgba(16,185,129,0.1),transparent_20%)]" />
 
       {/* ── Desktop: two-row layout — copy on top, cards below ── */}
-      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center px-6 py-14 lg:px-8 lg:pt-14 lg:pb-6">
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center px-6 py-14 lg:px-8 lg:pt-6 lg:pb-14">
         {/* Copy — centered at top */}
         <motion.div
           style={{ y: copyY }}
@@ -65,7 +65,7 @@ export function GlobeShowcaseSection() {
         </motion.div>
 
         {/* Desktop orbit cards — pushed into bottom portion */}
-        <div className="relative mx-auto mt-4 hidden h-[36rem] w-full max-w-6xl lg:block">
+        <div className="relative mx-auto mt-2 hidden h-[36rem] w-full max-w-6xl lg:block">
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-[29rem] w-[29rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-[38rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-300/10 border-dashed opacity-70" />
 
