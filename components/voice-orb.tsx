@@ -391,14 +391,14 @@ export function VoiceOrb() {
       `}</style>
 
       {/* Mobile backdrop */}
-      <div className="fixed inset-0 z-[9998] bg-black/30 sm:hidden" onClick={handleClose} />
+      <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm sm:hidden" onClick={handleClose} />
 
       <div
-        className="fixed z-[9999] flex flex-col overflow-hidden bg-white rounded-2xl shadow-2xl border border-gray-200/60 inset-2 top-16 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[560px]"
+        className="fixed z-[9999] flex flex-col overflow-hidden bg-slate-900 rounded-2xl shadow-2xl shadow-violet-500/10 border border-white/10 inset-2 top-16 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-[380px] sm:h-[560px]"
         style={{ animation: "panel-in .25s ease-out" }}
       >
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
               <div className="absolute inset-0 rounded-full" style={{ background: CONIC, animation: isActive ? "orb-spin 6s linear infinite" : "orb-spin 20s linear infinite" }} />
@@ -407,8 +407,8 @@ export function VoiceOrb() {
               {isActive && <div className="absolute -top-px -right-px w-2.5 h-2.5 bg-green-400 rounded-full border-[1.5px] border-white" />}
             </div>
             <div>
-              <div className="text-sm font-semibold text-gray-900">Omniweb AI</div>
-              <div className="text-xs text-gray-400">
+              <div className="text-sm font-semibold text-white">Omniweb AI</div>
+              <div className="text-xs text-slate-400">
                 {isActive
                   ? chatMode === "voice"
                     ? mode === "speaking" ? "Speaking…" : "Listening…"
@@ -421,7 +421,7 @@ export function VoiceOrb() {
             {isActive && chatMode === "voice" && (
               <button
                 onClick={toggleMute}
-                className={`p-2 rounded-full transition-colors ${isMuted ? "bg-red-50 text-red-500" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"}`}
+                className={`p-2 rounded-full transition-colors ${isMuted ? "bg-red-500/20 text-red-400" : "text-slate-400 hover:bg-white/10 hover:text-white"}`}
                 title={isMuted ? "Unmute" : "Mute"}
               >
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -430,7 +430,7 @@ export function VoiceOrb() {
                 </svg>
               </button>
             )}
-            <button onClick={handleClose} className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors" title="Close">
+            <button onClick={handleClose} className="p-2 rounded-full text-slate-400 hover:bg-white/10 hover:text-white transition-colors" title="Close">
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -439,8 +439,8 @@ export function VoiceOrb() {
         </div>
 
         {/* ── Messages ── */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-gray-50/50 to-white">
-          {error && <div className="bg-red-50 text-red-600 text-xs rounded-xl px-3 py-2 border border-red-100">{error}</div>}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900">
+          {error && <div className="bg-red-500/10 text-red-400 text-xs rounded-xl px-3 py-2 border border-red-500/20">{error}</div>}
 
           {messages.length === 0 && !error && (
             <div className="flex flex-col items-center justify-center h-full text-center pb-8">
@@ -449,8 +449,8 @@ export function VoiceOrb() {
                 <div className="absolute inset-[3px] rounded-full" style={{ background: "radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.5) 0%, transparent 50%)" }} />
                 <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 1px 3px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.12)" }} />
               </div>
-              <p className="text-[15px] font-semibold text-gray-800">How can I help you?</p>
-              <p className="text-xs text-gray-400 mt-1.5 max-w-[220px]">Choose voice or text below to get started</p>
+              <p className="text-[15px] font-semibold text-white">How can I help you?</p>
+              <p className="text-xs text-slate-500 mt-1.5 max-w-[220px]">Choose voice or text below to get started</p>
             </div>
           )}
 
@@ -464,8 +464,8 @@ export function VoiceOrb() {
               <div className={[
                 "max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed",
                 m.role === "user"
-                  ? "bg-gray-900 text-white rounded-2xl rounded-br-sm"
-                  : "bg-white text-gray-800 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100",
+                  ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm shadow-lg shadow-violet-500/20"
+                  : "bg-white/[0.07] text-slate-200 rounded-2xl rounded-bl-sm shadow-sm border border-white/10 backdrop-blur-sm",
               ].join(" ")}>
                 {m.text}
               </div>
@@ -477,9 +477,9 @@ export function VoiceOrb() {
               <div className="w-6 h-6 rounded-full overflow-hidden mr-2 mt-1 flex-shrink-0">
                 <div className="w-full h-full" style={{ background: CONIC_SM, animation: "orb-spin 4s linear infinite" }} />
               </div>
-              <div className="bg-white rounded-2xl rounded-bl-sm shadow-sm border border-gray-100 px-4 py-3">
+              <div className="bg-white/[0.07] rounded-2xl rounded-bl-sm shadow-sm border border-white/10 backdrop-blur-sm px-4 py-3">
                 <div className="flex gap-1">
-                  {[0, 150, 300].map(d => <span key={d} className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />)}
+                  {[0, 150, 300].map(d => <span key={d} className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />)}
                 </div>
               </div>
             </div>
@@ -487,20 +487,20 @@ export function VoiceOrb() {
         </div>
 
         {/* ── Bottom controls ── */}
-        <div className="border-t border-gray-100 bg-white">
+        <div className="border-t border-white/10 bg-slate-900">
           <div className="px-4 pt-3 pb-1">
-            <label className="block text-[11px] font-medium uppercase tracking-[0.12em] text-gray-400 mb-1.5">
+            <label className="block text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500 mb-1.5">
               Language
             </label>
             <div className="relative">
               <select
                 value={selectedLanguage}
                 onChange={(e) => { void changeLanguage(e.target.value) }}
-                className="w-full appearance-none bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-8 py-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all cursor-pointer"
+                className="w-full appearance-none bg-white/[0.06] border border-white/10 rounded-xl pl-10 pr-8 py-3 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400/40 transition-all cursor-pointer"
                 dir={selectedLanguageOption?.rtl ? "rtl" : "ltr"}
               >
                 {languageOptions.map((option) => (
-                  <option key={option.code} value={option.code}>
+                  <option key={option.code} value={option.code} className="bg-slate-800 text-slate-200">
                     {option.label}{option.default ? " (default)" : ""}
                   </option>
                 ))}
@@ -510,22 +510,22 @@ export function VoiceOrb() {
                 {LANGUAGE_FLAGS[selectedLanguage] ?? "🌐"}
               </span>
               {/* Chevron on the right */}
-              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
             </div>
           </div>
 
           {/* Mode selector / call controls */}
-          <div className="flex items-center justify-center py-3 border-b border-gray-50 gap-2 px-4">
+          <div className="flex items-center justify-center py-3 border-b border-white/5 gap-2 px-4">
             {!isActive && !isBusy ? (
               <>
                   <button
                     onClick={selectText}
                     className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
                       chatMode === "text"
-                        ? "bg-gray-900 text-white"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
+                        : "bg-white/[0.06] text-slate-400 hover:bg-white/10 hover:text-slate-200 border border-white/10"
                     }`}
                   >
                     <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -537,8 +537,8 @@ export function VoiceOrb() {
                   onClick={selectVoice}
                   className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
                     chatMode === "voice"
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
+                      : "bg-white/[0.06] text-slate-400 hover:bg-white/10 hover:text-slate-200 border border-white/10"
                   }`}
                 >
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -548,18 +548,18 @@ export function VoiceOrb() {
                 </button>
               </>
             ) : isBusy ? (
-              <div className="flex items-center gap-2 text-gray-400 text-sm py-2.5">
-                <div className="w-4 h-4 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" /> Connecting…
+              <div className="flex items-center gap-2 text-slate-400 text-sm py-2.5">
+                <div className="w-4 h-4 border-2 border-slate-700 border-t-violet-400 rounded-full animate-spin" /> Connecting…
               </div>
             ) : (
               <div className="flex items-center gap-2 w-full">
                 {chatMode === "voice" && (
-                  <button onClick={endConversation} className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:bg-red-600 transition-colors">End call</button>
+                  <button onClick={endConversation} className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-red-500 to-rose-600 text-white text-sm font-medium rounded-full px-5 py-2.5 hover:from-red-600 hover:to-rose-700 shadow-lg shadow-red-500/20 transition-all">End call</button>
                 )}
                 {chatMode === "text" && (
                   <button
                     onClick={async () => { await endConversation(); setChatMode("voice") }}
-                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors px-2 py-1"
+                    className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-cyan-400 transition-colors px-2 py-1"
                   >
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
@@ -572,19 +572,19 @@ export function VoiceOrb() {
           </div>
 
           {/* Text input */}
-          <div className="flex items-center gap-2 p-3">
+          <div className="flex items-center gap-2 p-3 bg-slate-900">
             <input
               value={textInput}
               onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity?.() }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText() } }}
               placeholder={chatMode === "text" ? "Type a message…" : isActive ? "Type a message…" : "Select text chat to type"}
               disabled={chatMode === "voice" && !isActive}
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 disabled:opacity-40 transition-all"
+              className="flex-1 bg-white/[0.06] border border-white/10 rounded-full px-4 py-2.5 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400/40 disabled:opacity-30 transition-all"
             />
             <button
               onClick={sendText}
               disabled={(chatMode === "voice" && !isActive) || !textInput.trim()}
-              className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center hover:bg-gray-800 disabled:opacity-25 transition-all flex-shrink-0"
+              className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 text-white flex items-center justify-center hover:from-violet-500 hover:to-indigo-500 disabled:opacity-20 transition-all flex-shrink-0 shadow-lg shadow-violet-500/20"
             >
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" /></svg>
             </button>
