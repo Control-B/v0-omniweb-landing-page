@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   description: 'Omniweb builds, hosts, and sells AI-powered website systems and templates for e-commerce brands, contractors, and professionals.',
   icons: {
     icon: [
-      { url: '/icon.png?v=20260411c', type: 'image/png', sizes: '48x48' },
-      { url: '/icon.svg?v=20260411c', type: 'image/svg+xml', sizes: 'any' },
+      { url: '/icon.png?v=20260411d', type: 'image/png', sizes: '48x48' },
+      { url: '/icon.svg?v=20260411d', type: 'image/svg+xml', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico?v=20260411c',
-    apple: '/apple-icon.png?v=20260411c',
+    shortcut: '/favicon.ico?v=20260411d',
+    apple: '/apple-icon.png?v=20260411d',
   },
 }
 

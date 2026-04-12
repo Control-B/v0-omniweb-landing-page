@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Conversation } from "@elevenlabs/client"
-import type { DisconnectionDetails, MessagePayload } from "@elevenlabs/client"
+import type { DisconnectionDetails } from "@elevenlabs/client"
 
 const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
 const WELCOME_MESSAGE = "Hi, I’d love to help you today, so tell me the problem you’re trying to solve, and I’ll understand your needs, recommend the right solution, and answer your questions so you can move forward faster by text or voice. Talk to me."
@@ -12,6 +12,33 @@ type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"
 type ConvMode = "listening" | "speaking"
 type ChatMode = "voice" | "text"
+type LanguageOption = {
+  code: string
+  label: string
+  voice_id?: string | null
+  configured?: boolean
+  default?: boolean
+  rtl?: boolean
+}
+
+const FALLBACK_LANGUAGE_OPTIONS: LanguageOption[] = [
+  { code: "ar", label: "Arabic", rtl: true },
+  { code: "de", label: "German" },
+  { code: "en", label: "English", default: true },
+  { code: "es", label: "Spanish" },
+  { code: "fr", label: "French" },
+  { code: "hi", label: "Hindi" },
+  { code: "it", label: "Italian" },
+  { code: "ja", label: "Japanese" },
+  { code: "ko", label: "Korean" },
+  { code: "nl", label: "Dutch" },
+  { code: "pl", label: "Polish" },
+  { code: "pt", label: "Portuguese" },
+  { code: "ru", label: "Russian" },
+  { code: "tr", label: "Turkish" },
+  { code: "uk", label: "Ukrainian" },
+  { code: "zh", label: "Chinese" },
+]
 
 export function VoiceOrb() {
   const [expanded, setExpanded] = useState(false)
@@ -22,6 +49,8 @@ export function VoiceOrb() {
   const [isMuted, setIsMuted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [chatMode, setChatMode] = useState<ChatMode>("text")
+  const [languageOptions, setLanguageOptions] = useState<LanguageOption[]>(FALLBACK_LANGUAGE_OPTIONS)
+  const [selectedLanguage, setSelectedLanguage] = useState("en")
 
   const convRef = useRef<any>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -30,6 +59,35 @@ export function VoiceOrb() {
   const chatModeRef = useRef<ChatMode>("text")
   const hasSpokenWelcomeRef = useRef(false)
   const welcomeAudioRef = useRef<HTMLAudioElement | null>(null)
+
+  const selectedLanguageOption = languageOptions.find(option => option.code === selectedLanguage) ?? languageOptions[0]
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const response = await fetch(`${ENGINE_BASE_URL}/api/chat/languages`)
+        if (!response.ok) return
+
+        const payload = await response.json() as {
+          default_language?: string
+          languages?: LanguageOption[]
+        }
+
+        const languages = payload.languages
+        if (languages?.length) {
+          setLanguageOptions(languages)
+          setSelectedLanguage(current => {
+            if (languages.some(option => option.code === current)) {
+              return current
+            }
+            return payload.default_language ?? languages[0].code
+          })
+        }
+      } catch (fetchError) {
+        console.error("[VoiceOrb] Failed to load ElevenLabs language options", fetchError)
+      }
+    })()
+  }, [])
 
   // Keep ref in sync with state so callbacks always see the latest value
   useEffect(() => { chatModeRef.current = chatMode }, [chatMode])
@@ -48,7 +106,11 @@ export function VoiceOrb() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ text: WELCOME_MESSAGE }),
+          body: JSON.stringify({
+            text: WELCOME_MESSAGE,
+            language: selectedLanguage,
+            voice_id: selectedLanguageOption?.voice_id,
+          }),
         })
 
         if (!response.ok) {
@@ -71,7 +133,7 @@ export function VoiceOrb() {
         console.error("[VoiceOrb] Failed to play ElevenLabs welcome audio", error)
       }
     })()
-  }, [])
+  }, [selectedLanguage, selectedLanguageOption?.voice_id])
 
   const handleOpen = useCallback(() => {
     setExpanded(true)
@@ -87,6 +149,18 @@ export function VoiceOrb() {
   const sessionCallbacks = useCallback(() => ({
     agentId: AGENT_ID,
     connectionType: "websocket" as const,
+    overrides: {
+      agent: {
+        language: selectedLanguage as any,
+      },
+      ...(selectedLanguageOption?.voice_id
+        ? {
+            tts: {
+              voiceId: selectedLanguageOption.voice_id,
+            },
+          }
+        : {}),
+    },
     onConnect: () => {
       setStatus("connected")
       // Send any pending text message once connected
@@ -102,7 +176,7 @@ export function VoiceOrb() {
       convRef.current = null
       setIsMuted(false)
     },
-    onMessage: (p: MessagePayload) => {
+    onMessage: (p: any) => {
       const role = p.role === "agent" ? ("agent" as const) : ("user" as const)
       setMessages(prev => {
         const last = prev[prev.length - 1]
@@ -144,7 +218,7 @@ export function VoiceOrb() {
       else if (s === "connecting") setStatus("connecting")
       else setStatus("disconnected")
     },
-  }), [])
+  }), [selectedLanguage, selectedLanguageOption?.voice_id])
 
   const startVoiceSession = useCallback(async () => {
     if (convRef.current) return
@@ -242,6 +316,17 @@ export function VoiceOrb() {
     setChatMode("text")
     // Don't auto-connect — connect when user sends first message
   }, [endConversation])
+
+  const changeLanguage = useCallback(async (languageCode: string) => {
+    if (languageCode === selectedLanguage) return
+
+    if (convRef.current) {
+      await endConversation()
+    }
+
+    setSelectedLanguage(languageCode)
+    setError(null)
+  }, [endConversation, selectedLanguage])
 
   const isActive = status === "connected"
   const isBusy = status === "connecting"
@@ -397,6 +482,24 @@ export function VoiceOrb() {
 
         {/* ── Bottom controls ── */}
         <div className="border-t border-gray-100 bg-white">
+          <div className="px-4 pt-3">
+            <label className="block text-[11px] font-medium uppercase tracking-[0.12em] text-gray-400 mb-1.5">
+              Language
+            </label>
+            <select
+              value={selectedLanguage}
+              onChange={(e) => { void changeLanguage(e.target.value) }}
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+              dir={selectedLanguageOption?.rtl ? "rtl" : "ltr"}
+            >
+              {languageOptions.map((option) => (
+                <option key={option.code} value={option.code}>
+                  {option.label}{option.default ? " (default)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Mode selector / call controls */}
           <div className="flex items-center justify-center py-3 border-b border-gray-50 gap-2 px-4">
             {!isActive && !isBusy ? (
