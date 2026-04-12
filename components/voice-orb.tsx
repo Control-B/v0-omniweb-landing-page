@@ -157,6 +157,7 @@ export function VoiceOrb() {
     connectionType: "websocket" as const,
     overrides: {
       agent: {
+        first_message: "",
         language: selectedLanguage as any,
       },
       ...(selectedLanguageOption?.voice_id
