@@ -419,7 +419,7 @@ export function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="absolute left-0 right-0 top-16 border-b border-border/40 bg-[#050a12]/95 backdrop-blur-xl lg:hidden">
+        <div className="absolute left-0 right-0 top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border/40 bg-[#050a12]/95 backdrop-blur-xl lg:hidden">
           <nav className="flex flex-col px-4 py-4">
             {navItems.map((item) => (
               <div key={item.label} className="rounded-2xl border border-transparent transition hover:border-white/10 hover:bg-white/[0.03]">
