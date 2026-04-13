@@ -30,25 +30,25 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-        variables: {
-          colorPrimary: '#06b6d4',
-          colorBackground: '#0a1628',
-          colorInputBackground: '#111b2e',
-          colorText: '#f1f5f9',
-        },
-      }}
-      afterSignOutUrl="/"
-    >
-      <html lang="en">
-        <body className={`${geist.variable} ${geistMono.variable} ${oswald.variable} ${robotoCondensed.variable} font-sans antialiased`}>
+    <html lang="en">
+      <body className={`${geist.variable} ${geistMono.variable} ${oswald.variable} ${robotoCondensed.variable} font-sans antialiased`}>
+        <ClerkProvider
+          appearance={{
+            baseTheme: dark,
+            variables: {
+              colorPrimary: '#06b6d4',
+              colorBackground: '#0a1628',
+              colorInputBackground: '#111b2e',
+              colorText: '#f1f5f9',
+            },
+          }}
+          afterSignOutUrl="/"
+        >
           {children}
           <VoiceOrb />
-          <Analytics />
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+        <Analytics />
+      </body>
+    </html>
   )
 }

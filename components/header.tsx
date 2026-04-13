@@ -21,6 +21,7 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { Show, UserButton, SignInButton, SignUpButton } from "@clerk/nextjs"
 
 type NavSubItem = {
   label: string
@@ -389,17 +390,40 @@ export function Header() {
               Call Us
             </a>
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
-          >
-            <Link href="/signin">Sign In</Link>
-          </Button>
-          <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-5 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
-            <Link href="/get-started">Get Started</Link>
-          </Button>
+          <Show when="signed-out">
+            <SignInButton mode="modal">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
+              >
+                Sign In
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button size="sm" className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-5 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
+                Get Started
+              </Button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
+            >
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "h-8 w-8",
+                },
+              }}
+            />
+          </Show>
         </div>
 
         {/* Mobile Menu Button */}
@@ -475,12 +499,33 @@ export function Header() {
                   Call Us
                 </a>
               </Button>
-              <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
-                <Link href="/signin">Sign In</Link>
-              </Button>
-              <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
-                <Link href="/get-started">Get Started</Link>
-              </Button>
+              <Show when="signed-out">
+                <SignInButton mode="modal">
+                  <Button variant="outline" size="sm" className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
+                    Sign In
+                  </Button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <Button size="sm" className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
+                    Get Started
+                  </Button>
+                </SignUpButton>
+              </Show>
+              <Show when="signed-in">
+                <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
+                  <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                </Button>
+                <div className="flex justify-start px-3">
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: {
+                        avatarBox: "h-8 w-8",
+                      },
+                    }}
+                  />
+                </div>
+              </Show>
             </div>
           </nav>
         </div>
