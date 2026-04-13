@@ -1,19 +1,22 @@
 /**
- * Server-side auth helpers for the Omniweb Engine JWT.
+ * Server-side auth helpers for the Omniweb Engine.
  *
- * The engine issues JWTs on POST /api/auth/login and POST /api/auth/signup.
- * We store the token in an httpOnly cookie named `omniweb_token` so it
- * travels automatically on every request and cannot be read by client JS.
+ * Supports TWO auth strategies:
+ *
+ * 1. **Clerk** (primary) — Clerk manages sign-in/sign-up. We get the Clerk
+ *    session token and pass it as a Bearer token to the engine. The engine
+ *    verifies the Clerk JWT via JWKS and resolves/creates the Client record.
+ *
+ * 2. **Legacy JWT** (fallback) — The engine issues JWTs stored in an
+ *    httpOnly cookie named `omniweb_token`. Kept for API key auth and admin
+ *    access until Clerk admin is fully migrated.
  */
 import 'server-only'
 
 import { cookies } from 'next/headers'
+import { auth } from '@clerk/nextjs/server'
 
-// Resolve the engine base URL.
-// NEXT_PUBLIC_OMNIWEB_ENGINE_URL is the canonical var shared with client code.
-// OMNIWEB_ENGINE_URL is a server-only override (e.g. internal network URL).
-// FASTAPI_ASSISTANT_URL is legacy / local-dev only — deprioritised because
-// it is commonly set to http://127.0.0.1:8000 which breaks in production.
+// Resolve the engine base URL
 const ENGINE_BASE_URL = (
   process.env.OMNIWEB_ENGINE_URL ??
   process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ??
@@ -36,18 +39,44 @@ export type EngineSession = {
 }
 
 /**
- * Read the JWT from the httpOnly cookie and decode the payload (base64).
- * This does NOT verify the signature — the engine does that on every API call.
- * We only parse it to display user info on the frontend.
+ * Get the current session — tries Clerk first, then falls back to legacy JWT cookie.
  */
 export async function getSession(): Promise<EngineSession | null> {
+  // 1. Try Clerk session
+  const clerkSession = await getClerkSession()
+  if (clerkSession) return clerkSession
+
+  // 2. Fallback to legacy JWT cookie
+  return getLegacySession()
+}
+
+/**
+ * Get a Bearer token for API calls to the engine.
+ * Prefers Clerk token, falls back to legacy cookie.
+ */
+export async function getEngineToken(): Promise<string | null> {
+  // Try Clerk first
+  const { getToken } = await auth()
+  const clerkToken = await getToken()
+  if (clerkToken) return clerkToken
+
+  // Fallback to legacy cookie
   const cookieStore = await cookies()
-  const token = cookieStore.get(COOKIE_NAME)?.value
+  return cookieStore.get(COOKIE_NAME)?.value ?? null
+}
 
-  if (!token) return null
-
+/**
+ * Get session from Clerk auth.
+ */
+async function getClerkSession(): Promise<EngineSession | null> {
   try {
-    // JWT structure: header.payload.signature
+    const { userId, getToken } = await auth()
+    if (!userId) return null
+
+    const token = await getToken()
+    if (!token) return null
+
+    // Decode Clerk JWT payload to extract user info
     const parts = token.split('.')
     if (parts.length !== 3) return null
 
@@ -55,7 +84,37 @@ export async function getSession(): Promise<EngineSession | null> {
       Buffer.from(parts[1], 'base64url').toString('utf-8'),
     )
 
-    // Check expiry
+    return {
+      access_token: token,
+      user: {
+        client_id: payload.sub ?? userId,
+        email: payload.email ?? payload.primary_email_address ?? '',
+        plan: payload.plan ?? 'starter',
+        role: payload.role ?? 'client',
+      },
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Get session from legacy JWT cookie.
+ */
+async function getLegacySession(): Promise<EngineSession | null> {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(COOKIE_NAME)?.value
+
+  if (!token) return null
+
+  try {
+    const parts = token.split('.')
+    if (parts.length !== 3) return null
+
+    const payload = JSON.parse(
+      Buffer.from(parts[1], 'base64url').toString('utf-8'),
+    )
+
     if (payload.exp && payload.exp * 1000 < Date.now()) {
       return null
     }
@@ -75,12 +134,11 @@ export async function getSession(): Promise<EngineSession | null> {
 }
 
 /**
- * Store the engine JWT in an httpOnly cookie.
+ * Store the engine JWT in an httpOnly cookie (legacy flow).
  */
 export async function setSessionCookie(token: string) {
   const cookieStore = await cookies()
 
-  // Parse expiry from JWT to set cookie max-age
   let maxAge = 60 * 60 * 24 // default 24h
   try {
     const payload = JSON.parse(
@@ -103,7 +161,7 @@ export async function setSessionCookie(token: string) {
 }
 
 /**
- * Clear the session cookie.
+ * Clear the session cookie (legacy flow).
  */
 export async function clearSessionCookie() {
   const cookieStore = await cookies()
@@ -111,7 +169,7 @@ export async function clearSessionCookie() {
 }
 
 /**
- * Call the engine's login endpoint.
+ * Call the engine's login endpoint (legacy flow — kept for admin login).
  */
 export async function engineLogin(
   email: string,
@@ -145,7 +203,7 @@ export async function engineLogin(
 }
 
 /**
- * Call the engine's signup endpoint.
+ * Call the engine's signup endpoint (legacy flow — kept for compatibility).
  */
 export async function engineSignup(body: {
   name: string
@@ -181,7 +239,7 @@ export async function engineSignup(body: {
 }
 
 /**
- * Call the engine's token refresh endpoint.
+ * Call the engine's token refresh endpoint (legacy flow).
  */
 export async function engineRefresh(
   currentToken: string,

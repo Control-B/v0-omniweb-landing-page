@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Oswald, Roboto_Condensed } from 'next/font/google'
+import { ClerkProvider } from '@clerk/nextjs'
+import { dark } from '@clerk/themes'
 import { Analytics } from '@vercel/analytics/next'
 import { VoiceOrb } from '@/components/voice-orb'
 import './globals.css'
@@ -28,12 +30,25 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geist.variable} ${geistMono.variable} ${oswald.variable} ${robotoCondensed.variable} font-sans antialiased`}>
-        {children}
-        <VoiceOrb />
-        <Analytics />
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: '#06b6d4',
+          colorBackground: '#0a1628',
+          colorInputBackground: '#111b2e',
+          colorText: '#f1f5f9',
+        },
+      }}
+      afterSignOutUrl="/"
+    >
+      <html lang="en">
+        <body className={`${geist.variable} ${geistMono.variable} ${oswald.variable} ${robotoCondensed.variable} font-sans antialiased`}>
+          {children}
+          <VoiceOrb />
+          <Analytics />
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }
