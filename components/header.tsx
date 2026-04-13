@@ -372,6 +372,14 @@ export function Header() {
             variant="ghost"
             size="sm"
             asChild
+            className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
+          >
+            <Link href="/demo">Live Demo</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
             className="gap-2 rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
           >
             <a href="tel:+18664159494">
@@ -448,6 +456,9 @@ export function Header() {
               </div>
             ))}
             <div className="mt-4 flex flex-col gap-2 border-t border-border/40 pt-4">
+              <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
+                <Link href="/demo" onClick={() => setMobileMenuOpen(false)}>Live Demo</Link>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
