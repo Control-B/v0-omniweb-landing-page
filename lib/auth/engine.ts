@@ -111,6 +111,7 @@ export async function clearSessionCookie() {
 export async function engineLogin(
   email: string,
   password: string,
+  portal: 'client' | 'admin' = 'client',
 ): Promise<{
   ok: boolean
   data?: { access_token: string; client_id: string; email: string; plan: string; role: string }
@@ -120,7 +121,7 @@ export async function engineLogin(
     const res = await fetch(`${ENGINE_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, portal }),
       cache: 'no-store',
     })
 

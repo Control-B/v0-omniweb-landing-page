@@ -9,7 +9,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
   }
 
-  const result = await engineLogin(email, password)
+  // Try client portal first
+  let result = await engineLogin(email, password, 'client')
+
+  // If it fails with the "Use the admin sign-in portal" message, retry as admin
+  if (!result.ok && result.error?.includes('admin sign-in portal')) {
+    result = await engineLogin(email, password, 'admin')
+  }
 
   if (!result.ok || !result.data) {
     return NextResponse.json({ error: result.error ?? 'Login failed' }, { status: 401 })
