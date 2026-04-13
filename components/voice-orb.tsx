@@ -5,7 +5,7 @@ import { Conversation } from "@elevenlabs/client"
 import type { DisconnectionDetails } from "@elevenlabs/client"
 
 const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
-const WELCOME_MESSAGE = "Hi, I’d love to help you today, so tell me the problem you’re trying to solve, and I’ll understand your needs, recommend the right solution, and answer your questions so you can move forward faster by text or voice. Talk to me."
+const WELCOME_MESSAGE = "Hi! I'd love to help you today. Tell me the problem you're trying to solve, and I'll understand your needs, recommend the right solution, and answer your questions so you can move forward faster."
 const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
 type Message = { role: "user" | "agent"; text: string }
@@ -54,7 +54,7 @@ export function VoiceOrb() {
   const [textInput, setTextInput] = useState("")
   const [isMuted, setIsMuted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [chatMode, setChatMode] = useState<ChatMode>("text")
+  const [chatMode, setChatMode] = useState<ChatMode>("voice")
   const [languageOptions, setLanguageOptions] = useState<LanguageOption[]>(FALLBACK_LANGUAGE_OPTIONS)
   const [selectedLanguage, setSelectedLanguage] = useState("en")
 
@@ -62,7 +62,8 @@ export function VoiceOrb() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const chatBufferRef = useRef<string>("")
   const pendingTextRef = useRef<string | null>(null)
-  const chatModeRef = useRef<ChatMode>("text")
+  const chatModeRef = useRef<ChatMode>("voice")
+  const expandedRef = useRef(false)
 
 
   const selectedLanguageOption = languageOptions.find(option => option.code === selectedLanguage) ?? languageOptions[0]
@@ -101,14 +102,27 @@ export function VoiceOrb() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [messages])
 
-  const handleOpen = useCallback(() => {
+  const handleOpen = useCallback((openMode?: "voice" | "text") => {
+    const targetMode = openMode ?? "voice"
     setExpanded(true)
-    setChatMode("text")
+    setChatMode(targetMode)
     setError(null)
     if (messages.length === 0) {
       setMessages([{ role: "agent", text: WELCOME_MESSAGE }])
     }
   }, [messages.length])
+
+  // Listen for assistant open events from the landing page CTAs
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ mode?: string }>).detail
+      const openMode = detail?.mode === "text" ? "text" as const : "voice" as const
+      handleOpen(openMode)
+    }
+    window.addEventListener("omniweb:assistant-open", handler)
+    return () => window.removeEventListener("omniweb:assistant-open", handler)
+  }, [handleOpen])
 
   /* ── shared session options (everything except textOnly) ── */
   const sessionCallbacks = useCallback(() => ({
@@ -198,6 +212,15 @@ export function VoiceOrb() {
     }
   }, [sessionCallbacks])
 
+  // Auto-start voice when panel opens in voice mode
+  useEffect(() => {
+    const justOpened = expanded && !expandedRef.current
+    expandedRef.current = expanded
+    if (justOpened && chatMode === "voice" && !convRef.current) {
+      void startVoiceSession()
+    }
+  }, [expanded, chatMode, startVoiceSession])
+
   const startTextSession = useCallback(async () => {
     if (convRef.current) return
     setStatus("connecting")
@@ -252,7 +275,7 @@ export function VoiceOrb() {
     setExpanded(false)
     setMessages([])
     setError(null)
-    setChatMode("text")
+    setChatMode("voice")
     chatBufferRef.current = ""
   }, [endConversation])
 
@@ -362,9 +385,9 @@ export function VoiceOrb() {
               <div className="text-xs text-slate-400">
                 {isActive
                   ? chatMode === "voice"
-                    ? mode === "speaking" ? "Speaking…" : "Listening…"
-                    : "Text chat"
-                  : isBusy ? "Connecting…" : "Choose how to chat"}
+                    ? mode === "speaking" ? "AI is speaking…" : "Listening…"
+                    : "Text mode"
+                  : isBusy ? "Connecting…" : "Ready to talk"}
               </div>
             </div>
           </div>
@@ -401,7 +424,7 @@ export function VoiceOrb() {
                 <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 1px 3px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.12)" }} />
               </div>
               <p className="text-[15px] font-semibold text-white">How can I help you?</p>
-              <p className="text-xs text-slate-500 mt-1.5 max-w-[220px]">Choose voice or text below to get started</p>
+              <p className="text-xs text-slate-500 mt-1.5 max-w-[220px]">Tap the orb or type below to get started</p>
             </div>
           )}
 
@@ -471,19 +494,6 @@ export function VoiceOrb() {
           <div className="flex items-center justify-center py-3 border-b border-white/5 gap-2 px-4">
             {!isActive && !isBusy ? (
               <>
-                  <button
-                    onClick={selectText}
-                    className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
-                      chatMode === "text"
-                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
-                        : "bg-white/[0.06] text-slate-400 hover:bg-white/10 hover:text-slate-200 border border-white/10"
-                    }`}
-                  >
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                    </svg>
-                    Text chat
-                  </button>
                 <button
                   onClick={selectVoice}
                   className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
@@ -497,6 +507,19 @@ export function VoiceOrb() {
                   </svg>
                   Voice call
                 </button>
+                  <button
+                    onClick={selectText}
+                    className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
+                      chatMode === "text"
+                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
+                        : "bg-white/[0.06] text-slate-400 hover:bg-white/10 hover:text-slate-200 border border-white/10"
+                    }`}
+                  >
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                    </svg>
+                    Text chat
+                  </button>
               </>
             ) : isBusy ? (
               <div className="flex items-center gap-2 text-slate-400 text-sm py-2.5">
@@ -528,7 +551,7 @@ export function VoiceOrb() {
               value={textInput}
               onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity?.() }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText() } }}
-              placeholder={chatMode === "text" ? "Type a message…" : isActive ? "Type a message…" : "Select text chat to type"}
+              placeholder={isActive || chatMode === "text" ? "Type a message…" : "Start voice or type a message…"}
               disabled={chatMode === "voice" && !isActive}
               className="flex-1 bg-white/[0.06] border border-white/10 rounded-full px-4 py-2.5 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400/40 disabled:opacity-30 transition-all"
             />

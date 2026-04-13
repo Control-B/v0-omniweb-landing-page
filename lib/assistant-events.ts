@@ -2,7 +2,7 @@ export const ASSISTANT_OPEN_EVENT = "omniweb:assistant-open"
 
 export type AssistantOpenMode = "select" | "text" | "voice"
 
-export function dispatchAssistantOpen(mode: AssistantOpenMode = "select") {
+export function dispatchAssistantOpen(mode: AssistantOpenMode = "voice") {
   if (typeof window === "undefined") {
     return
   }
