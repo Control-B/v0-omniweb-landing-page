@@ -69,12 +69,14 @@ function EmbeddableWidget() {
       setIsMuted(false)
     },
     onMessage: (p: any) => {
-      const role = p.role === "agent" ? ("agent" as const) : ("user" as const)
-      setMessages(prev => {
-        const last = prev[prev.length - 1]
-        if (last?.role === role) return [...prev.slice(0, -1), { role, text: p.message }]
-        return [...prev, { role, text: p.message }]
-      })
+      // Only handle user transcripts — agent responses handled by onAgentChatResponsePart
+      if (p.role !== "agent") {
+        setMessages(prev => {
+          const last = prev[prev.length - 1]
+          if (last?.role === "user") return [...prev.slice(0, -1), { role: "user", text: p.message }]
+          return [...prev, { role: "user" as const, text: p.message }]
+        })
+      }
     },
     onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
       if (part.type === "start") {
