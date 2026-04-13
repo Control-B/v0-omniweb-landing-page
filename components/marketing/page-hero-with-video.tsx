@@ -505,9 +505,12 @@ function HeroActionButton({ action }: { action: HeroAction }) {
         size="lg"
         variant="outline"
         asChild
-        className="kling-pill h-12 rounded-lg border border-white/20 bg-transparent px-6 text-[13px] font-bold uppercase tracking-wider text-white hover:bg-white/10"
+        className="group h-12 rounded-lg border border-emerald-400/50 bg-emerald-500/10 px-6 text-[13px] font-bold uppercase tracking-wider text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.15)] transition-all hover:border-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-200 hover:shadow-[0_0_30px_rgba(52,211,153,0.3)]"
       >
-        <Link href={action.href}>{action.label}</Link>
+        <Link href={action.href} className="inline-flex items-center gap-2">
+          <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span></span>
+          {action.label}
+        </Link>
       </Button>
     )
   }

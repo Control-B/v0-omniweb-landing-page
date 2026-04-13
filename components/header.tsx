@@ -369,12 +369,15 @@ export function Header() {
         {/* Desktop Actions */}
         <div className="hidden items-center gap-2 lg:flex">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             asChild
-            className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
+            className="rounded-full border-emerald-400/50 bg-emerald-500/10 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.15)] transition-all hover:border-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-200 hover:shadow-[0_0_20px_rgba(52,211,153,0.25)]"
           >
-            <Link href="/demo">Live Demo</Link>
+            <Link href="/demo" className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span></span>
+              Live Demo
+            </Link>
           </Button>
           <Button
             variant="ghost"
@@ -456,8 +459,11 @@ export function Header() {
               </div>
             ))}
             <div className="mt-4 flex flex-col gap-2 border-t border-border/40 pt-4">
-              <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
-                <Link href="/demo" onClick={() => setMobileMenuOpen(false)}>Live Demo</Link>
+              <Button variant="outline" size="sm" asChild className="justify-start border-emerald-400/50 bg-emerald-500/10 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-500/20">
+                <Link href="/demo" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-1.5">
+                  <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span></span>
+                  Live Demo
+                </Link>
               </Button>
               <Button
                 variant="outline"
