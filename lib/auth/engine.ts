@@ -118,7 +118,7 @@ export async function engineLogin(
   error?: string
 }> {
   try {
-    const res = await fetch(`${ENGINE_BASE_URL}/auth/login`, {
+    const res = await fetch(`${ENGINE_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, portal }),
@@ -152,7 +152,7 @@ export async function engineSignup(body: {
   error?: string
 }> {
   try {
-    const res = await fetch(`${ENGINE_BASE_URL}/auth/signup`, {
+    const res = await fetch(`${ENGINE_BASE_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -178,7 +178,7 @@ export async function engineRefresh(
   currentToken: string,
 ): Promise<{ ok: boolean; data?: { access_token: string }; error?: string }> {
   try {
-    const res = await fetch(`${ENGINE_BASE_URL}/auth/refresh`, {
+    const res = await fetch(`${ENGINE_BASE_URL}/api/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
