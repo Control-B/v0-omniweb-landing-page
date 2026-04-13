@@ -143,7 +143,7 @@ export default function ResourcesPage() {
             </motion.p>
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Button size="lg" asChild className="h-12 rounded-full bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-500">
-                <Link href="#resource-library">Browse Library <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="#library">Browse Library <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </motion.div>
           </div>
@@ -164,7 +164,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── Resource Library Tabs ────────────────────────────────── */}
-        <section id="resource-library" className="bg-[#050811] px-4 py-24 lg:px-8">
+        <section id="library" className="bg-[#050811] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-[1400px]">
             <div className="mb-16 text-center">
               <h2 className="mb-4 text-2xl font-bold tracking-widest text-white uppercase lg:text-3xl">RESOURCE LIBRARY</h2>
@@ -220,7 +220,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ─── BLOCK 1: Voice Agents — image right ─── */}
-        <section className="px-4 py-24 lg:px-8">
+        <section id="videos" className="px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-6xl">
             <div className="grid items-start gap-16 lg:grid-cols-2">
               <div>
@@ -489,7 +489,7 @@ export default function ResourcesPage() {
         </section>
 
         {/* ── Popular Reads ──────────────────────────────────────── */}
-        <section className="border-y border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
+        <section id="articles" className="border-y border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-6xl">
             <div className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div>

@@ -268,7 +268,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      <section className="site-section-shell">
+      <section id="chat-assistants" className="site-section-shell">
         <div className="site-shell grid gap-6 lg:grid-cols-2">
           {featureGroups.map((feature) => (
             <FeatureCard key={feature.title} {...feature} actionLabel="Launch this demo" />
@@ -277,7 +277,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* ─── BLOCK 1: Voice & Chat — image right ─── */}
-      <section className="px-4 py-24 lg:px-8">
+      <section id="voice-agents" className="px-4 py-24 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-start gap-16 lg:grid-cols-2">
             <div>
@@ -307,7 +307,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* ─── BLOCK 2: Lead Automation — image left (reversed) ─── */}
-      <section className="px-4 py-24 lg:px-8">
+      <section id="lead-automation" className="px-4 py-24 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-start gap-16 lg:grid-cols-2">
             <div className="order-2 lg:order-1">

@@ -5,8 +5,6 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-const ENGINE_DASHBOARD_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app/login"
-
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -33,9 +31,9 @@ export default function SignInPage() {
         return
       }
 
-      // Redirect based on role
+      // Redirect based on role — admins go to /admin, clients go to /dashboard
       if (data.role === "admin") {
-        window.location.assign(ENGINE_DASHBOARD_URL)
+        router.push("/admin")
       } else {
         router.push("/dashboard")
       }
@@ -84,9 +82,14 @@ export default function SignInPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-medium">
-                Password
-              </label>
+              <div className="mb-2 flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-xs text-cyan-400 hover:text-cyan-300">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"
@@ -106,31 +109,10 @@ export default function SignInPage() {
             </Button>
           </form>
 
-          <div className="my-6 flex items-center gap-4">
-            <div className="h-px flex-1 bg-white/10" />
-            <span className="text-xs text-muted-foreground">or</span>
-            <div className="h-px flex-1 bg-white/10" />
-          </div>
-
-          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
-            <div className="text-sm font-semibold text-foreground">Admin dashboard</div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              If you need the admin dashboard, use the engine login directly.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-3 w-full border-white/10"
-              onClick={() => window.location.assign(ENGINE_DASHBOARD_URL)}
-            >
-              Open Admin Dashboard
-            </Button>
-          </div>
-
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link href="/get-started" className="text-cyan-400 hover:text-cyan-300">
-              Get started
+              Get started free
             </Link>
           </p>
         </div>

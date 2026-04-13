@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth/engine"
-import { PageLayout } from "@/components/page-layout"
-import { DashboardLayout } from "@/components/dashboard-layout"
+import { DashboardShell } from "@/components/dashboard-shell"
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -10,16 +9,19 @@ export default async function DashboardPage() {
     redirect("/signin")
   }
 
-  // Extract a display name from the email (everything before @)
+  // Admins go to the admin dashboard
+  if (session.user.role === "admin") {
+    redirect("/admin")
+  }
+
   const firstName = session.user.email.split("@")[0] || "there"
 
   return (
-    <PageLayout>
-      <section className="px-4 py-14 lg:px-8 lg:py-20">
-        <div className="mx-auto max-w-6xl">
-          <DashboardLayout firstName={firstName} email={session.user.email} />
-        </div>
-      </section>
-    </PageLayout>
+    <DashboardShell
+      email={session.user.email}
+      plan={session.user.plan}
+      clientId={session.user.client_id}
+      firstName={firstName}
+    />
   )
 }

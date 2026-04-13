@@ -117,7 +117,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── Pricing Cards ──────────────────────────────────────── */}
-        <section className="bg-[#050811] px-4 py-24 lg:px-8">
+        <section id="plans" className="bg-[#050811] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-6xl grid gap-6 lg:grid-cols-3">
             {plans.map((plan) => (
               <PricingCard key={plan.name} {...plan} />
@@ -247,7 +247,7 @@ export default function PricingPage() {
         </section>
 
         {/* ── FAQ ────────────────────────────────────────────────── */}
-        <section className="border-y border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
+        <section id="faq" className="border-y border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <div className="mb-12 text-center">
               <h2 className="mb-4 text-2xl font-bold tracking-widest text-white uppercase lg:text-3xl">FREQUENTLY ASKED QUESTIONS</h2>

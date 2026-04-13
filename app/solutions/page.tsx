@@ -186,7 +186,7 @@ function SystemsShowcaseSection() {
   }, [])
 
   return (
-    <section className="relative overflow-hidden border-b border-[#1e293b]/50 bg-black px-4 py-20 lg:px-8 lg:py-28">
+    <section id="how-it-works" className="relative overflow-hidden border-b border-[#1e293b]/50 bg-black px-4 py-20 lg:px-8 lg:py-28">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_36%),radial-gradient(circle_at_85%_15%,rgba(217,153,255,0.14),transparent_28%),radial-gradient(circle_at_15%_85%,rgba(255,153,161,0.12),transparent_24%)]" />
       <div className="relative mx-auto max-w-[1400px]">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-10">
@@ -810,7 +810,7 @@ export default function SolutionsPage() {
         <SystemsShowcaseSection />
 
         {/* ── Stats ──────────────────────────────────────────────────── */}
-        <section className="bg-white/[0.02] px-4 py-16 lg:px-8 border-b border-[#1e293b]/50">
+        <section id="results" className="bg-white/[0.02] px-4 py-16 lg:px-8 border-b border-[#1e293b]/50">
           <div className="mx-auto max-w-6xl">
             <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
               {stats.map((stat) => (

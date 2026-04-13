@@ -48,7 +48,7 @@ export default function GetStartedPage() {
       }
 
       // Account created and JWT cookie set — go to dashboard
-      router.push("/dashboard")
+      router.push("/demo")
     } catch {
       setError("Network error. Please try again.")
     } finally {
