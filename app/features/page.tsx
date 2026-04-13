@@ -96,7 +96,12 @@ export default function FeaturesPage() {
   )
 
   useEffect(() => {
-    videoRefs.current[0]?.play().catch(() => {})
+    const v = videoRefs.current[0]
+    if (v) {
+      v.setAttribute("muted", "")
+      v.muted = true
+      v.play().catch(() => {})
+    }
   }, [])
 
   // Rotate headlines every 4 seconds
@@ -116,21 +121,28 @@ export default function FeaturesPage() {
           {heroVideos.map((src, i) => (
             <video
               key={src}
-              ref={(el) => { videoRefs.current[i] = el }}
+              ref={(el) => {
+                videoRefs.current[i] = el
+                if (el) {
+                  el.setAttribute("muted", "")
+                  el.muted = true
+                }
+              }}
               src={src}
+              autoPlay={i === 0}
               muted
               playsInline
-              preload="auto"
+              preload={i === currentVideo ? "auto" : "metadata"}
               poster={src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
               onEnded={() => handleVideoEnded(i)}
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+              className={`absolute inset-0 h-full w-full object-cover brightness-110 transition-opacity duration-700 ${
                 i === currentVideo ? "opacity-100" : "opacity-0"
               }`}
             />
           ))}
           {/* Overlays for text legibility */}
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12] via-transparent to-[#050a12]/40" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12] via-transparent to-[#050a12]/30" />
         </div>
 
         {/* Centered content */}
@@ -259,7 +271,7 @@ export default function FeaturesPage() {
               { src: "/media/Beautiful lady store.mp4", label: "Beauty & Fashion" },
             ].map((v, i) => (
               <div key={`mv-${i}`} className="relative w-[min(540px,80vw)] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10" style={{ aspectRatio: "540/440" }}>
-                <video src={v.src} muted autoPlay loop playsInline preload="auto" poster={v.src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')} className="h-full w-full object-cover" />
+                <video ref={(el) => { if (el) { el.setAttribute("muted", ""); el.muted = true; el.play().catch(() => {}) } }} src={v.src} muted autoPlay loop playsInline preload="auto" poster={v.src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')} className="h-full w-full object-cover brightness-110" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6">
                   <span className="text-xs font-semibold tracking-wide text-white/90">{v.label}</span>
                 </div>

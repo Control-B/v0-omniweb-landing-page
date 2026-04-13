@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { ArrowRight, Pause, Play, Volume2, VolumeX, Zap, BarChart3, Clock, Shield } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -49,19 +49,31 @@ export function PageHeroWithVideo({
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [localVideoFailed, setLocalVideoFailed] = useState(false)
   const [isLargeDesktop, setIsLargeDesktop] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const desktopVideoRef = useRef<HTMLVideoElement>(null)
+  const mobileVideoRef = useRef<HTMLVideoElement>(null)
+  const defaultVideoRef = useRef<HTMLVideoElement>(null)
   const activeLocalVideo = localVideos?.[currentVideoIndex]
   const hasWorkingLocalVideo = Boolean(activeLocalVideo && !localVideoFailed)
+
+  // Pick the correct video ref based on context
+  const getActiveVideoRef = useCallback(() => {
+    if (size === "large") {
+      return isLargeDesktop ? desktopVideoRef : mobileVideoRef
+    }
+    return defaultVideoRef
+  }, [size, isLargeDesktop])
 
   const playWithSound = async () => {
     setIsPlaying(true)
     setIsMuted(false)
 
     if (hasWorkingLocalVideo) {
-      if (!videoRef.current) return
-      videoRef.current.muted = false
-      await videoRef.current.play().catch(() => {})
+      const vid = getActiveVideoRef().current
+      if (!vid) return
+      vid.muted = false
+      await vid.play().catch(() => {})
       return
     }
 
@@ -85,7 +97,8 @@ export function PageHeroWithVideo({
     setIsMuted(true)
 
     if (hasWorkingLocalVideo) {
-      if (videoRef.current) videoRef.current.muted = true
+      const vid = getActiveVideoRef().current
+      if (vid) vid.muted = true
       return
     }
 
@@ -98,13 +111,27 @@ export function PageHeroWithVideo({
 
   useEffect(() => {
     setLocalVideoFailed(false)
+    setVideoReady(false)
   }, [activeLocalVideo])
+
+  // Force muted attribute via DOM for autoplay compliance
+  const ensureMutedAttr = useCallback((el: HTMLVideoElement | null) => {
+    if (el) {
+      el.setAttribute("muted", "")
+      el.muted = true
+    }
+  }, [])
 
   useEffect(() => {
     if (hasWorkingLocalVideo) {
-      if (videoRef.current) {
-        if (isPlaying) videoRef.current.play().catch(() => {})
-        else videoRef.current.pause()
+      const vid = getActiveVideoRef().current
+      if (vid) {
+        if (isPlaying) {
+          ensureMutedAttr(vid)
+          vid.play().catch(() => {})
+        } else {
+          vid.pause()
+        }
       }
       return
     }
@@ -115,13 +142,12 @@ export function PageHeroWithVideo({
       func: isPlaying ? "playVideo" : "pauseVideo"
     })
     iframeRef.current.contentWindow.postMessage(message, "*")
-  }, [hasWorkingLocalVideo, isPlaying, localVideos])
+  }, [hasWorkingLocalVideo, isPlaying, localVideos, getActiveVideoRef, ensureMutedAttr])
 
   useEffect(() => {
     if (hasWorkingLocalVideo) {
-      if (videoRef.current) {
-        videoRef.current.muted = isMuted
-      }
+      const vid = getActiveVideoRef().current
+      if (vid) vid.muted = isMuted
       return
     }
 
@@ -131,7 +157,7 @@ export function PageHeroWithVideo({
       func: isMuted ? "mute" : "unMute"
     })
     iframeRef.current.contentWindow.postMessage(message, "*")
-  }, [hasWorkingLocalVideo, isMuted, localVideos])
+  }, [hasWorkingLocalVideo, isMuted, localVideos, getActiveVideoRef])
 
   useEffect(() => {
     const handlePause = () => {
@@ -144,11 +170,24 @@ export function PageHeroWithVideo({
   }, [hasWorkingLocalVideo])
 
   useEffect(() => {
-    if (hasWorkingLocalVideo && videoRef.current) {
-      // Auto-play when mounted if it's local videos (like hero autoplay)
+    if (hasWorkingLocalVideo) {
       setIsPlaying(true)
+      // Kick-start playback on both refs for large hero
+      const tryPlay = (ref: React.RefObject<HTMLVideoElement | null>) => {
+        const v = ref.current
+        if (v) {
+          ensureMutedAttr(v)
+          v.play().catch(() => {})
+        }
+      }
+      if (size === "large") {
+        tryPlay(desktopVideoRef)
+        tryPlay(mobileVideoRef)
+      } else {
+        tryPlay(defaultVideoRef)
+      }
     }
-  }, [hasWorkingLocalVideo])
+  }, [hasWorkingLocalVideo, size, ensureMutedAttr])
 
   useEffect(() => {
     if (size !== "large") return
@@ -167,52 +206,57 @@ export function PageHeroWithVideo({
   const handleVideoEnded = () => {
     if (localVideos && localVideos.length > 1) {
       setCurrentVideoIndex((prev) => (prev + 1) % localVideos.length)
-    } else if (videoRef.current) {
-      videoRef.current.play().catch(() => {}) // Loop single video
     }
   }
 
-  const renderVideoMedia = ({
-    className,
-    objectClassName,
+  const posterSrc = activeLocalVideo?.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')
+
+  const renderVideoElement = (
+    ref: React.RefObject<HTMLVideoElement | null>,
+    className?: string,
+    objectClassName?: string,
+  ) => (
+    <video
+      ref={(el) => {
+        (ref as React.MutableRefObject<HTMLVideoElement | null>).current = el
+        if (el) {
+          // Set muted attribute directly on DOM for autoplay
+          el.setAttribute("muted", "")
+          el.muted = true
+          el.play().catch(() => {})
+        }
+      }}
+      key={activeLocalVideo}
+      autoPlay
+      muted
+      playsInline
+      loop
+      preload="auto"
+      poster={posterSrc}
+      onCanPlay={() => setVideoReady(true)}
+      onEnded={handleVideoEnded}
+      onError={() => setLocalVideoFailed(true)}
+      className={cn(className, objectClassName, "brightness-110")}
+    >
+      <source src={activeLocalVideo} type="video/mp4" />
+    </video>
+  )
+
+  const renderIframe = (
+    className?: string,
+    objectClassName?: string,
     isBackground = false,
-  }: {
-    className?: string
-    objectClassName?: string
-    isBackground?: boolean
-  }) => {
-    if (hasWorkingLocalVideo) {
-      return (
-        <video
-          ref={videoRef}
-          key={activeLocalVideo}
-          autoPlay
-          muted={isMuted}
-          playsInline
-          loop
-          preload="auto"
-          poster={activeLocalVideo?.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
-          onEnded={handleVideoEnded}
-          onError={() => setLocalVideoFailed(true)}
-          className={cn(className, objectClassName)}
-        >
-          <source src={activeLocalVideo} type="video/mp4" />
-        </video>
-      )
-    }
-
-    return (
-      <iframe
-        ref={iframeRef}
-        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en&enablejsapi=1`}
-        title={videoTitle}
-        loading="lazy"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        className={cn(className, objectClassName, !isBackground && "pointer-events-none")}
-        style={isBackground ? { position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" } : undefined}
-      />
-    )
-  }
+  ) => (
+    <iframe
+      ref={iframeRef}
+      src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en&enablejsapi=1`}
+      title={videoTitle}
+      loading="lazy"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      className={cn(className, objectClassName, !isBackground && "pointer-events-none")}
+      style={isBackground ? { position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" } : undefined}
+    />
+  )
 
   return (
     <section id={id} className={cn(
@@ -220,12 +264,23 @@ export function PageHeroWithVideo({
       size === "large" && "min-h-dvh"
     )}>
       {/* ─── FULL-SCREEN VIDEO BACKGROUND (large hero only) ─── */}
-      {size === "large" && isLargeDesktop && (
+      {size === "large" && (
         <div className="absolute inset-0 z-0 hidden items-center justify-center bg-[#050a12] lg:flex">
-          {renderVideoMedia({ className: "h-full w-full", objectClassName: "scale-[0.94] object-contain", isBackground: true })}
-          {/* Light overlays — just enough for text legibility without dimming the video */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/60 via-transparent to-transparent" />
+          {hasWorkingLocalVideo
+            ? renderVideoElement(desktopVideoRef, "h-full w-full", "scale-[0.94] object-contain")
+            : renderIframe("h-full w-full", "scale-[0.94] object-contain", true)
+          }
+          {/* Poster fallback while video loads */}
+          {hasWorkingLocalVideo && !videoReady && posterSrc && (
+            <img
+              src={posterSrc}
+              alt=""
+              className="absolute inset-0 h-full w-full object-contain scale-[0.94] brightness-110"
+            />
+          )}
+          {/* Light overlays — just enough for text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/40 via-transparent to-transparent" />
         </div>
       )}
 
@@ -273,7 +328,7 @@ export function PageHeroWithVideo({
             : "mx-auto grid max-w-7xl gap-12 px-4 py-14 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center lg:px-8 lg:py-20 overflow-hidden"
         )}
       >
-        {size === "large" && !isLargeDesktop && (
+        {size === "large" && (
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -281,8 +336,19 @@ export function PageHeroWithVideo({
             className="relative mb-8 lg:hidden"
           >
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#04070d] shadow-2xl shadow-black/35 aspect-video">
-              {renderVideoMedia({ className: "h-full w-full", objectClassName: "object-cover" })}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/30 via-transparent to-black/10" />
+              {hasWorkingLocalVideo
+                ? renderVideoElement(mobileVideoRef, "h-full w-full", "object-cover")
+                : renderIframe("h-full w-full", "object-cover")
+              }
+              {/* Poster fallback while video loads on mobile */}
+              {hasWorkingLocalVideo && !videoReady && posterSrc && (
+                <img
+                  src={posterSrc}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover brightness-110"
+                />
+              )}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/15 via-transparent to-transparent" />
 
               <button
                 onClick={() => void toggleMute()}
@@ -385,20 +451,38 @@ export function PageHeroWithVideo({
               </div>
               <div className="relative w-full overflow-hidden bg-[#04070d] aspect-video max-h-[56vw] sm:max-h-none">
                 {hasWorkingLocalVideo ? (
-                  <video
-                    ref={videoRef}
-                    key={activeLocalVideo}
-                    autoPlay
-                    muted={isMuted}
-                    playsInline
-                    preload="auto"
-                    poster={activeLocalVideo?.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
-                    onEnded={handleVideoEnded}
-                    onError={() => setLocalVideoFailed(true)}
-                    className="h-full w-full object-cover"
-                  >
-                    <source src={activeLocalVideo} type="video/mp4" />
-                  </video>
+                  <>
+                    <video
+                      ref={(el) => {
+                        (defaultVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
+                        if (el) {
+                          el.setAttribute("muted", "")
+                          el.muted = true
+                          el.play().catch(() => {})
+                        }
+                      }}
+                      key={activeLocalVideo}
+                      autoPlay
+                      muted
+                      playsInline
+                      preload="auto"
+                      poster={posterSrc}
+                      onCanPlay={() => setVideoReady(true)}
+                      onEnded={handleVideoEnded}
+                      onError={() => setLocalVideoFailed(true)}
+                      className="h-full w-full object-cover brightness-110"
+                    >
+                      <source src={activeLocalVideo} type="video/mp4" />
+                    </video>
+                    {/* Poster fallback while video loads */}
+                    {!videoReady && posterSrc && (
+                      <img
+                        src={posterSrc}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover brightness-110"
+                      />
+                    )}
+                  </>
                 ) : (
                   <iframe
                     ref={iframeRef}
@@ -409,7 +493,7 @@ export function PageHeroWithVideo({
                     className="pointer-events-none h-full w-full scale-[1.05]"
                   />
                 )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/20 via-transparent to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/10 via-transparent to-transparent" />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-5 py-4">
                 <p className="text-sm text-white/45">Video explains the page first. AI assistant is there for deeper questions.</p>

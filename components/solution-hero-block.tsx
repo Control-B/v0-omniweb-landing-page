@@ -79,7 +79,12 @@ export function SolutionHeroBlock({
   // Start the first video on mount
   useEffect(() => {
     if (videos.length > 0) {
-      videoRefs.current[0]?.play().catch(() => {})
+      const v = videoRefs.current[0]
+      if (v) {
+        v.setAttribute("muted", "")
+        v.muted = true
+        v.play().catch(() => {})
+      }
     }
   }, [videos.length])
 
@@ -147,14 +152,21 @@ export function SolutionHeroBlock({
                 videos.map((src, i) => (
                   <video
                     key={src}
-                    ref={(el) => { videoRefs.current[i] = el }}
+                    ref={(el) => {
+                      videoRefs.current[i] = el
+                      if (el) {
+                        el.setAttribute("muted", "")
+                        el.muted = true
+                      }
+                    }}
                     src={src}
+                    autoPlay={i === 0}
                     muted
                     playsInline
-                    preload="auto"
+                    preload={i === currentVideo ? "auto" : "metadata"}
                     poster={src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
                     onEnded={() => handleVideoEnded(i)}
-                    className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${i === currentVideo ? "opacity-100" : "opacity-0"}`}
+                    className={`absolute inset-0 h-full w-full object-cover brightness-110 transition-opacity duration-300 ${i === currentVideo ? "opacity-100" : "opacity-0"}`}
                   />
                 ))
               ) : (

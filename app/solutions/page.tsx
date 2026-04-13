@@ -440,6 +440,8 @@ function SolutionVideoPlayer({ solution }: { solution: typeof solutions[number] 
     if (videos.length > 0) {
       const v = videoRefs.current[currentVideo]
       if (v) {
+        v.setAttribute("muted", "")
+        v.muted = true
         v.currentTime = 0
         v.play().catch(() => {})
       }
@@ -455,14 +457,21 @@ function SolutionVideoPlayer({ solution }: { solution: typeof solutions[number] 
           videos.map((v, i) => (
             <video
               key={v.src}
-              ref={(el) => { videoRefs.current[i] = el }}
+              ref={(el) => {
+                videoRefs.current[i] = el
+                if (el) {
+                  el.setAttribute("muted", "")
+                  el.muted = true
+                }
+              }}
               src={v.src}
+              autoPlay={i === 0}
               muted
               playsInline
-              preload="auto"
+              preload={i === currentVideo ? "auto" : "metadata"}
               poster={v.src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
               onEnded={() => handleVideoEnded(i)}
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${i === currentVideo ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+              className={`absolute inset-0 h-full w-full object-cover brightness-110 transition-opacity duration-500 ${i === currentVideo ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             />
           ))
         ) : (
@@ -471,11 +480,11 @@ function SolutionVideoPlayer({ solution }: { solution: typeof solutions[number] 
             alt={`${solution.title} preview`}
             fill
             sizes="(min-width: 1024px) 40vw, 100vw"
-            className="object-cover"
+            className="object-cover brightness-110"
           />
         )}
         {/* Browser chrome overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050a12]/10 via-[#050a12]/20 to-[#050a12]/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050a12]/10 to-[#050a12]/60 pointer-events-none" />
         <div className="absolute top-0 inset-x-0 flex items-center gap-1.5 border-b border-white/10 bg-black/35 px-4 py-3 backdrop-blur-sm">
           <span className="h-3 w-3 rounded-full bg-red-500/60" />
           <span className="h-3 w-3 rounded-full bg-yellow-500/60" />
@@ -699,7 +708,7 @@ export default function SolutionsPage() {
               <div>
                 <div className="kling-panel-strong overflow-hidden rounded-[2rem]">
                   <div className="relative aspect-[16/10]">
-                    <Image src="/images/generated/solutions-ecommerce.png" alt="E-Commerce AI storefront" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+                    <Image src="/images/generated/solutions-ecommerce.png" alt="E-Commerce AI storefront" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover brightness-110" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/85 via-transparent to-[#050a12]/20" />
                   </div>
                 </div>
