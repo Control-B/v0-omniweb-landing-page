@@ -5,7 +5,6 @@ import { Conversation } from "@elevenlabs/client"
 import type { DisconnectionDetails } from "@elevenlabs/client"
 
 const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
-const WELCOME_MESSAGE = "Hi! I'd love to help you today. Tell me the problem you're trying to solve, and I'll understand your needs, recommend the right solution, and answer your questions so you can move forward faster."
 const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
 type Message = { role: "user" | "agent"; text: string }
@@ -107,10 +106,7 @@ export function VoiceOrb() {
     setExpanded(true)
     setChatMode(targetMode)
     setError(null)
-    if (messages.length === 0) {
-      setMessages([{ role: "agent", text: WELCOME_MESSAGE }])
-    }
-  }, [messages.length])
+  }, [])
 
   // Listen for assistant open events from the landing page CTAs
   useEffect(() => {
