@@ -1,7 +1,7 @@
 /**
  * Server-side auth helpers for the Omniweb Engine JWT.
  *
- * The engine issues JWTs on POST /auth/login and POST /auth/signup.
+ * The engine issues JWTs on POST /api/auth/login and POST /api/auth/signup.
  * We store the token in an httpOnly cookie named `omniweb_token` so it
  * travels automatically on every request and cannot be read by client JS.
  */
@@ -9,10 +9,15 @@ import 'server-only'
 
 import { cookies } from 'next/headers'
 
+// Resolve the engine base URL.
+// NEXT_PUBLIC_OMNIWEB_ENGINE_URL is the canonical var shared with client code.
+// OMNIWEB_ENGINE_URL is a server-only override (e.g. internal network URL).
+// FASTAPI_ASSISTANT_URL is legacy / local-dev only — deprioritised because
+// it is commonly set to http://127.0.0.1:8000 which breaks in production.
 const ENGINE_BASE_URL = (
-  process.env.OMNIWEB_ORCHESTRATOR_URL ??
-  process.env.FASTAPI_ASSISTANT_URL ??
+  process.env.OMNIWEB_ENGINE_URL ??
   process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ??
+  process.env.OMNIWEB_ORCHESTRATOR_URL ??
   'https://omniweb-engine-rs6fr.ondigitalocean.app'
 ).replace(/\/$/, '')
 
@@ -117,8 +122,9 @@ export async function engineLogin(
   data?: { access_token: string; client_id: string; email: string; plan: string; role: string }
   error?: string
 }> {
+  const url = `${ENGINE_BASE_URL}/api/auth/login`
   try {
-    const res = await fetch(`${ENGINE_BASE_URL}/api/auth/login`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, portal }),
@@ -133,7 +139,8 @@ export async function engineLogin(
 
     return { ok: true, data: payload }
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'Network error' }
+    console.error(`[engine.ts] Login fetch failed → ${url}`, err)
+    return { ok: false, error: 'Unable to reach authentication server. Please try again.' }
   }
 }
 
@@ -151,8 +158,9 @@ export async function engineSignup(body: {
   data?: { access_token: string; client_id: string; email: string; plan: string; role: string }
   error?: string
 }> {
+  const url = `${ENGINE_BASE_URL}/api/auth/signup`
   try {
-    const res = await fetch(`${ENGINE_BASE_URL}/api/auth/signup`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -167,7 +175,8 @@ export async function engineSignup(body: {
 
     return { ok: true, data: payload }
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : 'Network error' }
+    console.error(`[engine.ts] Signup fetch failed → ${url}`, err)
+    return { ok: false, error: 'Unable to reach authentication server. Please try again.' }
   }
 }
 
@@ -177,8 +186,9 @@ export async function engineSignup(body: {
 export async function engineRefresh(
   currentToken: string,
 ): Promise<{ ok: boolean; data?: { access_token: string }; error?: string }> {
+  const url = `${ENGINE_BASE_URL}/api/auth/refresh`
   try {
-    const res = await fetch(`${ENGINE_BASE_URL}/api/auth/refresh`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -194,7 +204,8 @@ export async function engineRefresh(
     }
 
     return { ok: true, data: payload }
-  } catch {
+  } catch (err) {
+    console.error(`[engine.ts] Refresh fetch failed → ${url}`, err)
     return { ok: false, error: 'Network error' }
   }
 }
