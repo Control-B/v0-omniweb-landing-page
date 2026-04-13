@@ -459,7 +459,7 @@ function SolutionVideoPlayer({ solution }: { solution: typeof solutions[number] 
               src={v.src}
               muted
               playsInline
-              preload="metadata"
+              preload="auto"
               poster={v.src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
               onEnded={() => handleVideoEnded(i)}
               className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${i === currentVideo ? "opacity-100" : "opacity-0 pointer-events-none"}`}

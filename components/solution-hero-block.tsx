@@ -67,20 +67,6 @@ export function SolutionHeroBlock({
   const videos = videoSources ?? (videoSrc ? [videoSrc] : [])
   const [currentVideo, setCurrentVideo] = useState(0)
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
-  const sectionRef = useRef<HTMLElement>(null)
-  const [isInView, setIsInView] = useState(false)
-
-  // Intersection Observer — only load/play videos when section is near viewport
-  useEffect(() => {
-    const el = sectionRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setIsInView(true) },
-      { rootMargin: "200px" }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   // When the active video ends, instantly switch to the next (already preloaded)
   const handleVideoEnded = useCallback((idx: number) => {
@@ -90,15 +76,15 @@ export function SolutionHeroBlock({
     videoRefs.current[next]?.play().catch(() => {})
   }, [currentVideo, videos.length])
 
-  // Start the first video only when section scrolls into view
+  // Start the first video on mount
   useEffect(() => {
-    if (isInView && videos.length > 0) {
+    if (videos.length > 0) {
       videoRefs.current[0]?.play().catch(() => {})
     }
-  }, [isInView, videos.length])
+  }, [videos.length])
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden border-b border-white/10">
+    <section className="relative overflow-hidden border-b border-white/10">
       {/* Background ambience */}
       <div className="pointer-events-none absolute inset-0">
         <div className={`absolute left-1/4 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full ${a.glow} blur-[120px]`} />
@@ -162,10 +148,10 @@ export function SolutionHeroBlock({
                   <video
                     key={src}
                     ref={(el) => { videoRefs.current[i] = el }}
-                    src={isInView ? src : undefined}
+                    src={src}
                     muted
                     playsInline
-                    preload={isInView ? "metadata" : "none"}
+                    preload="auto"
                     poster={src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
                     onEnded={() => handleVideoEnded(i)}
                     className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${i === currentVideo ? "opacity-100" : "opacity-0"}`}
