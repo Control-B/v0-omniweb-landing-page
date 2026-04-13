@@ -9,14 +9,37 @@ const COOKIE_NAME = 'omniweb_token'
  * non-expired JWT (we only inspect the exp claim, NOT the signature —
  * the engine validates the signature on every API call).
  *
- * Protected paths: /dashboard, /demo, /admin
+ * Protected paths: /dashboard, /demo, /admin/dashboard
+ * Public admin path: /admin (login/signup page)
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Protected paths requiring authentication
-  const protectedPaths = ['/dashboard', '/demo', '/admin']
+  // /admin is the public login page — don't protect it
+  // /admin/dashboard/* is protected
+  const protectedPaths = ['/dashboard', '/demo', '/admin/dashboard']
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p))
+
+  // Exact /admin path (login page) — if user is already authed as admin, redirect to dashboard
+  if (pathname === '/admin' || pathname === '/admin/') {
+    const token = request.cookies.get(COOKIE_NAME)?.value
+    if (token) {
+      try {
+        const parts = token.split('.')
+        if (parts.length === 3) {
+          const payload = JSON.parse(
+            Buffer.from(parts[1], 'base64url').toString('utf-8'),
+          )
+          if (payload.exp && payload.exp * 1000 > Date.now() && payload.role === 'admin') {
+            return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+          }
+        }
+      } catch {
+        // ignore — let them see login page
+      }
+    }
+    return NextResponse.next()
+  }
 
   if (!isProtected) {
     return NextResponse.next()
@@ -30,7 +53,9 @@ export async function middleware(request: NextRequest) {
   }
 
   if (!token) {
-    return NextResponse.redirect(new URL('/signin', request.url))
+    // Redirect to admin login for admin paths, regular signin for others
+    const redirectTo = pathname.startsWith('/admin') ? '/admin' : '/signin'
+    return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
   // Quick expiry check (no signature verification — engine does that)
@@ -48,8 +73,8 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
-    // Admin route — only allow admin role
-    if (pathname.startsWith('/admin') && payload.role !== 'admin') {
+    // Admin dashboard — only allow admin role
+    if (pathname.startsWith('/admin/dashboard') && payload.role !== 'admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   } catch {
@@ -57,7 +82,8 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/demo')) {
       return NextResponse.next()
     }
-    const response = NextResponse.redirect(new URL('/signin', request.url))
+    const redirectTo = pathname.startsWith('/admin') ? '/admin' : '/signin'
+    const response = NextResponse.redirect(new URL(redirectTo, request.url))
     response.cookies.delete(COOKIE_NAME)
     return response
   }
