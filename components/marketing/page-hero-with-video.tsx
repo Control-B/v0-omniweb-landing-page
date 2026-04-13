@@ -190,7 +190,8 @@ export function PageHeroWithVideo({
           muted={isMuted}
           playsInline
           loop
-          preload="auto"
+          preload="metadata"
+          poster={activeLocalVideo?.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
           onEnded={handleVideoEnded}
           onError={() => setLocalVideoFailed(true)}
           className={cn(className, objectClassName)}
@@ -390,7 +391,8 @@ export function PageHeroWithVideo({
                     autoPlay
                     muted={isMuted}
                     playsInline
-                    preload="auto"
+                    preload="metadata"
+                    poster={activeLocalVideo?.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
                     onEnded={handleVideoEnded}
                     onError={() => setLocalVideoFailed(true)}
                     className="h-full w-full object-cover"
