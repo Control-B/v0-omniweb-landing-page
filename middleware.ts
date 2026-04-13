@@ -9,15 +9,15 @@ const COOKIE_NAME = 'omniweb_token'
  * non-expired JWT (we only inspect the exp claim, NOT the signature —
  * the engine validates the signature on every API call).
  *
- * Protected paths: /dashboard, /demo, /admin/dashboard
- * Public admin path: /admin (login/signup page)
+ * Protected paths: /dashboard, /admin/dashboard
+ * Public paths: /demo, /admin (login/signup page)
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // /admin is the public login page — don't protect it
   // /admin/dashboard/* is protected
-  const protectedPaths = ['/dashboard', '/demo', '/admin/dashboard']
+  const protectedPaths = ['/dashboard', '/admin/dashboard']
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p))
 
   // Exact /admin path (login page) — if user is already authed as admin, redirect to dashboard
@@ -47,13 +47,7 @@ export async function middleware(request: NextRequest) {
 
   const token = request.cookies.get(COOKIE_NAME)?.value
 
-  // /demo is special — it auto-creates a token, so let unauthenticated users through
-  if (!token && pathname.startsWith('/demo')) {
-    return NextResponse.next()
-  }
-
   if (!token) {
-    // Redirect to admin login for admin paths, regular signin for others
     const redirectTo = pathname.startsWith('/admin') ? '/admin' : '/signin'
     return NextResponse.redirect(new URL(redirectTo, request.url))
   }
@@ -78,10 +72,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   } catch {
-    // /demo can work without auth — the page auto-creates a demo token
-    if (pathname.startsWith('/demo')) {
-      return NextResponse.next()
-    }
     const redirectTo = pathname.startsWith('/admin') ? '/admin' : '/signin'
     const response = NextResponse.redirect(new URL(redirectTo, request.url))
     response.cookies.delete(COOKIE_NAME)
