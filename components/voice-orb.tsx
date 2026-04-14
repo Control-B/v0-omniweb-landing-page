@@ -1,10 +1,17 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Conversation } from "@elevenlabs/client"
-import type { DisconnectionDetails } from "@elevenlabs/client"
+import {
+  Room,
+  RoomEvent,
+  Track,
+  ConnectionState,
+  DataPacket_Kind,
+  RemoteTrackPublication,
+  RemoteParticipant,
+  TranscriptionSegment,
+} from "livekit-client"
 
-const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
 const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
 type Message = { role: "user" | "agent"; text: string; isWelcome?: boolean }
@@ -57,56 +64,37 @@ export function VoiceOrb() {
   const [languageOptions, setLanguageOptions] = useState<LanguageOption[]>(FALLBACK_LANGUAGE_OPTIONS)
   const [selectedLanguage, setSelectedLanguage] = useState("en")
 
-  const convRef = useRef<any>(null)
+  const roomRef = useRef<Room | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const chatBufferRef = useRef<string>("")
-  const pendingTextRef = useRef<string | null>(null)
   const chatModeRef = useRef<ChatMode>("voice")
   const expandedRef = useRef(false)
-  const healthTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttemptRef = useRef(0)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  // Track transcription segments by ID so we can update partial → final
+  const segmentMapRef = useRef<Map<string, { role: "user" | "agent"; text: string; final: boolean }>>(new Map())
   const MAX_RECONNECT_ATTEMPTS = 3
 
-  // ── Conversation-transcript ordering ──
-  // ElevenLabs streams the agent's response (onAgentChatResponsePart) BEFORE
-  // the finalised user transcript arrives (onMessage).  This means the agent
-  // bubble would appear above the user bubble in the chat.
-  //
-  // Solution: after the welcome message, we *buffer* all agent response parts
-  // until the user's transcript for that turn has been committed.  Once
-  // onMessage fires, we flush the buffer so the agent reply appears below.
-  const hasUserSpokenRef = useRef(false)
-  const welcomeReceivedRef = useRef(false)
-  const lastAgentEventIdRef = useRef<number>(-1)
-  // true while we are waiting for the user transcript for the current turn
-  const awaitingUserTranscriptRef = useRef(false)
-  // buffered agent text that arrived before the user transcript
-  const pendingAgentPartsRef = useRef<{ text: string; isComplete: boolean } | null>(null)
-  // On mobile we default to text mode to avoid WebSocket microphone issues
+  // On mobile we default to text mode
   const [isMobile, setIsMobile] = useState(false)
-
 
   const selectedLanguageOption = languageOptions.find(option => option.code === selectedLanguage) ?? languageOptions[0]
 
+  // Load language options from engine
   useEffect(() => {
     void (async () => {
       try {
         const response = await fetch(`${ENGINE_BASE_URL}/api/chat/languages`)
         if (!response.ok) return
-
         const payload = await response.json() as {
           default_language?: string
           languages?: LanguageOption[]
         }
-
         const languages = payload.languages
         if (languages?.length) {
           setLanguageOptions(languages)
           setSelectedLanguage(current => {
-            if (languages.some(option => option.code === current)) {
-              return current
-            }
+            if (languages.some(option => option.code === current)) return current
             return payload.default_language ?? languages[0].code
           })
         }
@@ -116,29 +104,29 @@ export function VoiceOrb() {
     })()
   }, [])
 
-  // Detect mobile devices — used to default to text mode
+  // Detect mobile devices
   useEffect(() => {
     if (typeof window === "undefined") return
     const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 640
     setIsMobile(mobile)
   }, [])
 
-  // Keep ref in sync with state so callbacks always see the latest value
+  // Keep ref in sync
   useEffect(() => { chatModeRef.current = chatMode }, [chatMode])
 
+  // Auto-scroll messages
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
   }, [messages])
 
   const handleOpen = useCallback((openMode?: "voice" | "text") => {
-    // On mobile, default to text mode (more reliable than WebSocket voice)
     const targetMode = openMode ?? (isMobile ? "text" : "voice")
     setExpanded(true)
     setChatMode(targetMode)
     setError(null)
   }, [isMobile])
 
-  // Listen for assistant open events from the landing page CTAs
+  // Listen for assistant open events from landing page CTAs
   useEffect(() => {
     if (typeof window === "undefined") return
     const handler = (event: Event) => {
@@ -150,209 +138,139 @@ export function VoiceOrb() {
     return () => window.removeEventListener("omniweb:assistant-open", handler)
   }, [handleOpen])
 
-  /* ── shared session options (everything except textOnly) ── */
-  const sessionCallbacks = useCallback(() => ({
-    agentId: AGENT_ID,
-    connectionType: "websocket" as const,
-    overrides: {
-      agent: {
-          language: selectedLanguage as any,
-      },
-      ...(selectedLanguageOption?.voice_id
-        ? {
-            tts: {
-              voiceId: selectedLanguageOption.voice_id,
-            },
-          }
-        : {}),
-    },
-    onConnect: () => {
-      setStatus("connected")
-      // Send any pending text message once connected
-      const pending = pendingTextRef.current
-      if (pending) {
-        pendingTextRef.current = null
-        // Small delay to ensure socket is fully ready
-        setTimeout(() => { convRef.current?.sendUserMessage(pending) }, 100)
-      }
-    },
-    onDisconnect: (_d: DisconnectionDetails) => {
-      setStatus("disconnected")
-      convRef.current = null
-      setIsMuted(false)
-    },
-    onMessage: (p: any) => {
-      // Handle user transcripts only.  Agent text is handled exclusively
-      // by onAgentChatResponsePart so we never double-add agent bubbles.
-      if (p.role === "agent") return
+  /* ── Rebuild messages array from segment map ── */
+  const rebuildMessages = useCallback(() => {
+    const entries = Array.from(segmentMapRef.current.values())
+    // Only show segments that have text
+    const msgs: Message[] = entries
+      .filter(e => e.text.trim())
+      .map(e => ({ role: e.role, text: e.text }))
+    setMessages(msgs)
+  }, [])
 
-      hasUserSpokenRef.current = true
+  /* ── Get token from engine ── */
+  const getToken = useCallback(async (): Promise<{ token: string; room_name: string; livekit_url: string }> => {
+    const resp = await fetch(`${ENGINE_BASE_URL}/api/livekit/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channel: "web" }),
+    })
+    if (!resp.ok) throw new Error("Failed to get LiveKit token")
+    return resp.json()
+  }, [])
 
-      setMessages(prev => {
-        // Build the new messages array with the user's transcript
-        let updated: Message[]
-        const last = prev[prev.length - 1]
-        if (last?.role === "user") {
-          // Progressive refinement — update existing user bubble
-          updated = [...prev.slice(0, -1), { role: "user", text: p.message }]
-        } else {
-          updated = [...prev, { role: "user" as const, text: p.message }]
-        }
-
-        // Flush any buffered agent response that arrived before this transcript
-        const pending = pendingAgentPartsRef.current
-        if (pending) {
-          pendingAgentPartsRef.current = null
-          awaitingUserTranscriptRef.current = false
-          updated = [...updated, { role: "agent" as const, text: pending.text }]
-        }
-
-        return updated
-      })
-    },
-
-    onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
-      // ── Welcome message (first_message before user has spoken) ──
-      const isFirstAgentMsg = !hasUserSpokenRef.current && !welcomeReceivedRef.current
-
-      // ── Deduplication ──
-      if (part.event_id === lastAgentEventIdRef.current && part.type === "start") {
-        return
-      }
-
-      if (isFirstAgentMsg) {
-        // Welcome message — render immediately (no user message to wait for)
-        if (part.type === "start") {
-          lastAgentEventIdRef.current = part.event_id
-          chatBufferRef.current = part.text
-          welcomeReceivedRef.current = true
-          // After the welcome is delivered, the next agent response should wait
-          // for a user transcript before being shown.
-          awaitingUserTranscriptRef.current = true
-          setMessages(prev => [...prev, { role: "agent", text: part.text, isWelcome: true }])
-        } else if (part.type === "delta") {
-          chatBufferRef.current += part.text
-          const fullText = chatBufferRef.current
-          setMessages(prev => {
-            const i = prev.length - 1
-            if (i >= 0 && prev[i].role === "agent") {
-              return [...prev.slice(0, i), { role: "agent", text: fullText, isWelcome: true }]
-            }
-            return prev
-          })
-        } else if (part.type === "stop") {
-          if (part.text) chatBufferRef.current += part.text
-          const finalText = chatBufferRef.current
-          setMessages(prev => {
-            const i = prev.length - 1
-            if (i >= 0 && prev[i].role === "agent") {
-              return [...prev.slice(0, i), { role: "agent", text: finalText, isWelcome: true }]
-            }
-            return prev
-          })
-          chatBufferRef.current = ""
-        }
-        return
-      }
-
-      // ── Normal agent response (post-welcome) ──
-      // If the user's transcript hasn't arrived yet for this turn, buffer
-      // the agent text so it renders AFTER the user bubble.
-      if (awaitingUserTranscriptRef.current) {
-        if (part.type === "start") {
-          lastAgentEventIdRef.current = part.event_id
-          chatBufferRef.current = part.text
-          pendingAgentPartsRef.current = { text: part.text, isComplete: false }
-        } else if (part.type === "delta") {
-          chatBufferRef.current += part.text
-          pendingAgentPartsRef.current = { text: chatBufferRef.current, isComplete: false }
-        } else if (part.type === "stop") {
-          if (part.text) chatBufferRef.current += part.text
-          pendingAgentPartsRef.current = { text: chatBufferRef.current, isComplete: true }
-          chatBufferRef.current = ""
-          // If the full response arrived and we STILL don't have a user transcript,
-          // flush after a short grace period (the transcript may never come for
-          // very short utterances that get swallowed).
-          setTimeout(() => {
-            const pending = pendingAgentPartsRef.current
-            if (pending) {
-              pendingAgentPartsRef.current = null
-              awaitingUserTranscriptRef.current = false
-              setMessages(prev => [...prev, { role: "agent" as const, text: pending.text }])
-            }
-          }, 1500)
-        }
-        return
-      }
-
-      // User transcript already arrived — render agent response directly
-      if (part.type === "start") {
-        lastAgentEventIdRef.current = part.event_id
-        chatBufferRef.current = part.text
-        // After this response finishes, wait for next user transcript
-        awaitingUserTranscriptRef.current = true
-        setMessages(prev => {
-          const last = prev[prev.length - 1]
-          if (last?.role === "agent" && !last.isWelcome) {
-            return [...prev.slice(0, -1), { role: "agent", text: part.text }]
-          }
-          return [...prev, { role: "agent", text: part.text }]
-        })
-      } else if (part.type === "delta") {
-        chatBufferRef.current += part.text
-        const fullText = chatBufferRef.current
-        setMessages(prev => {
-          const i = prev.length - 1
-          if (i >= 0 && prev[i].role === "agent" && !prev[i].isWelcome) {
-            return [...prev.slice(0, i), { role: "agent", text: fullText }]
-          }
-          return [...prev, { role: "agent", text: fullText }]
-        })
-      } else if (part.type === "stop") {
-        if (part.text) chatBufferRef.current += part.text
-        const finalText = chatBufferRef.current
-        setMessages(prev => {
-          const i = prev.length - 1
-          if (i >= 0 && prev[i].role === "agent" && !prev[i].isWelcome) {
-            return [...prev.slice(0, i), { role: "agent", text: finalText }]
-          }
-          return prev
-        })
-        chatBufferRef.current = ""
-      }
-    },
-    onError: (msg: string) => { console.error("[VoiceOrb]", msg); setError(msg) },
-    onModeChange: ({ mode: m }: { mode: ConvMode }) => setMode(m),
-    onStatusChange: ({ status: s }: { status: string }) => {
-      if (s === "connected") setStatus("connected")
-      else if (s === "connecting") setStatus("connecting")
-      else setStatus("disconnected")
-    },
-  }), [selectedLanguage, selectedLanguageOption?.voice_id])
-
-  const startVoiceSession = useCallback(async () => {
-    if (convRef.current) return
+  /* ── Connect to LiveKit room ── */
+  const connectToRoom = useCallback(async (voiceMode: boolean) => {
+    if (roomRef.current) return
     setStatus("connecting")
     setError(null)
+    segmentMapRef.current.clear()
 
-    // Connection timeout — if not connected within 12s, abort and show error
+    // Connection timeout
     connectTimeoutRef.current = setTimeout(() => {
-      if (status === "connecting") {
-        setError("Connection timed out. Tap to retry.")
-        setStatus("disconnected")
-        try { convRef.current?.endSession() } catch {}
-        convRef.current = null
-      }
-    }, 12000)
+      setError("Connection timed out. Tap to retry.")
+      setStatus("disconnected")
+      try { roomRef.current?.disconnect() } catch {}
+      roomRef.current = null
+    }, 15000)
 
     try {
-      const conv = await Conversation.startSession(sessionCallbacks())
-      convRef.current = conv
-      if (connectTimeoutRef.current) {
-        clearTimeout(connectTimeoutRef.current)
-        connectTimeoutRef.current = null
+      const { token, livekit_url } = await getToken()
+
+      const room = new Room({
+        adaptiveStream: true,
+        dynacast: true,
+      })
+
+      // ── Room event handlers ──
+
+      // Connection state changes
+      room.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
+        if (state === ConnectionState.Connected) {
+          setStatus("connected")
+          if (connectTimeoutRef.current) {
+            clearTimeout(connectTimeoutRef.current)
+            connectTimeoutRef.current = null
+          }
+          reconnectAttemptRef.current = 0
+        } else if (state === ConnectionState.Disconnected) {
+          setStatus("disconnected")
+          roomRef.current = null
+        } else if (state === ConnectionState.Reconnecting) {
+          setStatus("connecting")
+        }
+      })
+
+      // Agent audio track subscribed — attach to <audio> element
+      room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+        if (track.kind === Track.Kind.Audio && participant.isAgent) {
+          const el = track.attach()
+          el.id = "livekit-agent-audio"
+          // Hide the element — we just want audio playback
+          el.style.display = "none"
+          document.body.appendChild(el)
+          audioRef.current = el
+        }
+      })
+
+      room.on(RoomEvent.TrackUnsubscribed, (track) => {
+        if (track.kind === Track.Kind.Audio) {
+          track.detach().forEach(el => el.remove())
+          audioRef.current = null
+        }
+      })
+
+      // Agent starts/stops speaking — update mode indicator
+      room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+        const agentSpeaking = speakers.some(p => p.isAgent)
+        setMode(agentSpeaking ? "speaking" : "listening")
+      })
+
+      // Transcription events — LiveKit provides turn-based transcripts
+      room.on(RoomEvent.TranscriptionReceived, (segments: TranscriptionSegment[], participant) => {
+        const isAgent = participant?.isAgent ?? false
+        const role = isAgent ? "agent" : "user"
+
+        for (const seg of segments) {
+          segmentMapRef.current.set(seg.id, {
+            role,
+            text: seg.text,
+            final: seg.final,
+          })
+        }
+        rebuildMessages()
+      })
+
+      // Data messages from the agent (for text-mode responses)
+      room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant, kind) => {
+        if (!participant?.isAgent) return
+        try {
+          const text = new TextDecoder().decode(payload)
+          const data = JSON.parse(text)
+          if (data.type === "response" && data.text) {
+            const id = `data-${Date.now()}`
+            segmentMapRef.current.set(id, { role: "agent", text: data.text, final: true })
+            rebuildMessages()
+          }
+        } catch {
+          // Not JSON — treat as plain text response
+          const text = new TextDecoder().decode(payload)
+          if (text.trim()) {
+            const id = `data-${Date.now()}`
+            segmentMapRef.current.set(id, { role: "agent", text, final: true })
+            rebuildMessages()
+          }
+        }
+      })
+
+      // Connect — publish mic only in voice mode
+      await room.connect(livekit_url, token)
+
+      if (voiceMode) {
+        await room.localParticipant.setMicrophoneEnabled(true)
       }
-      reconnectAttemptRef.current = 0
+
+      roomRef.current = room
     } catch (e: any) {
       if (connectTimeoutRef.current) {
         clearTimeout(connectTimeoutRef.current)
@@ -361,80 +279,47 @@ export function VoiceOrb() {
       setError(e?.message ?? "Connection failed")
       setStatus("disconnected")
     }
-  }, [sessionCallbacks, status])
+  }, [getToken, rebuildMessages])
+
+  const startVoiceSession = useCallback(async () => {
+    await connectToRoom(true)
+  }, [connectToRoom])
+
+  const startTextSession = useCallback(async () => {
+    await connectToRoom(false)
+  }, [connectToRoom])
 
   // Auto-start voice when panel opens in voice mode
   useEffect(() => {
     const justOpened = expanded && !expandedRef.current
     expandedRef.current = expanded
-    if (justOpened && chatMode === "voice" && !convRef.current) {
+    if (justOpened && chatMode === "voice" && !roomRef.current) {
       void startVoiceSession()
     }
   }, [expanded, chatMode, startVoiceSession])
 
-  const startTextSession = useCallback(async () => {
-    if (convRef.current) return
-    setStatus("connecting")
-    setError(null)
-
-    connectTimeoutRef.current = setTimeout(() => {
-      if (status === "connecting") {
-        setError("Connection timed out. Tap to retry.")
-        setStatus("disconnected")
-        try { convRef.current?.endSession() } catch {}
-        convRef.current = null
-        pendingTextRef.current = null
-      }
-    }, 12000)
-
-    try {
-      // textOnly: true → uses TextConversation → NO microphone access needed
-      const conv = await Conversation.startSession({
-        ...sessionCallbacks(),
-        textOnly: true,
-      })
-      convRef.current = conv
-      if (connectTimeoutRef.current) {
-        clearTimeout(connectTimeoutRef.current)
-        connectTimeoutRef.current = null
-      }
-      reconnectAttemptRef.current = 0
-    } catch (e: any) {
-      if (connectTimeoutRef.current) {
-        clearTimeout(connectTimeoutRef.current)
-        connectTimeoutRef.current = null
-      }
-      setError(e?.message ?? "Connection failed")
-      setStatus("disconnected")
-      pendingTextRef.current = null
-    }
-  }, [sessionCallbacks, status])
-
-  const clearHealthTimer = useCallback(() => {
-    if (healthTimerRef.current) {
-      clearInterval(healthTimerRef.current)
-      healthTimerRef.current = null
-    }
+  const endConversation = useCallback(async () => {
     if (connectTimeoutRef.current) {
       clearTimeout(connectTimeoutRef.current)
       connectTimeoutRef.current = null
     }
-  }, [])
-
-  const endConversation = useCallback(async () => {
-    clearHealthTimer()
-    try { await convRef.current?.endSession() } catch {}
-    convRef.current = null
+    try { await roomRef.current?.disconnect() } catch {}
+    // Clean up any attached audio elements
+    if (audioRef.current) {
+      audioRef.current.remove()
+      audioRef.current = null
+    }
+    document.querySelectorAll("#livekit-agent-audio").forEach(el => el.remove())
+    roomRef.current = null
     setStatus("disconnected")
     setIsMuted(false)
-    pendingTextRef.current = null
     reconnectAttemptRef.current = 0
-  }, [clearHealthTimer])
+  }, [])
 
-  const toggleMute = useCallback(() => {
-    if (!convRef.current) return
+  const toggleMute = useCallback(async () => {
+    if (!roomRef.current) return
     const next = !isMuted
-    convRef.current.setMicMuted(next)
+    await roomRef.current.localParticipant.setMicrophoneEnabled(!next)
     setIsMuted(next)
   }, [isMuted])
 
@@ -442,21 +327,27 @@ export function VoiceOrb() {
     const t = textInput.trim()
     if (!t) return
     setTextInput("")
-    hasUserSpokenRef.current = true
-    // User message is already committed — agent can render directly
-    awaitingUserTranscriptRef.current = false
-    pendingAgentPartsRef.current = null
-    setMessages(prev => [...prev, { role: "user" as const, text: t }])
 
-    // Already connected — send immediately
-    if (convRef.current) {
-      convRef.current.sendUserMessage(t)
-      return
+    // Add user message to UI immediately
+    const id = `user-text-${Date.now()}`
+    segmentMapRef.current.set(id, { role: "user", text: t, final: true })
+    rebuildMessages()
+
+    // If not connected yet, connect first then send
+    if (!roomRef.current || status !== "connected") {
+      // Connect in text mode (no mic), then send
+      await connectToRoom(false)
+      // Wait a beat for the connection + agent to join
+      await new Promise(r => setTimeout(r, 500))
     }
-    // Not connected yet — queue message and connect (text mode, no mic)
-    pendingTextRef.current = t
-    await startTextSession()
-  }, [textInput, startTextSession])
+
+    // Send text via data channel to the agent
+    if (roomRef.current) {
+      const encoder = new TextEncoder()
+      const data = encoder.encode(JSON.stringify({ type: "user_message", text: t }))
+      await roomRef.current.localParticipant.publishData(data, { reliable: true })
+    }
+  }, [textInput, connectToRoom, rebuildMessages, status])
 
   const handleClose = useCallback(async () => {
     await endConversation()
@@ -464,21 +355,15 @@ export function VoiceOrb() {
     setMessages([])
     setError(null)
     setChatMode("voice")
-    chatBufferRef.current = ""
-    hasUserSpokenRef.current = false
-    welcomeReceivedRef.current = false
-    lastAgentEventIdRef.current = -1
-    awaitingUserTranscriptRef.current = false
-    pendingAgentPartsRef.current = null
+    segmentMapRef.current.clear()
   }, [endConversation])
 
-  // Auto-reconnect on unexpected disconnect (mobile network drops)
+  // Auto-reconnect on unexpected disconnect
   useEffect(() => {
-    if (status === "disconnected" && expanded && !convRef.current && messages.length > 0) {
-      // Was in a conversation but got disconnected unexpectedly
+    if (status === "disconnected" && expanded && !roomRef.current && messages.length > 0) {
       if (reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
         reconnectAttemptRef.current += 1
-        const delay = reconnectAttemptRef.current * 2000 // 2s, 4s, 6s backoff
+        const delay = reconnectAttemptRef.current * 2000
         const timer = setTimeout(() => {
           if (chatModeRef.current === "voice") {
             void startVoiceSession()
@@ -495,34 +380,31 @@ export function VoiceOrb() {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => { clearHealthTimer() }
-  }, [clearHealthTimer])
+    return () => {
+      if (connectTimeoutRef.current) clearTimeout(connectTimeoutRef.current)
+      try { roomRef.current?.disconnect() } catch {}
+      document.querySelectorAll("#livekit-agent-audio").forEach(el => el.remove())
+    }
+  }, [])
 
   const selectVoice = useCallback(async () => {
-    // If switching from text session, end it first
-    if (convRef.current && chatModeRef.current === "text") {
+    if (roomRef.current && chatModeRef.current === "text") {
       await endConversation()
     }
     setChatMode("voice")
-    if (!convRef.current) startVoiceSession()
+    if (!roomRef.current) startVoiceSession()
   }, [startVoiceSession, endConversation])
 
   const selectText = useCallback(async () => {
-    // If switching from voice session, end it first
-    if (convRef.current && chatModeRef.current === "voice") {
+    if (roomRef.current && chatModeRef.current === "voice") {
       await endConversation()
     }
     setChatMode("text")
-    // Don't auto-connect — connect when user sends first message
   }, [endConversation])
 
   const changeLanguage = useCallback(async (languageCode: string) => {
     if (languageCode === selectedLanguage) return
-
-    if (convRef.current) {
-      await endConversation()
-    }
-
+    if (roomRef.current) await endConversation()
     setSelectedLanguage(languageCode)
     setError(null)
   }, [endConversation, selectedLanguage])
@@ -545,7 +427,7 @@ export function VoiceOrb() {
         `}</style>
 
         <button
-          onClick={handleOpen}
+          onClick={() => handleOpen()}
           className="fixed bottom-6 right-6 z-[10000] group cursor-pointer"
           style={{ outline: "none", border: "none", background: "none", padding: 0 }}
           aria-label="Open voice assistant"
@@ -677,11 +559,13 @@ export function VoiceOrb() {
                 m.role === "user"
                   ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm shadow-lg shadow-violet-500/20"
                   : "bg-white/[0.07] text-slate-200 rounded-2xl rounded-bl-sm shadow-sm border border-white/10 backdrop-blur-sm",
-                ].join(" ")}>
+              ].join(" ")}>
                 {m.text}
               </div>
             </div>
-          ))}          {isActive && mode === "speaking" && chatMode === "voice" && messages.length > 0 && (
+          ))}
+
+          {isActive && mode === "speaking" && chatMode === "voice" && messages.length > 0 && (
             <div className="flex justify-start">
               <div className="w-6 h-6 rounded-full overflow-hidden mr-2 mt-1 flex-shrink-0">
                 <div className="w-full h-full" style={{ background: CONIC_SM, animation: "orb-spin 4s linear infinite" }} />
@@ -714,11 +598,9 @@ export function VoiceOrb() {
                   </option>
                 ))}
               </select>
-              {/* Flag overlay on the left */}
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg leading-none">
                 {LANGUAGE_FLAGS[selectedLanguage] ?? "🌐"}
               </span>
-              {/* Chevron on the right */}
               <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
@@ -742,19 +624,19 @@ export function VoiceOrb() {
                   </svg>
                   Voice call
                 </button>
-                  <button
-                    onClick={selectText}
-                    className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
-                      chatMode === "text"
-                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
-                        : "bg-white/[0.06] text-slate-400 hover:bg-white/10 hover:text-slate-200 border border-white/10"
-                    }`}
-                  >
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                    </svg>
-                    Text chat
-                  </button>
+                <button
+                  onClick={selectText}
+                  className={`flex-1 flex items-center justify-center gap-2 text-sm font-medium rounded-full px-4 py-2.5 transition-colors ${
+                    chatMode === "text"
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-500/20"
+                      : "bg-white/[0.06] text-slate-400 hover:bg-white/10 hover:text-slate-200 border border-white/10"
+                  }`}
+                >
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                  </svg>
+                  Text chat
+                </button>
               </>
             ) : isBusy ? (
               <div className="flex items-center gap-2 text-slate-400 text-sm py-2.5">
@@ -784,7 +666,7 @@ export function VoiceOrb() {
           <div className="flex items-center gap-2 p-3 bg-slate-900">
             <input
               value={textInput}
-              onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity?.() }}
+              onChange={(e) => setTextInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText() } }}
               placeholder={isActive || chatMode === "text" ? "Type a message…" : "Start voice or type a message…"}
               disabled={chatMode === "voice" && !isActive}

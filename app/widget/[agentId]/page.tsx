@@ -2,9 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
-import { Conversation } from "@elevenlabs/client"
-import type { DisconnectionDetails } from "@elevenlabs/client"
+import {
+  Room,
+  RoomEvent,
+  Track,
+  ConnectionState,
+  TranscriptionSegment,
+} from "livekit-client"
 import { Suspense } from "react"
+
+const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
 type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"
@@ -26,12 +33,13 @@ function EmbeddableWidget() {
   const [error, setError] = useState<string | null>(null)
   const [chatMode, setChatMode] = useState<ChatMode>("voice")
 
-  const convRef = useRef<any>(null)
+  const roomRef = useRef<Room | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const chatBufferRef = useRef<string>("")
-  const pendingTextRef = useRef<string | null>(null)
   const chatModeRef = useRef<ChatMode>("voice")
   const expandedRef = useRef(false)
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const segmentMapRef = useRef<Map<string, { role: "user" | "agent"; text: string; final: boolean }>>(new Map())
 
   useEffect(() => { chatModeRef.current = chatMode }, [chatMode])
 
@@ -44,115 +52,128 @@ function EmbeddableWidget() {
     try { window.parent.postMessage({ type }, "*") } catch {}
   }, [])
 
-  useEffect(() => {
-    postToParent("omniweb:widget-ready")
-  }, [postToParent])
+  useEffect(() => { postToParent("omniweb:widget-ready") }, [postToParent])
+  useEffect(() => { postToParent(expanded ? "omniweb:widget-expanded" : "omniweb:widget-collapsed") }, [expanded, postToParent])
 
-  useEffect(() => {
-    postToParent(expanded ? "omniweb:widget-expanded" : "omniweb:widget-collapsed")
-  }, [expanded, postToParent])
-
-  const sessionCallbacks = useCallback(() => ({
-    agentId,
-    connectionType: "websocket" as const,
-    onConnect: () => {
-      setStatus("connected")
-      const pending = pendingTextRef.current
-      if (pending) {
-        pendingTextRef.current = null
-        setTimeout(() => { convRef.current?.sendUserMessage(pending) }, 100)
-      }
-    },
-    onDisconnect: (_d: DisconnectionDetails) => {
-      setStatus("disconnected")
-      convRef.current = null
-      setIsMuted(false)
-    },
-    onMessage: (p: any) => {
-      // Only handle user transcripts — agent responses handled by onAgentChatResponsePart
-      if (p.role !== "agent") {
-        setMessages(prev => {
-          const last = prev[prev.length - 1]
-          if (last?.role === "user") return [...prev.slice(0, -1), { role: "user", text: p.message }]
-          return [...prev, { role: "user" as const, text: p.message }]
-        })
-      }
-    },
-    onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
-      if (part.type === "start") {
-        chatBufferRef.current = part.text
-        setMessages(prev => [...prev, { role: "agent", text: part.text }])
-      } else if (part.type === "delta") {
-        chatBufferRef.current += part.text
-        const fullText = chatBufferRef.current
-        setMessages(prev => {
-          const lastIdx = prev.length - 1
-          if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            return [...prev.slice(0, lastIdx), { role: "agent", text: fullText }]
-          }
-          return [...prev, { role: "agent", text: fullText }]
-        })
-      } else if (part.type === "stop") {
-        if (part.text) chatBufferRef.current += part.text
-        const finalText = chatBufferRef.current
-        setMessages(prev => {
-          const lastIdx = prev.length - 1
-          if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            return [...prev.slice(0, lastIdx), { role: "agent", text: finalText }]
-          }
-          return prev
-        })
-        chatBufferRef.current = ""
-      }
-    },
-    onError: (msg: string) => { console.error("[Widget]", msg); setError(msg) },
-    onModeChange: ({ mode: m }: { mode: ConvMode }) => setMode(m),
-    onStatusChange: ({ status: s }: { status: string }) => {
-      if (s === "connected") setStatus("connected")
-      else if (s === "connecting") setStatus("connecting")
-      else setStatus("disconnected")
-    },
-  }), [agentId])
-
-  const startVoiceSession = useCallback(async () => {
-    if (convRef.current) return
-    setStatus("connecting")
-    setError(null)
-    try {
-      const conv = await Conversation.startSession(sessionCallbacks())
-      convRef.current = conv
-    } catch (e: any) {
-      setError(e?.message ?? "Connection failed")
-      setStatus("disconnected")
-    }
-  }, [sessionCallbacks])
-
-  const startTextSession = useCallback(async () => {
-    if (convRef.current) return
-    setStatus("connecting")
-    setError(null)
-    try {
-      const conv = await Conversation.startSession({ ...sessionCallbacks(), textOnly: true })
-      convRef.current = conv
-    } catch (e: any) {
-      setError(e?.message ?? "Connection failed")
-      setStatus("disconnected")
-      pendingTextRef.current = null
-    }
-  }, [sessionCallbacks])
-
-  const endConversation = useCallback(async () => {
-    try { await convRef.current?.endSession() } catch {}
-    convRef.current = null
-    setStatus("disconnected")
-    setIsMuted(false)
-    pendingTextRef.current = null
+  const rebuildMessages = useCallback(() => {
+    const entries = Array.from(segmentMapRef.current.values())
+    const msgs: Message[] = entries.filter(e => e.text.trim()).map(e => ({ role: e.role, text: e.text }))
+    setMessages(msgs)
   }, [])
 
-  const toggleMute = useCallback(() => {
-    if (!convRef.current) return
+  const getToken = useCallback(async (): Promise<{ token: string; room_name: string; livekit_url: string }> => {
+    const resp = await fetch(`${ENGINE_BASE_URL}/api/livekit/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ channel: "embed", client_id: agentId }),
+    })
+    if (!resp.ok) throw new Error("Failed to get LiveKit token")
+    return resp.json()
+  }, [agentId])
+
+  const connectToRoom = useCallback(async (voiceMode: boolean) => {
+    if (roomRef.current) return
+    setStatus("connecting")
+    setError(null)
+    segmentMapRef.current.clear()
+
+    connectTimeoutRef.current = setTimeout(() => {
+      setError("Connection timed out.")
+      setStatus("disconnected")
+      try { roomRef.current?.disconnect() } catch {}
+      roomRef.current = null
+    }, 15000)
+
+    try {
+      const { token, livekit_url } = await getToken()
+      const room = new Room({ adaptiveStream: true, dynacast: true })
+
+      room.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
+        if (state === ConnectionState.Connected) {
+          setStatus("connected")
+          if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null }
+        } else if (state === ConnectionState.Disconnected) {
+          setStatus("disconnected")
+          roomRef.current = null
+        } else if (state === ConnectionState.Reconnecting) {
+          setStatus("connecting")
+        }
+      })
+
+      room.on(RoomEvent.TrackSubscribed, (track, _pub, participant) => {
+        if (track.kind === Track.Kind.Audio && participant.isAgent) {
+          const el = track.attach()
+          el.id = "livekit-widget-audio"
+          el.style.display = "none"
+          document.body.appendChild(el)
+          audioRef.current = el
+        }
+      })
+
+      room.on(RoomEvent.TrackUnsubscribed, (track) => {
+        if (track.kind === Track.Kind.Audio) {
+          track.detach().forEach(el => el.remove())
+          audioRef.current = null
+        }
+      })
+
+      room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+        setMode(speakers.some(p => p.isAgent) ? "speaking" : "listening")
+      })
+
+      room.on(RoomEvent.TranscriptionReceived, (segments: TranscriptionSegment[], participant) => {
+        const role = participant?.isAgent ? "agent" : "user"
+        for (const seg of segments) {
+          segmentMapRef.current.set(seg.id, { role, text: seg.text, final: seg.final })
+        }
+        rebuildMessages()
+      })
+
+      room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant) => {
+        if (!participant?.isAgent) return
+        try {
+          const text = new TextDecoder().decode(payload)
+          const data = JSON.parse(text)
+          if (data.type === "response" && data.text) {
+            segmentMapRef.current.set(`data-${Date.now()}`, { role: "agent", text: data.text, final: true })
+            rebuildMessages()
+          }
+        } catch {
+          const text = new TextDecoder().decode(payload)
+          if (text.trim()) {
+            segmentMapRef.current.set(`data-${Date.now()}`, { role: "agent", text, final: true })
+            rebuildMessages()
+          }
+        }
+      })
+
+      await room.connect(livekit_url, token)
+      if (voiceMode) await room.localParticipant.setMicrophoneEnabled(true)
+      roomRef.current = room
+    } catch (e: any) {
+      if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null }
+      setError(e?.message ?? "Connection failed")
+      setStatus("disconnected")
+    }
+  }, [getToken, rebuildMessages])
+
+  const startVoiceSession = useCallback(async () => { await connectToRoom(true) }, [connectToRoom])
+  const startTextSession = useCallback(async () => { await connectToRoom(false) }, [connectToRoom])
+
+  const endConversation = useCallback(async () => {
+    if (connectTimeoutRef.current) { clearTimeout(connectTimeoutRef.current); connectTimeoutRef.current = null }
+    try { await roomRef.current?.disconnect() } catch {}
+    if (audioRef.current) { audioRef.current.remove(); audioRef.current = null }
+    document.querySelectorAll("#livekit-widget-audio").forEach(el => el.remove())
+    roomRef.current = null
+    setStatus("disconnected")
+    setIsMuted(false)
+  }, [])
+
+  const toggleMute = useCallback(async () => {
+    if (!roomRef.current) return
     const next = !isMuted
-    convRef.current.setMicMuted(next)
+    await roomRef.current.localParticipant.setMicrophoneEnabled(!next)
     setIsMuted(next)
   }, [isMuted])
 
@@ -160,14 +181,18 @@ function EmbeddableWidget() {
     const t = textInput.trim()
     if (!t) return
     setTextInput("")
-    setMessages(prev => [...prev, { role: "user" as const, text: t }])
-    if (convRef.current) {
-      convRef.current.sendUserMessage(t)
-      return
+    segmentMapRef.current.set(`user-text-${Date.now()}`, { role: "user", text: t, final: true })
+    rebuildMessages()
+
+    if (!roomRef.current || status !== "connected") {
+      await connectToRoom(false)
+      await new Promise(r => setTimeout(r, 500))
     }
-    pendingTextRef.current = t
-    await startTextSession()
-  }, [textInput, startTextSession])
+    if (roomRef.current) {
+      const data = new TextEncoder().encode(JSON.stringify({ type: "user_message", text: t }))
+      await roomRef.current.localParticipant.publishData(data, { reliable: true })
+    }
+  }, [textInput, connectToRoom, rebuildMessages, status])
 
   const handleOpen = useCallback((openMode: ChatMode = "voice") => {
     setExpanded(true)
@@ -181,28 +206,35 @@ function EmbeddableWidget() {
     setMessages([])
     setError(null)
     setChatMode("voice")
-    chatBufferRef.current = ""
+    segmentMapRef.current.clear()
   }, [endConversation])
 
-  // Auto-start voice when opened in voice mode
   useEffect(() => {
     const justOpened = expanded && !expandedRef.current
     expandedRef.current = expanded
-    if (justOpened && chatMode === "voice" && !convRef.current) {
+    if (justOpened && chatMode === "voice" && !roomRef.current) {
       void startVoiceSession()
     }
   }, [expanded, chatMode, startVoiceSession])
 
   const selectVoice = useCallback(async () => {
-    if (convRef.current && chatModeRef.current === "text") await endConversation()
+    if (roomRef.current && chatModeRef.current === "text") await endConversation()
     setChatMode("voice")
-    if (!convRef.current) startVoiceSession()
+    if (!roomRef.current) startVoiceSession()
   }, [startVoiceSession, endConversation])
 
   const selectText = useCallback(async () => {
-    if (convRef.current && chatModeRef.current === "voice") await endConversation()
+    if (roomRef.current && chatModeRef.current === "voice") await endConversation()
     setChatMode("text")
   }, [endConversation])
+
+  useEffect(() => {
+    return () => {
+      if (connectTimeoutRef.current) clearTimeout(connectTimeoutRef.current)
+      try { roomRef.current?.disconnect() } catch {}
+      document.querySelectorAll("#livekit-widget-audio").forEach(el => el.remove())
+    }
+  }, [])
 
   const isActive = status === "connected"
   const isBusy = status === "connecting"
@@ -361,7 +393,7 @@ function EmbeddableWidget() {
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: 12, background: "#0f172a" }}>
             <input
               value={textInput}
-              onChange={(e) => { setTextInput(e.target.value); convRef.current?.sendUserActivity?.() }}
+              onChange={(e) => setTextInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendText() } }}
               placeholder={isActive || chatMode === "text" ? "Type a message…" : "Start voice or type…"}
               disabled={chatMode === "voice" && !isActive}
