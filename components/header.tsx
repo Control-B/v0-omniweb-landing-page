@@ -21,7 +21,7 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Show, UserButton, SignInButton, SignUpButton } from "@clerk/nextjs"
+import { useUser, useClerk, UserButton } from "@clerk/nextjs"
 
 type NavSubItem = {
   label: string
@@ -240,6 +240,7 @@ const navItems: NavItem[] = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const { isSignedIn } = useUser()
   const pathname = usePathname()
   const currentSection = useMemo(() => pathname?.split("#")[0] ?? "/", [pathname])
   const isHome = currentSection === "/"
@@ -390,40 +391,40 @@ export function Header() {
               Call Us
             </a>
           </Button>
-          <Show when="signed-out">
-            <SignInButton mode="modal">
+          {!isSignedIn ? (
+            <>
               <Button
                 variant="ghost"
                 size="sm"
+                asChild
                 className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
               >
-                Sign In
+                <Link href="/signin">Sign In</Link>
               </Button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <Button size="sm" className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-5 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
-                Get Started
+              <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-5 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
+                <Link href="/get-started">Get Started</Link>
               </Button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
-            >
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "h-8 w-8",
-                },
-              }}
-            />
-          </Show>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
+              >
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-8 w-8",
+                  },
+                }}
+              />
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -499,33 +500,32 @@ export function Header() {
                   Call Us
                 </a>
               </Button>
-              <Show when="signed-out">
-                <SignInButton mode="modal">
-                  <Button variant="outline" size="sm" className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
-                    Sign In
+              {!isSignedIn ? (
+                <>
+                  <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
+                    <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
                   </Button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <Button size="sm" className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
-                    Get Started
+                  <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
+                    <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
                   </Button>
-                </SignUpButton>
-              </Show>
-              <Show when="signed-in">
-                <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
-                  <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                </Button>
-                <div className="flex justify-start px-3">
-                  <UserButton
-                    afterSignOutUrl="/"
-                    appearance={{
-                      elements: {
-                        avatarBox: "h-8 w-8",
-                      },
-                    }}
-                  />
-                </div>
-              </Show>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
+                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
+                  </Button>
+                  <div className="flex justify-start px-3">
+                    <UserButton
+                      afterSignOutUrl="/"
+                      appearance={{
+                        elements: {
+                          avatarBox: "h-8 w-8",
+                        },
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </nav>
         </div>
