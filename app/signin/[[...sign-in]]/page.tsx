@@ -1,7 +1,6 @@
 "use client"
 
-import { useSignIn } from "@clerk/nextjs"
-import { OAuthStrategy } from "@clerk/types"
+import { useSignIn } from "@clerk/nextjs/legacy"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -25,10 +24,10 @@ export default function SignInPage() {
     )
   }
 
-  const handleSocial = async (strategy: OAuthStrategy) => {
+  const handleSocial = async (strategy: string) => {
     try {
       await signIn.authenticateWithRedirect({
-        strategy,
+        strategy: strategy as any,
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/dashboard",
       })
