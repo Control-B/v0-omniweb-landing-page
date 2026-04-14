@@ -665,7 +665,7 @@ export function VoiceOrb() {
             </div>
           )}
 
-          {messages.map((m, i) => (
+          {messages.filter(m => m.text?.trim()).map((m, i) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               {m.role === "agent" && (
                 <div className="w-6 h-6 rounded-full overflow-hidden mr-2 mt-1 flex-shrink-0">
@@ -676,11 +676,8 @@ export function VoiceOrb() {
                 "max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed",
                 m.role === "user"
                   ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm shadow-lg shadow-violet-500/20"
-                  : m.isWelcome
-                    ? "bg-gradient-to-br from-cyan-900/40 to-slate-800/60 text-cyan-100 rounded-2xl rounded-bl-sm shadow-sm border border-cyan-500/20 backdrop-blur-sm italic"
-                    : "bg-white/[0.07] text-slate-200 rounded-2xl rounded-bl-sm shadow-sm border border-white/10 backdrop-blur-sm",
+                  : "bg-white/[0.07] text-slate-200 rounded-2xl rounded-bl-sm shadow-sm border border-white/10 backdrop-blur-sm",
                 ].join(" ")}>
-                {m.isWelcome && <span className="text-[10px] uppercase tracking-wider text-cyan-400/70 font-medium block mb-1">Welcome</span>}
                 {m.text}
               </div>
             </div>
