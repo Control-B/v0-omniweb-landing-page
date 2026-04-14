@@ -68,12 +68,20 @@ export function VoiceOrb() {
   const reconnectAttemptRef = useRef(0)
   const MAX_RECONNECT_ATTEMPTS = 3
 
-  // Track whether the user has spoken/typed yet.  The very first agent
-  // message that arrives before any user input is the ElevenLabs
-  // "first_message" greeting — we tag it with `isWelcome: true` so
-  // subsequent agent replies only appear AFTER the user actually speaks.
+  // ── Conversation-transcript tracking ──
+  // We maintain a clean transcript that mirrors the real conversation:
+  //   1. Agent sends welcome (first_message) → shown immediately as welcome
+  //   2. User speaks → shown when transcript finalised
+  //   3. Agent responds → shown only AFTER the user message is committed
+  //
+  // ElevenLabs often fires onAgentChatResponsePart (agent reply) BEFORE
+  // onMessage (user transcript), creating a race where the agent's reply
+  // appears above the user's message.  We solve this by tracking each
+  // agent response's event_id and deduplicating.
   const hasUserSpokenRef = useRef(false)
   const welcomeReceivedRef = useRef(false)
+  // Track the last event_id we committed so we never double-add the same response
+  const lastAgentEventIdRef = useRef<number>(-1)
   // On mobile we default to text mode to avoid WebSocket microphone issues
   const [isMobile, setIsMobile] = useState(false)
 
@@ -173,30 +181,49 @@ export function VoiceOrb() {
       setIsMuted(false)
     },
     onMessage: (p: any) => {
-      // Only handle user transcripts here — agent responses are handled
-      // exclusively by onAgentChatResponsePart to avoid duplicate messages.
-      if (p.role !== "agent") {
-        hasUserSpokenRef.current = true
-        setMessages(prev => {
-          const last = prev[prev.length - 1]
-          if (last?.role === "user") return [...prev.slice(0, -1), { role: "user", text: p.message }]
-          return [...prev, { role: "user" as const, text: p.message }]
-        })
-      }
+      // Handle user transcripts only.  Agent text is handled exclusively
+      // by onAgentChatResponsePart so we never double-add agent bubbles.
+      if (p.role === "agent") return
+
+      hasUserSpokenRef.current = true
+      setMessages(prev => {
+        // If the last message is already from the user, update it in place
+        // (ElevenLabs sends progressive transcript refinements).
+        const last = prev[prev.length - 1]
+        if (last?.role === "user") {
+          return [...prev.slice(0, -1), { role: "user", text: p.message }]
+        }
+        return [...prev, { role: "user" as const, text: p.message }]
+      })
     },
+
     onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
-      // If the user hasn't spoken yet, this is the ElevenLabs first_message
-      // (welcome greeting). Tag it so we render it distinctly and so the
-      // chat looks conversational once the visitor replies.
+      // ── Welcome message (first_message before user has spoken) ──
       const isFirstAgentMsg = !hasUserSpokenRef.current && !welcomeReceivedRef.current
 
+      // ── Deduplication: skip if we already committed this event_id ──
+      if (part.event_id === lastAgentEventIdRef.current && part.type === "start") {
+        // Same event_id starting again — this is a duplicate delivery, skip it
+        return
+      }
+
       if (part.type === "start") {
+        lastAgentEventIdRef.current = part.event_id
         chatBufferRef.current = part.text
+
         if (isFirstAgentMsg) {
           welcomeReceivedRef.current = true
           setMessages(prev => [...prev, { role: "agent", text: part.text, isWelcome: true }])
         } else {
-          setMessages(prev => [...prev, { role: "agent", text: part.text }])
+          setMessages(prev => {
+            // Prevent adding a new agent bubble if the last message is already
+            // an agent bubble for the current event (progressive refinement).
+            const last = prev[prev.length - 1]
+            if (last?.role === "agent" && !last.isWelcome) {
+              return [...prev.slice(0, -1), { role: "agent", text: part.text }]
+            }
+            return [...prev, { role: "agent", text: part.text }]
+          })
         }
       } else if (part.type === "delta") {
         chatBufferRef.current += part.text
@@ -204,8 +231,8 @@ export function VoiceOrb() {
         setMessages(prev => {
           const lastIdx = prev.length - 1
           if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            const isWelcome = prev[lastIdx].isWelcome
-            return [...prev.slice(0, lastIdx), { role: "agent", text: fullText, ...(isWelcome ? { isWelcome: true } : {}) }]
+            const w = prev[lastIdx].isWelcome
+            return [...prev.slice(0, lastIdx), { role: "agent", text: fullText, ...(w ? { isWelcome: true } : {}) }]
           }
           return [...prev, { role: "agent", text: fullText }]
         })
@@ -215,8 +242,8 @@ export function VoiceOrb() {
         setMessages(prev => {
           const lastIdx = prev.length - 1
           if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            const isWelcome = prev[lastIdx].isWelcome
-            return [...prev.slice(0, lastIdx), { role: "agent", text: finalText, ...(isWelcome ? { isWelcome: true } : {}) }]
+            const w = prev[lastIdx].isWelcome
+            return [...prev.slice(0, lastIdx), { role: "agent", text: finalText, ...(w ? { isWelcome: true } : {}) }]
           }
           return prev
         })
@@ -366,6 +393,7 @@ export function VoiceOrb() {
     chatBufferRef.current = ""
     hasUserSpokenRef.current = false
     welcomeReceivedRef.current = false
+    lastAgentEventIdRef.current = -1
   }, [endConversation])
 
   // Auto-reconnect on unexpected disconnect (mobile network drops)
