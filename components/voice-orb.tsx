@@ -7,7 +7,7 @@ import type { DisconnectionDetails } from "@elevenlabs/client"
 const AGENT_ID = "agent_4601kny4fvsgfjz8mbqhevyp1k9q"
 const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
-type Message = { role: "user" | "agent"; text: string }
+type Message = { role: "user" | "agent"; text: string; isWelcome?: boolean }
 type ConvStatus = "disconnected" | "connecting" | "connected"
 type ConvMode = "listening" | "speaking"
 type ChatMode = "voice" | "text"
@@ -68,6 +68,15 @@ export function VoiceOrb() {
   const reconnectAttemptRef = useRef(0)
   const MAX_RECONNECT_ATTEMPTS = 3
 
+  // Track whether the user has spoken/typed yet.  The very first agent
+  // message that arrives before any user input is the ElevenLabs
+  // "first_message" greeting — we tag it with `isWelcome: true` so
+  // subsequent agent replies only appear AFTER the user actually speaks.
+  const hasUserSpokenRef = useRef(false)
+  const welcomeReceivedRef = useRef(false)
+  // On mobile we default to text mode to avoid WebSocket microphone issues
+  const [isMobile, setIsMobile] = useState(false)
+
 
   const selectedLanguageOption = languageOptions.find(option => option.code === selectedLanguage) ?? languageOptions[0]
 
@@ -98,6 +107,13 @@ export function VoiceOrb() {
     })()
   }, [])
 
+  // Detect mobile devices — used to default to text mode
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 640
+    setIsMobile(mobile)
+  }, [])
+
   // Keep ref in sync with state so callbacks always see the latest value
   useEffect(() => { chatModeRef.current = chatMode }, [chatMode])
 
@@ -106,11 +122,12 @@ export function VoiceOrb() {
   }, [messages])
 
   const handleOpen = useCallback((openMode?: "voice" | "text") => {
-    const targetMode = openMode ?? "voice"
+    // On mobile, default to text mode (more reliable than WebSocket voice)
+    const targetMode = openMode ?? (isMobile ? "text" : "voice")
     setExpanded(true)
     setChatMode(targetMode)
     setError(null)
-  }, [])
+  }, [isMobile])
 
   // Listen for assistant open events from the landing page CTAs
   useEffect(() => {
@@ -159,6 +176,7 @@ export function VoiceOrb() {
       // Only handle user transcripts here — agent responses are handled
       // exclusively by onAgentChatResponsePart to avoid duplicate messages.
       if (p.role !== "agent") {
+        hasUserSpokenRef.current = true
         setMessages(prev => {
           const last = prev[prev.length - 1]
           if (last?.role === "user") return [...prev.slice(0, -1), { role: "user", text: p.message }]
@@ -167,16 +185,27 @@ export function VoiceOrb() {
       }
     },
     onAgentChatResponsePart: (part: { text: string; type: "start" | "delta" | "stop"; event_id: number }) => {
+      // If the user hasn't spoken yet, this is the ElevenLabs first_message
+      // (welcome greeting). Tag it so we render it distinctly and so the
+      // chat looks conversational once the visitor replies.
+      const isFirstAgentMsg = !hasUserSpokenRef.current && !welcomeReceivedRef.current
+
       if (part.type === "start") {
         chatBufferRef.current = part.text
-        setMessages(prev => [...prev, { role: "agent", text: part.text }])
+        if (isFirstAgentMsg) {
+          welcomeReceivedRef.current = true
+          setMessages(prev => [...prev, { role: "agent", text: part.text, isWelcome: true }])
+        } else {
+          setMessages(prev => [...prev, { role: "agent", text: part.text }])
+        }
       } else if (part.type === "delta") {
         chatBufferRef.current += part.text
         const fullText = chatBufferRef.current
         setMessages(prev => {
           const lastIdx = prev.length - 1
           if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            return [...prev.slice(0, lastIdx), { role: "agent", text: fullText }]
+            const isWelcome = prev[lastIdx].isWelcome
+            return [...prev.slice(0, lastIdx), { role: "agent", text: fullText, ...(isWelcome ? { isWelcome: true } : {}) }]
           }
           return [...prev, { role: "agent", text: fullText }]
         })
@@ -186,7 +215,8 @@ export function VoiceOrb() {
         setMessages(prev => {
           const lastIdx = prev.length - 1
           if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            return [...prev.slice(0, lastIdx), { role: "agent", text: finalText }]
+            const isWelcome = prev[lastIdx].isWelcome
+            return [...prev.slice(0, lastIdx), { role: "agent", text: finalText, ...(isWelcome ? { isWelcome: true } : {}) }]
           }
           return prev
         })
@@ -314,6 +344,7 @@ export function VoiceOrb() {
     const t = textInput.trim()
     if (!t) return
     setTextInput("")
+    hasUserSpokenRef.current = true
     setMessages(prev => [...prev, { role: "user" as const, text: t }])
 
     // Already connected — send immediately
@@ -333,6 +364,8 @@ export function VoiceOrb() {
     setError(null)
     setChatMode("voice")
     chatBufferRef.current = ""
+    hasUserSpokenRef.current = false
+    welcomeReceivedRef.current = false
   }, [endConversation])
 
   // Auto-reconnect on unexpected disconnect (mobile network drops)
@@ -539,14 +572,15 @@ export function VoiceOrb() {
                 "max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed",
                 m.role === "user"
                   ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-2xl rounded-br-sm shadow-lg shadow-violet-500/20"
-                  : "bg-white/[0.07] text-slate-200 rounded-2xl rounded-bl-sm shadow-sm border border-white/10 backdrop-blur-sm",
-              ].join(" ")}>
+                  : m.isWelcome
+                    ? "bg-gradient-to-br from-cyan-900/40 to-slate-800/60 text-cyan-100 rounded-2xl rounded-bl-sm shadow-sm border border-cyan-500/20 backdrop-blur-sm italic"
+                    : "bg-white/[0.07] text-slate-200 rounded-2xl rounded-bl-sm shadow-sm border border-white/10 backdrop-blur-sm",
+                ].join(" ")}>
+                {m.isWelcome && <span className="text-[10px] uppercase tracking-wider text-cyan-400/70 font-medium block mb-1">Welcome</span>}
                 {m.text}
               </div>
             </div>
-          ))}
-
-          {isActive && mode === "speaking" && chatMode === "voice" && messages.length > 0 && (
+          ))}          {isActive && mode === "speaking" && chatMode === "voice" && messages.length > 0 && (
             <div className="flex justify-start">
               <div className="w-6 h-6 rounded-full overflow-hidden mr-2 mt-1 flex-shrink-0">
                 <div className="w-full h-full" style={{ background: CONIC_SM, animation: "orb-spin 4s linear infinite" }} />
