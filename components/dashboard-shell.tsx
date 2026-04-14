@@ -1,10 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useAuth } from "@clerk/nextjs"
 import {
   Bot, BarChart3, Code2, Copy, Check, Mic, MessageSquare,
   Phone, Settings, Sparkles, Users, Palette, Globe, LogOut,
-  CreditCard, Shield, AlertTriangle, ChevronRight,
+  CreditCard, Shield, AlertTriangle, ChevronRight, Zap,
+  Building2, ArrowRight, Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
@@ -20,6 +22,7 @@ type DashboardShellProps = {
   isTrial?: boolean
   trialLabel?: string
   firstName?: string
+  engineToken?: string
 }
 
 type AgentConfig = {
@@ -47,7 +50,23 @@ type EmbedInfo = {
   expires_at: string | null
 }
 
-export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, firstName }: DashboardShellProps) {
+type Industry = {
+  slug: string
+  name: string
+  description?: string
+}
+
+type Template = {
+  id: string
+  name: string
+  description: string
+  industry: string
+  agent_name: string
+  is_default: boolean
+}
+
+export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, firstName, engineToken }: DashboardShellProps) {
+  const { getToken } = useAuth()
   const [tab, setTab] = useState<Tab>("overview")
   const [config, setConfig] = useState<AgentConfig | null>(null)
   const [subStatus, setSubStatus] = useState<SubStatus | null>(null)
@@ -59,6 +78,16 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
   const [embedDomain, setEmbedDomain] = useState("")
   const [saveMsg, setSaveMsg] = useState("")
 
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [onboardingStep, setOnboardingStep] = useState(0)
+  const [obBusinessName, setObBusinessName] = useState("")
+  const [obIndustry, setObIndustry] = useState("general")
+  const [obBusinessType, setObBusinessType] = useState("")
+  const [industries, setIndustries] = useState<Industry[]>([])
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [onboardingSaving, setOnboardingSaving] = useState(false)
+
   // Widget customization state
   const [widgetColor, setWidgetColor] = useState("#6366f1")
   const [widgetPosition, setWidgetPosition] = useState<"right" | "left">("right")
@@ -66,17 +95,42 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
 
   const displayName = firstName || email.split("@")[0] || "there"
 
-  const authHeaders = useCallback(() => {
-    return { "Content-Type": "application/json" }
-  }, [])
+  /**
+   * Get a fresh Bearer token — prefers Clerk client-side token,
+   * falls back to the server-rendered engineToken prop.
+   */
+  const getFreshToken = useCallback(async (): Promise<string | null> => {
+    try {
+      const clerkToken = await getToken()
+      if (clerkToken) return clerkToken
+    } catch {
+      // Clerk not available — fall back
+    }
+    return engineToken ?? null
+  }, [getToken, engineToken])
+
+  /**
+   * Authenticated fetch wrapper — adds Authorization header automatically.
+   */
+  const authFetch = useCallback(async (url: string, opts: RequestInit = {}): Promise<Response> => {
+    const token = await getFreshToken()
+    const headers = new Headers(opts.headers)
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`)
+    }
+    if (!headers.has("Content-Type") && opts.body) {
+      headers.set("Content-Type", "application/json")
+    }
+    return fetch(url, { ...opts, headers })
+  }, [getFreshToken])
 
   // Load agent config and subscription status
   useEffect(() => {
     ;(async () => {
       try {
         const [configRes, subRes] = await Promise.all([
-          fetch(`${ENGINE_URL}/api/agent-config/${clientId}`, { credentials: "include" }),
-          fetch(`${ENGINE_URL}/api/subscribe/status`, { credentials: "include" }),
+          authFetch(`${ENGINE_URL}/api/agent-config/${clientId}`),
+          authFetch(`${ENGINE_URL}/api/subscribe/status`),
         ])
         if (configRes.ok) {
           const data = await configRes.json()
@@ -84,6 +138,21 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
           setWidgetGreeting(data.agent_greeting || "")
           if (data.widget_config?.color) setWidgetColor(data.widget_config.color as string)
           if (data.widget_config?.position) setWidgetPosition(data.widget_config.position as "right" | "left")
+        } else if (configRes.status === 404) {
+          // No agent config — show onboarding
+          setShowOnboarding(true)
+          // Load industries and templates for onboarding
+          try {
+            const [indRes, tplRes] = await Promise.all([
+              authFetch(`${ENGINE_URL}/api/agent-config/meta/industries`),
+              authFetch(`${ENGINE_URL}/api/templates`),
+            ])
+            if (indRes.ok) setIndustries(await indRes.json())
+            if (tplRes.ok) {
+              const tplData = await tplRes.json()
+              setTemplates(tplData.templates || [])
+            }
+          } catch { /* non-critical */ }
         }
         if (subRes.ok) setSubStatus(await subRes.json())
       } catch {
@@ -92,18 +161,18 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
         setLoading(false)
       }
     })()
-  }, [clientId])
+  }, [clientId, authFetch])
 
   // Load embed info
   useEffect(() => {
     if (tab !== "embed") return
     ;(async () => {
       try {
-        const res = await fetch(`${ENGINE_URL}/api/embed/snippet`, { credentials: "include" })
+        const res = await authFetch(`${ENGINE_URL}/api/embed/snippet`)
         if (res.ok) setEmbedInfo(await res.json())
       } catch { /* not generated yet */ }
     })()
-  }, [tab])
+  }, [tab, authFetch])
 
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text)
@@ -115,14 +184,12 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
     if (!embedPhone) return
     setSaving(true)
     try {
-      const res = await fetch(`${ENGINE_URL}/api/embed/generate`, {
+      const res = await authFetch(`${ENGINE_URL}/api/embed/generate`, {
         method: "POST",
-        headers: authHeaders(),
-        credentials: "include",
         body: JSON.stringify({ phone: embedPhone, domain: embedDomain || null }),
       })
       if (res.ok) {
-        const snippetRes = await fetch(`${ENGINE_URL}/api/embed/snippet`, { credentials: "include" })
+        const snippetRes = await authFetch(`${ENGINE_URL}/api/embed/snippet`)
         if (snippetRes.ok) setEmbedInfo(await snippetRes.json())
         setSaveMsg("Embed code generated!")
       }
@@ -133,10 +200,8 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
   const handleSaveWidget = async () => {
     setSaving(true)
     try {
-      const res = await fetch(`${ENGINE_URL}/api/agent-config/${clientId}`, {
+      const res = await authFetch(`${ENGINE_URL}/api/agent-config/${clientId}`, {
         method: "PATCH",
-        headers: authHeaders(),
-        credentials: "include",
         body: JSON.stringify({
           agent_greeting: widgetGreeting,
           widget_config: { color: widgetColor, position: widgetPosition },
@@ -150,10 +215,8 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
 
   const handleSubscribe = async (selectedPlan: string) => {
     try {
-      const res = await fetch(`${ENGINE_URL}/api/subscribe/checkout`, {
+      const res = await authFetch(`${ENGINE_URL}/api/subscribe/checkout`, {
         method: "POST",
-        headers: authHeaders(),
-        credentials: "include",
         body: JSON.stringify({ plan: selectedPlan }),
       })
       const data = await res.json()
@@ -161,6 +224,43 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
     } catch {
       setSaveMsg("Stripe is not configured yet")
       setTimeout(() => setSaveMsg(""), 3000)
+    }
+  }
+
+  const handleOnboardingComplete = async () => {
+    setOnboardingSaving(true)
+    try {
+      const res = await authFetch(`${ENGINE_URL}/api/agent-config/${clientId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          business_name: obBusinessName,
+          business_type: obBusinessType || undefined,
+          industry: obIndustry,
+          agent_mode: "lead_qualifier",
+          use_prompt_engine: true,
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        // Reload config
+        const configRes = await authFetch(`${ENGINE_URL}/api/agent-config/${clientId}`)
+        if (configRes.ok) {
+          const configData = await configRes.json()
+          setConfig(configData)
+          setWidgetGreeting(configData.agent_greeting || "")
+        }
+        setShowOnboarding(false)
+        setSaveMsg("Your AI agent is ready! 🎉")
+        setTimeout(() => setSaveMsg(""), 4000)
+      } else {
+        setSaveMsg("Failed to set up agent. Please try again.")
+        setTimeout(() => setSaveMsg(""), 3000)
+      }
+    } catch {
+      setSaveMsg("Network error. Please try again.")
+      setTimeout(() => setSaveMsg(""), 3000)
+    } finally {
+      setOnboardingSaving(false)
     }
   }
 
@@ -175,6 +275,188 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
   const trialDaysLeft = subStatus?.trial_ends_at
     ? Math.max(0, Math.ceil((new Date(subStatus.trial_ends_at).getTime() - Date.now()) / 86400000))
     : 14
+
+  // ─── Onboarding Wizard ───
+  if (showOnboarding && !loading) {
+    return (
+      <div className="min-h-dvh bg-[#050a12] text-white">
+        <div className="mx-auto flex max-w-2xl flex-col items-center justify-center px-4 py-16">
+          <div className="mb-8 text-center">
+            <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 mb-4">
+              <Sparkles className="h-7 w-7" />
+            </span>
+            <h1 className="text-3xl font-bold">Welcome to Omniweb, {displayName}!</h1>
+            <p className="mt-2 text-slate-400">Let&apos;s set up your AI agent in under a minute.</p>
+          </div>
+
+          {/* Progress bar */}
+          <div className="mb-8 flex w-full items-center gap-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= onboardingStep ? "bg-cyan-500" : "bg-white/10"}`} />
+            ))}
+          </div>
+
+          <div className="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-8">
+            {onboardingStep === 0 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-cyan-400" />
+                    What&apos;s your business called?
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400">This helps us personalize your AI agent.</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Business name *</label>
+                  <input
+                    type="text"
+                    value={obBusinessName}
+                    onChange={(e) => setObBusinessName(e.target.value)}
+                    placeholder="e.g. Acme Roofing"
+                    className="w-full rounded-xl border border-white/10 bg-[#0f1a2e] px-4 py-3 text-sm placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Business type (optional)</label>
+                  <input
+                    type="text"
+                    value={obBusinessType}
+                    onChange={(e) => setObBusinessType(e.target.value)}
+                    placeholder="e.g. Residential roofing contractor"
+                    className="w-full rounded-xl border border-white/10 bg-[#0f1a2e] px-4 py-3 text-sm placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
+                  />
+                </div>
+                <Button
+                  onClick={() => setOnboardingStep(1)}
+                  disabled={!obBusinessName.trim()}
+                  className="w-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
+                >
+                  Continue <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {onboardingStep === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Globe className="h-5 w-5 text-cyan-400" />
+                    What industry are you in?
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400">We&apos;ll pre-configure your agent for your industry.</p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(industries.length > 0 ? industries : [
+                    { slug: "general", name: "General Business" },
+                    { slug: "roofing", name: "Roofing & Contracting" },
+                    { slug: "legal", name: "Legal Services" },
+                    { slug: "medical", name: "Medical / Healthcare" },
+                    { slug: "ecommerce", name: "E-commerce" },
+                    { slug: "real_estate", name: "Real Estate" },
+                    { slug: "automotive", name: "Automotive" },
+                    { slug: "restaurant", name: "Restaurant / Food" },
+                  ]).map((ind) => (
+                    <button
+                      key={ind.slug}
+                      onClick={() => setObIndustry(ind.slug)}
+                      className={`rounded-xl border p-4 text-left text-sm font-medium transition-all ${
+                        obIndustry === ind.slug
+                          ? "border-cyan-500/50 bg-cyan-500/10 text-white"
+                          : "border-white/10 bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      {ind.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setOnboardingStep(0)}
+                    className="flex-1 rounded-full text-slate-400"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={() => setOnboardingStep(2)}
+                    className="flex-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
+                  >
+                    Continue <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {onboardingStep === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-cyan-400" />
+                    Ready to launch!
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400">
+                    We&apos;ll create your AI agent with industry-optimized settings.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-6 space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Business</span>
+                    <span className="font-medium">{obBusinessName}</span>
+                  </div>
+                  {obBusinessType && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Type</span>
+                      <span className="font-medium">{obBusinessType}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Industry</span>
+                    <span className="font-medium capitalize">{obIndustry.replace(/_/g, " ")}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Agent Mode</span>
+                    <span className="font-medium">Lead Qualifier</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Prompt Engine</span>
+                    <span className="font-medium text-emerald-400">Enabled</span>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setOnboardingStep(1)}
+                    className="flex-1 rounded-full text-slate-400"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleOnboardingComplete}
+                    disabled={onboardingSaving}
+                    className="flex-1 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
+                  >
+                    {onboardingSaving ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating agent...</>
+                    ) : (
+                      <>Launch my AI agent <Sparkles className="ml-2 h-4 w-4" /></>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => setShowOnboarding(false)}
+            className="mt-6 text-sm text-slate-500 hover:text-slate-400 transition-colors"
+          >
+            Skip for now — I&apos;ll set up later
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-dvh bg-[#050a12] text-white">
@@ -192,6 +474,21 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
               Subscribe now
             </Button>
           )}
+        </div>
+      )}
+
+      {/* Trial expired banner */}
+      {subStatus?.status === "trial_expired" && (
+        <div className="bg-gradient-to-r from-red-600/90 to-pink-600/90 px-4 py-2.5 text-center text-sm font-medium">
+          <AlertTriangle className="mr-2 inline h-4 w-4" />
+          Your free trial has expired. Subscribe to keep your AI assistant running.
+          <Button
+            size="sm"
+            className="ml-4 rounded-full bg-white text-slate-900 hover:bg-slate-100"
+            onClick={() => setTab("settings")}
+          >
+            Subscribe now
+          </Button>
         </div>
       )}
 
@@ -490,7 +787,7 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
 
           {/* ─── Leads ─── */}
           {tab === "leads" && (
-            <LeadsTab onNavigateEmbed={() => setTab("embed")} clientId={clientId} />
+            <LeadsTab onNavigateEmbed={() => setTab("embed")} clientId={clientId} authFetch={authFetch} />
           )}
 
           {/* ─── Settings ─── */}
@@ -535,6 +832,8 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                     <p className="text-sm text-slate-400">
                       {subStatus?.status === "trial"
                         ? `Your trial expires in ${trialDaysLeft} days. Subscribe to keep your AI assistant running.`
+                        : subStatus?.status === "trial_expired"
+                        ? "Your trial has expired. Subscribe to reactivate your AI assistant."
                         : "Subscribe to unlock the full platform."}
                     </p>
                     <div className="grid gap-3 sm:grid-cols-3">
@@ -588,14 +887,18 @@ type Lead = {
   created_at: string
 }
 
-function LeadsTab({ onNavigateEmbed, clientId }: { onNavigateEmbed: () => void; clientId: string }) {
+function LeadsTab({ onNavigateEmbed, clientId, authFetch }: {
+  onNavigateEmbed: () => void
+  clientId: string
+  authFetch: (url: string, opts?: RequestInit) => Promise<Response>
+}) {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     ;(async () => {
       try {
-        const res = await fetch(`${ENGINE_URL}/api/leads?limit=50`, { credentials: "include" })
+        const res = await authFetch(`${ENGINE_URL}/api/leads?limit=50`)
         if (res.ok) {
           const data = await res.json()
           setLeads(Array.isArray(data) ? data : data.leads || [])
@@ -603,7 +906,7 @@ function LeadsTab({ onNavigateEmbed, clientId }: { onNavigateEmbed: () => void; 
       } catch { /* empty */ }
       finally { setLoading(false) }
     })()
-  }, [clientId])
+  }, [clientId, authFetch])
 
   if (loading) {
     return (

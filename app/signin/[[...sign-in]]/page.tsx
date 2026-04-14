@@ -239,6 +239,11 @@ export default function SignInPage() {
                 >
                   {loading ? "Signing in..." : "Sign In"}
                 </button>
+                <div className="mt-3 text-center">
+                  <Link href="/forgot-password" className="text-sm text-slate-400 hover:text-cyan-300 transition-colors">
+                    Forgot your password?
+                  </Link>
+                </div>
               </form>
             )}
 

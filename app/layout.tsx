@@ -12,8 +12,48 @@ const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald", weight: [
 const robotoCondensed = Roboto_Condensed({ subsets: ["latin"], variable: "--font-roboto-condensed", weight: ["400", "500", "600", "700"] })
 
 export const metadata: Metadata = {
-  title: 'Omniweb AI',
-  description: 'Omniweb builds, hosts, and sells AI-powered website systems and templates for e-commerce brands, contractors, and professionals.',
+  metadataBase: new URL('https://omniweb.ai'),
+  title: {
+    default: 'Omniweb AI — AI-Powered Voice & Chat Agents for Every Business',
+    template: '%s | Omniweb AI',
+  },
+  description: 'Omniweb builds AI-powered voice and chat agents that answer calls, qualify leads, and book appointments 24/7. Built for contractors, professionals, and e-commerce brands.',
+  keywords: ['AI voice agent', 'AI chatbot', 'lead qualification', 'appointment booking', 'AI receptionist', 'business automation', 'Omniweb'],
+  authors: [{ name: 'Omniweb AI' }],
+  creator: 'Omniweb AI',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://omniweb.ai',
+    siteName: 'Omniweb AI',
+    title: 'Omniweb AI — AI-Powered Voice & Chat Agents for Every Business',
+    description: 'AI voice and chat agents that answer calls, qualify leads, and book appointments 24/7. Set up in minutes.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Omniweb AI Platform',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Omniweb AI — AI Voice & Chat Agents',
+    description: 'AI agents that answer calls, qualify leads, and book appointments 24/7.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: [
       { url: '/icon.png?v=20260411d', type: 'image/png', sizes: '48x48' },

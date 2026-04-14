@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth/engine"
+import { getSession, getEngineToken } from "@/lib/auth/engine"
 import { DashboardShell } from "@/components/dashboard-shell"
 
 export default async function DashboardPage() {
@@ -15,6 +15,7 @@ export default async function DashboardPage() {
   }
 
   const firstName = session.user.email.split("@")[0] || "there"
+  const engineToken = await getEngineToken()
 
   return (
     <DashboardShell
@@ -22,6 +23,7 @@ export default async function DashboardPage() {
       plan={session.user.plan}
       clientId={session.user.client_id}
       firstName={firstName}
+      engineToken={engineToken ?? undefined}
     />
   )
 }
