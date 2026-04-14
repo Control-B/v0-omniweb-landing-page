@@ -71,6 +71,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Preload hero poster for instant first paint */}
+        <link
+          rel="preload"
+          href="/media/posters/ai-conversion-pitch-web.jpg"
+          as="image"
+          fetchPriority="high"
+        />
+        {/* Preload hero video so playback starts fast */}
+        <link
+          rel="preload"
+          href="/media/ai-conversion-pitch-web.mp4"
+          as="video"
+          type="video/mp4"
+        />
+      </head>
       <body className={`${geist.variable} ${geistMono.variable} ${oswald.variable} ${robotoCondensed.variable} font-sans antialiased`}>
         <ClerkProvider
           appearance={{

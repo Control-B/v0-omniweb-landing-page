@@ -285,7 +285,7 @@ export function PageHeroWithVideo({
       muted
       playsInline
       loop
-      preload="metadata"
+      preload="auto"
       poster={posterSrc}
       onCanPlay={() => {
         setVideoReady(true)
@@ -358,6 +358,8 @@ export function PageHeroWithVideo({
             <img
               src={posterSrc}
               alt=""
+              fetchPriority="high"
+              loading="eager"
               className="absolute inset-0 h-full w-full object-contain scale-[0.94] brightness-110"
             />
           )}
@@ -428,6 +430,8 @@ export function PageHeroWithVideo({
                 <img
                   src={posterSrc}
                   alt=""
+                  fetchPriority="high"
+                  loading="eager"
                   className="absolute inset-0 h-full w-full object-cover brightness-110"
                 />
               )}
@@ -548,7 +552,7 @@ export function PageHeroWithVideo({
                       autoPlay
                       muted
                       playsInline
-                      preload="metadata"
+                      preload="auto"
                       poster={posterSrc}
                       onCanPlay={() => setVideoReady(true)}
                       onPlaying={() => {
@@ -571,6 +575,8 @@ export function PageHeroWithVideo({
                       <img
                         src={posterSrc}
                         alt=""
+                        fetchPriority="high"
+                        loading="eager"
                         className="absolute inset-0 h-full w-full object-cover brightness-110"
                       />
                     )}
