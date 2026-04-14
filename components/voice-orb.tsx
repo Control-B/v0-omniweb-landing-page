@@ -68,20 +68,21 @@ export function VoiceOrb() {
   const reconnectAttemptRef = useRef(0)
   const MAX_RECONNECT_ATTEMPTS = 3
 
-  // ── Conversation-transcript tracking ──
-  // We maintain a clean transcript that mirrors the real conversation:
-  //   1. Agent sends welcome (first_message) → shown immediately as welcome
-  //   2. User speaks → shown when transcript finalised
-  //   3. Agent responds → shown only AFTER the user message is committed
+  // ── Conversation-transcript ordering ──
+  // ElevenLabs streams the agent's response (onAgentChatResponsePart) BEFORE
+  // the finalised user transcript arrives (onMessage).  This means the agent
+  // bubble would appear above the user bubble in the chat.
   //
-  // ElevenLabs often fires onAgentChatResponsePart (agent reply) BEFORE
-  // onMessage (user transcript), creating a race where the agent's reply
-  // appears above the user's message.  We solve this by tracking each
-  // agent response's event_id and deduplicating.
+  // Solution: after the welcome message, we *buffer* all agent response parts
+  // until the user's transcript for that turn has been committed.  Once
+  // onMessage fires, we flush the buffer so the agent reply appears below.
   const hasUserSpokenRef = useRef(false)
   const welcomeReceivedRef = useRef(false)
-  // Track the last event_id we committed so we never double-add the same response
   const lastAgentEventIdRef = useRef<number>(-1)
+  // true while we are waiting for the user transcript for the current turn
+  const awaitingUserTranscriptRef = useRef(false)
+  // buffered agent text that arrived before the user transcript
+  const pendingAgentPartsRef = useRef<{ text: string; isComplete: boolean } | null>(null)
   // On mobile we default to text mode to avoid WebSocket microphone issues
   const [isMobile, setIsMobile] = useState(false)
 
@@ -186,14 +187,27 @@ export function VoiceOrb() {
       if (p.role === "agent") return
 
       hasUserSpokenRef.current = true
+
       setMessages(prev => {
-        // If the last message is already from the user, update it in place
-        // (ElevenLabs sends progressive transcript refinements).
+        // Build the new messages array with the user's transcript
+        let updated: Message[]
         const last = prev[prev.length - 1]
         if (last?.role === "user") {
-          return [...prev.slice(0, -1), { role: "user", text: p.message }]
+          // Progressive refinement — update existing user bubble
+          updated = [...prev.slice(0, -1), { role: "user", text: p.message }]
+        } else {
+          updated = [...prev, { role: "user" as const, text: p.message }]
         }
-        return [...prev, { role: "user" as const, text: p.message }]
+
+        // Flush any buffered agent response that arrived before this transcript
+        const pending = pendingAgentPartsRef.current
+        if (pending) {
+          pendingAgentPartsRef.current = null
+          awaitingUserTranscriptRef.current = false
+          updated = [...updated, { role: "agent" as const, text: pending.text }]
+        }
+
+        return updated
       })
     },
 
@@ -201,38 +215,96 @@ export function VoiceOrb() {
       // ── Welcome message (first_message before user has spoken) ──
       const isFirstAgentMsg = !hasUserSpokenRef.current && !welcomeReceivedRef.current
 
-      // ── Deduplication: skip if we already committed this event_id ──
+      // ── Deduplication ──
       if (part.event_id === lastAgentEventIdRef.current && part.type === "start") {
-        // Same event_id starting again — this is a duplicate delivery, skip it
         return
       }
 
+      if (isFirstAgentMsg) {
+        // Welcome message — render immediately (no user message to wait for)
+        if (part.type === "start") {
+          lastAgentEventIdRef.current = part.event_id
+          chatBufferRef.current = part.text
+          welcomeReceivedRef.current = true
+          // After the welcome is delivered, the next agent response should wait
+          // for a user transcript before being shown.
+          awaitingUserTranscriptRef.current = true
+          setMessages(prev => [...prev, { role: "agent", text: part.text, isWelcome: true }])
+        } else if (part.type === "delta") {
+          chatBufferRef.current += part.text
+          const fullText = chatBufferRef.current
+          setMessages(prev => {
+            const i = prev.length - 1
+            if (i >= 0 && prev[i].role === "agent") {
+              return [...prev.slice(0, i), { role: "agent", text: fullText, isWelcome: true }]
+            }
+            return prev
+          })
+        } else if (part.type === "stop") {
+          if (part.text) chatBufferRef.current += part.text
+          const finalText = chatBufferRef.current
+          setMessages(prev => {
+            const i = prev.length - 1
+            if (i >= 0 && prev[i].role === "agent") {
+              return [...prev.slice(0, i), { role: "agent", text: finalText, isWelcome: true }]
+            }
+            return prev
+          })
+          chatBufferRef.current = ""
+        }
+        return
+      }
+
+      // ── Normal agent response (post-welcome) ──
+      // If the user's transcript hasn't arrived yet for this turn, buffer
+      // the agent text so it renders AFTER the user bubble.
+      if (awaitingUserTranscriptRef.current) {
+        if (part.type === "start") {
+          lastAgentEventIdRef.current = part.event_id
+          chatBufferRef.current = part.text
+          pendingAgentPartsRef.current = { text: part.text, isComplete: false }
+        } else if (part.type === "delta") {
+          chatBufferRef.current += part.text
+          pendingAgentPartsRef.current = { text: chatBufferRef.current, isComplete: false }
+        } else if (part.type === "stop") {
+          if (part.text) chatBufferRef.current += part.text
+          pendingAgentPartsRef.current = { text: chatBufferRef.current, isComplete: true }
+          chatBufferRef.current = ""
+          // If the full response arrived and we STILL don't have a user transcript,
+          // flush after a short grace period (the transcript may never come for
+          // very short utterances that get swallowed).
+          setTimeout(() => {
+            const pending = pendingAgentPartsRef.current
+            if (pending) {
+              pendingAgentPartsRef.current = null
+              awaitingUserTranscriptRef.current = false
+              setMessages(prev => [...prev, { role: "agent" as const, text: pending.text }])
+            }
+          }, 1500)
+        }
+        return
+      }
+
+      // User transcript already arrived — render agent response directly
       if (part.type === "start") {
         lastAgentEventIdRef.current = part.event_id
         chatBufferRef.current = part.text
-
-        if (isFirstAgentMsg) {
-          welcomeReceivedRef.current = true
-          setMessages(prev => [...prev, { role: "agent", text: part.text, isWelcome: true }])
-        } else {
-          setMessages(prev => {
-            // Prevent adding a new agent bubble if the last message is already
-            // an agent bubble for the current event (progressive refinement).
-            const last = prev[prev.length - 1]
-            if (last?.role === "agent" && !last.isWelcome) {
-              return [...prev.slice(0, -1), { role: "agent", text: part.text }]
-            }
-            return [...prev, { role: "agent", text: part.text }]
-          })
-        }
+        // After this response finishes, wait for next user transcript
+        awaitingUserTranscriptRef.current = true
+        setMessages(prev => {
+          const last = prev[prev.length - 1]
+          if (last?.role === "agent" && !last.isWelcome) {
+            return [...prev.slice(0, -1), { role: "agent", text: part.text }]
+          }
+          return [...prev, { role: "agent", text: part.text }]
+        })
       } else if (part.type === "delta") {
         chatBufferRef.current += part.text
         const fullText = chatBufferRef.current
         setMessages(prev => {
-          const lastIdx = prev.length - 1
-          if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            const w = prev[lastIdx].isWelcome
-            return [...prev.slice(0, lastIdx), { role: "agent", text: fullText, ...(w ? { isWelcome: true } : {}) }]
+          const i = prev.length - 1
+          if (i >= 0 && prev[i].role === "agent" && !prev[i].isWelcome) {
+            return [...prev.slice(0, i), { role: "agent", text: fullText }]
           }
           return [...prev, { role: "agent", text: fullText }]
         })
@@ -240,10 +312,9 @@ export function VoiceOrb() {
         if (part.text) chatBufferRef.current += part.text
         const finalText = chatBufferRef.current
         setMessages(prev => {
-          const lastIdx = prev.length - 1
-          if (lastIdx >= 0 && prev[lastIdx].role === "agent") {
-            const w = prev[lastIdx].isWelcome
-            return [...prev.slice(0, lastIdx), { role: "agent", text: finalText, ...(w ? { isWelcome: true } : {}) }]
+          const i = prev.length - 1
+          if (i >= 0 && prev[i].role === "agent" && !prev[i].isWelcome) {
+            return [...prev.slice(0, i), { role: "agent", text: finalText }]
           }
           return prev
         })
@@ -372,6 +443,9 @@ export function VoiceOrb() {
     if (!t) return
     setTextInput("")
     hasUserSpokenRef.current = true
+    // User message is already committed — agent can render directly
+    awaitingUserTranscriptRef.current = false
+    pendingAgentPartsRef.current = null
     setMessages(prev => [...prev, { role: "user" as const, text: t }])
 
     // Already connected — send immediately
@@ -394,6 +468,8 @@ export function VoiceOrb() {
     hasUserSpokenRef.current = false
     welcomeReceivedRef.current = false
     lastAgentEventIdRef.current = -1
+    awaitingUserTranscriptRef.current = false
+    pendingAgentPartsRef.current = null
   }, [endConversation])
 
   // Auto-reconnect on unexpected disconnect (mobile network drops)
