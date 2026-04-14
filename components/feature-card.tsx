@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowRight, type LucideIcon } from "lucide-react"
+import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ type FeatureCardProps = {
   summary: string
   bullets: string[]
   actionLabel?: string
+  actionHref?: string
   index?: number
   accent?: "cyan" | "violet" | "emerald"
   image?: string
@@ -57,6 +59,7 @@ export function FeatureCard({
   summary,
   bullets,
   actionLabel = "Try the demo",
+  actionHref = "/demo",
   index = 0,
   accent = "cyan",
   image,
@@ -102,9 +105,11 @@ export function FeatureCard({
           </li>
         ))}
       </ul>
-      <Button variant="ghost" className={`mt-5 px-0 ${a.link} hover:bg-transparent`}>
-        {actionLabel}
-        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+      <Button variant="ghost" asChild className={`mt-5 px-0 ${a.link} hover:bg-transparent`}>
+        <Link href={actionHref}>
+          {actionLabel}
+          <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+        </Link>
       </Button>
       </div>
     </motion.div>

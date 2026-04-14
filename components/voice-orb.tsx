@@ -63,6 +63,10 @@ export function VoiceOrb() {
   const pendingTextRef = useRef<string | null>(null)
   const chatModeRef = useRef<ChatMode>("voice")
   const expandedRef = useRef(false)
+  const healthTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const reconnectAttemptRef = useRef(0)
+  const MAX_RECONNECT_ATTEMPTS = 3
 
 
   const selectedLanguageOption = languageOptions.find(option => option.code === selectedLanguage) ?? languageOptions[0]
@@ -202,14 +206,34 @@ export function VoiceOrb() {
     if (convRef.current) return
     setStatus("connecting")
     setError(null)
+
+    // Connection timeout — if not connected within 12s, abort and show error
+    connectTimeoutRef.current = setTimeout(() => {
+      if (status === "connecting") {
+        setError("Connection timed out. Tap to retry.")
+        setStatus("disconnected")
+        try { convRef.current?.endSession() } catch {}
+        convRef.current = null
+      }
+    }, 12000)
+
     try {
       const conv = await Conversation.startSession(sessionCallbacks())
       convRef.current = conv
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current)
+        connectTimeoutRef.current = null
+      }
+      reconnectAttemptRef.current = 0
     } catch (e: any) {
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current)
+        connectTimeoutRef.current = null
+      }
       setError(e?.message ?? "Connection failed")
       setStatus("disconnected")
     }
-  }, [sessionCallbacks])
+  }, [sessionCallbacks, status])
 
   // Auto-start voice when panel opens in voice mode
   useEffect(() => {
@@ -224,6 +248,17 @@ export function VoiceOrb() {
     if (convRef.current) return
     setStatus("connecting")
     setError(null)
+
+    connectTimeoutRef.current = setTimeout(() => {
+      if (status === "connecting") {
+        setError("Connection timed out. Tap to retry.")
+        setStatus("disconnected")
+        try { convRef.current?.endSession() } catch {}
+        convRef.current = null
+        pendingTextRef.current = null
+      }
+    }, 12000)
+
     try {
       // textOnly: true → uses TextConversation → NO microphone access needed
       const conv = await Conversation.startSession({
@@ -231,20 +266,42 @@ export function VoiceOrb() {
         textOnly: true,
       })
       convRef.current = conv
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current)
+        connectTimeoutRef.current = null
+      }
+      reconnectAttemptRef.current = 0
     } catch (e: any) {
+      if (connectTimeoutRef.current) {
+        clearTimeout(connectTimeoutRef.current)
+        connectTimeoutRef.current = null
+      }
       setError(e?.message ?? "Connection failed")
       setStatus("disconnected")
       pendingTextRef.current = null
     }
-  }, [sessionCallbacks])
+  }, [sessionCallbacks, status])
+
+  const clearHealthTimer = useCallback(() => {
+    if (healthTimerRef.current) {
+      clearInterval(healthTimerRef.current)
+      healthTimerRef.current = null
+    }
+    if (connectTimeoutRef.current) {
+      clearTimeout(connectTimeoutRef.current)
+      connectTimeoutRef.current = null
+    }
+  }, [])
 
   const endConversation = useCallback(async () => {
+    clearHealthTimer()
     try { await convRef.current?.endSession() } catch {}
     convRef.current = null
     setStatus("disconnected")
     setIsMuted(false)
     pendingTextRef.current = null
-  }, [])
+    reconnectAttemptRef.current = 0
+  }, [clearHealthTimer])
 
   const toggleMute = useCallback(() => {
     if (!convRef.current) return
@@ -277,6 +334,32 @@ export function VoiceOrb() {
     setChatMode("voice")
     chatBufferRef.current = ""
   }, [endConversation])
+
+  // Auto-reconnect on unexpected disconnect (mobile network drops)
+  useEffect(() => {
+    if (status === "disconnected" && expanded && !convRef.current && messages.length > 0) {
+      // Was in a conversation but got disconnected unexpectedly
+      if (reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttemptRef.current += 1
+        const delay = reconnectAttemptRef.current * 2000 // 2s, 4s, 6s backoff
+        const timer = setTimeout(() => {
+          if (chatModeRef.current === "voice") {
+            void startVoiceSession()
+          } else {
+            void startTextSession()
+          }
+        }, delay)
+        return () => clearTimeout(timer)
+      } else {
+        setError("Connection lost. Tap to reconnect.")
+      }
+    }
+  }, [status, expanded, messages.length, startVoiceSession, startTextSession])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { clearHealthTimer() }
+  }, [clearHealthTimer])
 
   const selectVoice = useCallback(async () => {
     // If switching from text session, end it first
@@ -413,7 +496,25 @@ export function VoiceOrb() {
 
         {/* ── Messages ── */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900">
-          {error && <div className="bg-red-500/10 text-red-400 text-xs rounded-xl px-3 py-2 border border-red-500/20">{error}</div>}
+          {error && (
+            <div className="bg-red-500/10 text-red-400 text-xs rounded-xl px-3 py-2 border border-red-500/20">
+              {error}
+              <button
+                onClick={() => {
+                  setError(null)
+                  reconnectAttemptRef.current = 0
+                  if (chatModeRef.current === "voice") {
+                    void startVoiceSession()
+                  } else {
+                    void startTextSession()
+                  }
+                }}
+                className="ml-2 underline hover:text-red-300 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
           {messages.length === 0 && !error && (
             <div className="flex flex-col items-center justify-center h-full text-center pb-8">

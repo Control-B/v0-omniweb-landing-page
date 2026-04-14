@@ -9,6 +9,10 @@ export default function GetStartedPage() {
   const { signUp, isLoaded, setActive } = useSignUp()
   const router = useRouter()
 
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [companyName, setCompanyName] = useState("")
+  const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [code, setCode] = useState("")
@@ -43,8 +47,14 @@ export default function GetStartedPage() {
 
     try {
       await signUp.create({
+        firstName,
+        lastName,
         emailAddress: email,
         password,
+        unsafeMetadata: {
+          companyName,
+          phone,
+        },
       })
 
       await signUp.prepareEmailAddressVerification({
@@ -77,6 +87,8 @@ export default function GetStartedPage() {
       setLoading(false)
     }
   }
+
+  const inputClass = "mb-4 h-12 w-full rounded-xl border border-white/[0.08] bg-[#0f1a2e] px-4 text-white placeholder:text-slate-500 transition-all focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
 
   return (
     <div className="relative flex min-h-dvh overflow-hidden bg-[#050a12] text-white">
@@ -154,6 +166,58 @@ export default function GetStartedPage() {
 
             {step === "initial" && (
               <form onSubmit={handleSubmit}>
+                {/* Name fields — side by side */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-300">
+                      First name
+                    </label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Jane"
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-slate-300">
+                      Last name
+                    </label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Smith"
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+
+                <label className="mb-2 block text-sm font-medium text-slate-300">
+                  Company name
+                </label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Acme Corp"
+                  className={inputClass}
+                />
+
+                <label className="mb-2 block text-sm font-medium text-slate-300">
+                  Phone number
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                  className={inputClass}
+                />
+
                 <label className="mb-2 block text-sm font-medium text-slate-300">
                   Email address
                 </label>
@@ -163,7 +227,7 @@ export default function GetStartedPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="mb-4 h-12 w-full rounded-xl border border-white/[0.08] bg-[#0f1a2e] px-4 text-white placeholder:text-slate-500 transition-all focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
+                  className={inputClass}
                 />
                 <label className="mb-2 block text-sm font-medium text-slate-300">
                   Password
@@ -175,7 +239,7 @@ export default function GetStartedPage() {
                   placeholder="Create a password"
                   required
                   minLength={8}
-                  className="mb-4 h-12 w-full rounded-xl border border-white/[0.08] bg-[#0f1a2e] px-4 text-white placeholder:text-slate-500 transition-all focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
+                  className={inputClass}
                 />
                 <button
                   type="submit"

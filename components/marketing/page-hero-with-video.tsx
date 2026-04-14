@@ -54,6 +54,8 @@ export function PageHeroWithVideo({
   const desktopVideoRef = useRef<HTMLVideoElement>(null)
   const mobileVideoRef = useRef<HTMLVideoElement>(null)
   const defaultVideoRef = useRef<HTMLVideoElement>(null)
+  const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const retryCountRef = useRef(0)
   const activeLocalVideo = localVideos?.[currentVideoIndex]
   const hasWorkingLocalVideo = Boolean(activeLocalVideo && !localVideoFailed)
 
@@ -64,6 +66,52 @@ export function PageHeroWithVideo({
     }
     return defaultVideoRef
   }, [size, isLargeDesktop])
+
+  // ── Stall detection: recover blank/stuck videos ──
+  const clearStallTimer = useCallback(() => {
+    if (stallTimerRef.current) {
+      clearTimeout(stallTimerRef.current)
+      stallTimerRef.current = null
+    }
+  }, [])
+
+  const startStallTimer = useCallback((vid: HTMLVideoElement) => {
+    clearStallTimer()
+    stallTimerRef.current = setTimeout(() => {
+      if (vid && vid.paused && isPlaying && !vid.ended) {
+        // Video is supposed to be playing but is paused — try to recover
+        vid.currentTime = Math.max(0, vid.currentTime - 0.1)
+        vid.play().catch(() => {
+          // If still failing after 3 retries, fall back to YouTube
+          retryCountRef.current += 1
+          if (retryCountRef.current > 3) {
+            setLocalVideoFailed(true)
+          }
+        })
+      }
+    }, 4000)
+  }, [clearStallTimer, isPlaying])
+
+  // ── Page Visibility: pause when tab hidden, resume when visible ──
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        // Pause all videos when tab is hidden to prevent blank screens
+        ;[desktopVideoRef, mobileVideoRef, defaultVideoRef].forEach((ref) => {
+          ref.current?.pause()
+        })
+      } else if (isPlaying && hasWorkingLocalVideo) {
+        // Resume when tab becomes visible again
+        const vid = getActiveVideoRef().current
+        if (vid) {
+          vid.play().catch(() => {})
+        }
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility)
+    return () => document.removeEventListener("visibilitychange", handleVisibility)
+  }, [isPlaying, hasWorkingLocalVideo, getActiveVideoRef])
 
   const playWithSound = async () => {
     setIsPlaying(true)
@@ -112,6 +160,7 @@ export function PageHeroWithVideo({
   useEffect(() => {
     setLocalVideoFailed(false)
     setVideoReady(false)
+    retryCountRef.current = 0
   }, [activeLocalVideo])
 
   // Force muted attribute via DOM for autoplay compliance
@@ -203,6 +252,11 @@ export function PageHeroWithVideo({
     return () => mediaQuery.removeEventListener("change", handleChange)
   }, [size])
 
+  // Cleanup stall timer on unmount
+  useEffect(() => {
+    return () => clearStallTimer()
+  }, [clearStallTimer])
+
   const handleVideoEnded = () => {
     if (localVideos && localVideos.length > 1) {
       setCurrentVideoIndex((prev) => (prev + 1) % localVideos.length)
@@ -231,11 +285,40 @@ export function PageHeroWithVideo({
       muted
       playsInline
       loop
-      preload="auto"
+      preload="metadata"
       poster={posterSrc}
-      onCanPlay={() => setVideoReady(true)}
+      onCanPlay={() => {
+        setVideoReady(true)
+        retryCountRef.current = 0
+      }}
+      onPlaying={() => {
+        clearStallTimer()
+        retryCountRef.current = 0
+      }}
+      onWaiting={(e) => {
+        // Video is buffering — start stall timer
+        startStallTimer(e.currentTarget)
+      }}
+      onStalled={(e) => {
+        // Network stall — try to recover
+        startStallTimer(e.currentTarget)
+      }}
       onEnded={handleVideoEnded}
-      onError={() => setLocalVideoFailed(true)}
+      onError={() => {
+        retryCountRef.current += 1
+        if (retryCountRef.current > 2) {
+          setLocalVideoFailed(true)
+        } else {
+          // Retry: reload the video source
+          const vid = ref.current
+          if (vid) {
+            setTimeout(() => {
+              vid.load()
+              vid.play().catch(() => {})
+            }, 1000 * retryCountRef.current)
+          }
+        }
+      }}
       className={cn(className, objectClassName, "brightness-110")}
     >
       <source src={activeLocalVideo} type="video/mp4" />
@@ -465,11 +548,20 @@ export function PageHeroWithVideo({
                       autoPlay
                       muted
                       playsInline
-                      preload="auto"
+                      preload="metadata"
                       poster={posterSrc}
                       onCanPlay={() => setVideoReady(true)}
+                      onPlaying={() => {
+                        clearStallTimer()
+                        retryCountRef.current = 0
+                      }}
+                      onWaiting={(e) => startStallTimer(e.currentTarget)}
+                      onStalled={(e) => startStallTimer(e.currentTarget)}
                       onEnded={handleVideoEnded}
-                      onError={() => setLocalVideoFailed(true)}
+                      onError={() => {
+                        retryCountRef.current += 1
+                        if (retryCountRef.current > 2) setLocalVideoFailed(true)
+                      }}
                       className="h-full w-full object-cover brightness-110"
                     >
                       <source src={activeLocalVideo} type="video/mp4" />

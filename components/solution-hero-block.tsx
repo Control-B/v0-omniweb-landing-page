@@ -163,9 +163,26 @@ export function SolutionHeroBlock({
                     autoPlay={i === 0}
                     muted
                     playsInline
-                    preload={i === currentVideo ? "auto" : "metadata"}
+                    preload="metadata"
                     poster={src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
                     onEnded={() => handleVideoEnded(i)}
+                    onStalled={(e) => {
+                      const vid = e.currentTarget
+                      setTimeout(() => {
+                        if (vid && vid.paused && i === currentVideo) {
+                          vid.currentTime = Math.max(0, vid.currentTime - 0.1)
+                          vid.play().catch(() => {})
+                        }
+                      }, 4000)
+                    }}
+                    onWaiting={(e) => {
+                      const vid = e.currentTarget
+                      setTimeout(() => {
+                        if (vid && vid.paused && i === currentVideo) {
+                          vid.play().catch(() => {})
+                        }
+                      }, 4000)
+                    }}
                     className={`absolute inset-0 h-full w-full object-cover brightness-110 transition-opacity duration-300 ${i === currentVideo ? "opacity-100" : "opacity-0"}`}
                   />
                 ))
