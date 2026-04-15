@@ -52,6 +52,91 @@ const FALLBACK_LANGUAGE_OPTIONS: LanguageOption[] = [
   { code: "zh", label: "Chinese" },
 ]
 
+const DIRECTED_SPEECH_HINTS = [
+  "omniweb",
+  "ava",
+  "can you",
+  "could you",
+  "would you",
+  "will you",
+  "help me",
+  "tell me",
+  "show me",
+  "what",
+  "how",
+  "why",
+  "when",
+  "where",
+  "pricing",
+  "price",
+  "cost",
+  "plan",
+  "demo",
+  "trial",
+  "business",
+  "website",
+  "agent",
+  "voice",
+  "text",
+  "ai",
+  "book",
+  "appointment",
+  "lead",
+  "crm",
+  "integrat",
+]
+
+const AMBIENT_SPEECH_HINTS = [
+  "tv",
+  "television",
+  "radio",
+  "podcast",
+  "youtube",
+  "movie",
+  "commercial",
+  "episode",
+  "watching",
+  "mom",
+  "class",
+  "post",
+  "proud",
+  "friend",
+  "show",
+  "design",
+  "school",
+  "wrist",
+  "lithium",
+]
+
+function shouldIgnoreTranscript(text: string): boolean {
+  const lowered = text.trim().toLowerCase()
+  if (!lowered) return true
+
+  const words = lowered.split(/\s+/)
+
+  if (words.length <= 2 && ["hello", "hello?", "hi", "hey", "okay", "ok"].includes(lowered)) {
+    return true
+  }
+
+  if (DIRECTED_SPEECH_HINTS.some(hint => lowered.includes(hint))) {
+    return false
+  }
+
+  if (lowered.includes("?") && words.length >= 3) {
+    return false
+  }
+
+  if (AMBIENT_SPEECH_HINTS.some(hint => lowered.includes(hint))) {
+    return true
+  }
+
+  if (words.length >= 8) {
+    return true
+  }
+
+  return false
+}
+
 export function VoiceOrb() {
   const [expanded, setExpanded] = useState(false)
   const [status, setStatus] = useState<ConvStatus>("disconnected")
@@ -188,10 +273,16 @@ export function VoiceOrb() {
     try {
       const { token, livekit_url } = await getToken()
 
-      const room = new Room({
-        adaptiveStream: true,
-        dynacast: true,
-      })
+        const room = new Room({
+          adaptiveStream: true,
+          dynacast: true,
+          audioCaptureDefaults: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          },
+        })
 
       // ── Room event handlers ──
 
@@ -247,6 +338,10 @@ export function VoiceOrb() {
           if (!text) continue
 
           if (!seg.final) {
+            continue
+          }
+
+          if (!isAgent && shouldIgnoreTranscript(text)) {
             continue
           }
 
