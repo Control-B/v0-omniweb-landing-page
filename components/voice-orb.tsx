@@ -142,10 +142,20 @@ export function VoiceOrb() {
   /* ── Rebuild messages array from segment map ── */
   const rebuildMessages = useCallback(() => {
     const entries = Array.from(segmentMapRef.current.values())
-    // Only show segments that have text
-    const msgs: Message[] = entries
-      .filter(e => e.text.trim())
-      .map(e => ({ role: e.role, text: e.text }))
+    const finalEntries = entries.filter(entry => entry.final && entry.text.trim())
+    const msgs: Message[] = []
+
+    for (const entry of finalEntries) {
+      const text = entry.text.trim()
+      const previous = msgs[msgs.length - 1]
+
+      if (previous && previous.role === entry.role) {
+        previous.text = `${previous.text} ${text}`.trim()
+      } else {
+        msgs.push({ role: entry.role, text })
+      }
+    }
+
     setMessages(msgs)
   }, [])
 
@@ -233,9 +243,16 @@ export function VoiceOrb() {
         const role = isAgent ? "agent" : "user"
 
         for (const seg of segments) {
+          const text = seg.text.trim()
+          if (!text) continue
+
+          if (!seg.final) {
+            continue
+          }
+
           segmentMapRef.current.set(seg.id, {
             role,
-            text: seg.text,
+            text,
             final: seg.final,
           })
         }
