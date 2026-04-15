@@ -12,7 +12,7 @@ import {
   TranscriptionSegment,
 } from "livekit-client"
 
-const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
+const ENGINE_BASE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
 
 type Message = { role: "user" | "agent"; text: string; isWelcome?: boolean }
 type ConvStatus = "disconnected" | "connecting" | "connected"
@@ -311,16 +311,20 @@ export function VoiceOrb() {
       })
 
       // Agent audio track subscribed — attach to <audio> element
-      room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
-        if (track.kind === Track.Kind.Audio && participant.isAgent) {
-          const el = track.attach()
-          el.id = "livekit-agent-audio"
-          // Hide the element — we just want audio playback
-          el.style.display = "none"
-          document.body.appendChild(el)
-          audioRef.current = el
-        }
-      })
+        room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
+          if (track.kind === Track.Kind.Audio && participant.isAgent) {
+            if (chatModeRef.current !== "voice") {
+              return
+            }
+
+            const el = track.attach()
+            el.id = "livekit-agent-audio"
+            // Hide the element — we just want audio playback
+            el.style.display = "none"
+            document.body.appendChild(el)
+            audioRef.current = el
+          }
+        })
 
       room.on(RoomEvent.TrackUnsubscribed, (track) => {
         if (track.kind === Track.Kind.Audio) {
@@ -335,31 +339,36 @@ export function VoiceOrb() {
         setMode(agentSpeaking ? "speaking" : "listening")
       })
 
-      // Transcription events — LiveKit provides turn-based transcripts
-      room.on(RoomEvent.TranscriptionReceived, (segments: TranscriptionSegment[], participant) => {
-        const isAgent = participant?.isAgent ?? false
-        const role = isAgent ? "agent" : "user"
+        // Transcription events — LiveKit provides turn-based transcripts
+        room.on(RoomEvent.TranscriptionReceived, (segments: TranscriptionSegment[], participant) => {
+          const isAgent = participant?.isAgent ?? false
+          const role = isAgent ? "agent" : "user"
 
-        for (const seg of segments) {
-          const text = seg.text.trim()
-          if (!text) continue
+          for (const seg of segments) {
+            const text = seg.text.trim()
+            if (!text) continue
 
-          if (!seg.final) {
-            continue
+            if (!seg.final) {
+              continue
+            }
+
+            if (isAgent && chatModeRef.current === "text") {
+              continue
+            }
+
+            if (!isAgent && shouldIgnoreTranscript(text)) {
+              continue
+            }
+
+            segmentMapRef.current.set(seg.id, {
+              role,
+              text,
+              final: seg.final,
+            })
           }
 
-          if (!isAgent && shouldIgnoreTranscript(text)) {
-            continue
-          }
-
-          segmentMapRef.current.set(seg.id, {
-            role,
-            text,
-            final: seg.final,
-          })
-        }
-        rebuildMessages()
-      })
+          rebuildMessages()
+        })
 
       // Data messages from the agent (for text-mode responses)
       room.on(RoomEvent.DataReceived, (payload: Uint8Array, participant, kind) => {

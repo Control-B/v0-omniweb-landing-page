@@ -10,7 +10,7 @@
  *   s.async=true;
  *   s.dataset.embedCode='YOUR_EMBED_CODE';
  *   s.dataset.agentId='YOUR_AGENT_ID';
- *   s.dataset.engineUrl='https://omniweb-engine-rs6fr.ondigitalocean.app';
+ *   s.dataset.engineUrl='https://api.omniweb.ai';
  *   d.head.appendChild(s);
  * })();
  * </script>
@@ -29,7 +29,7 @@
 
   var embedCode = scriptTag.dataset.embedCode || scriptTag.getAttribute("data-embed-code");
   var agentId = scriptTag.dataset.agentId || scriptTag.getAttribute("data-agent-id");
-  var engineUrl = scriptTag.dataset.engineUrl || scriptTag.getAttribute("data-engine-url") || "https://omniweb-engine-rs6fr.ondigitalocean.app";
+  var engineUrl = scriptTag.dataset.engineUrl || scriptTag.getAttribute("data-engine-url") || "https://api.omniweb.ai";
   var platformUrl = scriptTag.dataset.platformUrl || scriptTag.getAttribute("data-platform-url") || "https://omniweb.ai";
   var position = scriptTag.dataset.position || "right";
   var color = scriptTag.dataset.color || "#6366f1";

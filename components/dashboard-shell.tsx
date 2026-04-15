@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 
-const ENGINE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || "https://omniweb-engine-rs6fr.ondigitalocean.app"
+const ENGINE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
 
 type Tab = "overview" | "widget" | "embed" | "leads" | "settings"
 

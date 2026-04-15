@@ -11,7 +11,7 @@ import {
 } from "livekit-client"
 import { Suspense } from "react"
 
-const ENGINE_BASE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
+const ENGINE_BASE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
 
 type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"

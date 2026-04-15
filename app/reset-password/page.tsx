@@ -7,7 +7,8 @@ import { useSearchParams, useRouter } from "next/navigation"
 
 const ENGINE_URL =
   process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ||
-  "https://omniweb-engine-rs6fr.ondigitalocean.app"
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://api.omniweb.ai"
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()

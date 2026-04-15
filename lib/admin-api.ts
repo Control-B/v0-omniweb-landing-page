@@ -1,6 +1,7 @@
 const ENGINE_URL =
   process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ||
-  "https://omniweb-engine-rs6fr.ondigitalocean.app";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://api.omniweb.ai";
 
 // ── Fetch wrapper — cookie-based auth (httpOnly omniweb_token) ───────────────
 

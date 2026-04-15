@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
       } else {
         // Fallback — send to engine's forgot-password endpoint
         try {
-          const ENGINE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || "https://omniweb-engine-rs6fr.ondigitalocean.app"
+          const ENGINE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
           const res = await fetch(`${ENGINE_URL}/api/auth/forgot-password`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

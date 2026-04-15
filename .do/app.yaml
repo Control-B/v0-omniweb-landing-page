@@ -77,10 +77,10 @@ services:
         value: "http://ai:8000"
       - key: NEXT_PUBLIC_OMNIWEB_ENGINE_URL
         scope: RUN_AND_BUILD_TIME
-        value: "https://omniweb-engine-rs6fr.ondigitalocean.app"
+          value: "https://api.omniweb.ai"
       - key: OMNIWEB_ENGINE_URL
         scope: RUN_AND_BUILD_TIME
-        value: "https://omniweb-engine-rs6fr.ondigitalocean.app"
+          value: "https://api.omniweb.ai"
 
   # ── AI service (FastAPI / Python) ─────────────────────────────────────────
   - name: ai

@@ -19,9 +19,10 @@ import { auth } from '@clerk/nextjs/server'
 // Resolve the engine base URL
 const ENGINE_BASE_URL = (
   process.env.OMNIWEB_ENGINE_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
   process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ??
   process.env.OMNIWEB_ORCHESTRATOR_URL ??
-  'https://omniweb-engine-rs6fr.ondigitalocean.app'
+  'https://api.omniweb.ai'
 ).replace(/\/$/, '')
 
 export const COOKIE_NAME = 'omniweb_token'
