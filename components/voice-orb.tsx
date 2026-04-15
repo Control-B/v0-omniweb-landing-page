@@ -153,11 +153,11 @@ export function VoiceOrb() {
     const resp = await fetch(`${ENGINE_BASE_URL}/api/livekit/token`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ channel: "web" }),
+      body: JSON.stringify({ channel: "web", language: selectedLanguage }),
     })
     if (!resp.ok) throw new Error("Failed to get LiveKit token")
     return resp.json()
-  }, [])
+  }, [selectedLanguage])
 
   /* ── Connect to LiveKit room ── */
   const connectToRoom = useCallback(async (voiceMode: boolean) => {
