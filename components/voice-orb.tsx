@@ -114,7 +114,11 @@ function shouldIgnoreTranscript(text: string): boolean {
 
   const words = lowered.split(/\s+/)
 
-  if (words.length <= 2 && ["hello", "hello?", "hi", "hey", "okay", "ok"].includes(lowered)) {
+  if (words.length <= 2 && ["hello", "hello?", "hi", "hey"].includes(lowered)) {
+    return false
+  }
+
+  if (words.length <= 2 && ["okay", "ok"].includes(lowered)) {
     return true
   }
 
@@ -155,8 +159,9 @@ export function VoiceOrb() {
   const expandedRef = useRef(false)
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttemptRef = useRef(0)
+  const intentionalDisconnectRef = useRef(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-    const pendingLanguageReconnectRef = useRef(false)
+  const pendingLanguageReconnectRef = useRef(false)
   // Track transcription segments by ID so we can update partial → final
   const segmentMapRef = useRef<Map<string, { role: "user" | "agent"; text: string; final: boolean }>>(new Map())
   const MAX_RECONNECT_ATTEMPTS = 3
@@ -258,6 +263,7 @@ export function VoiceOrb() {
   /* ── Connect to LiveKit room ── */
   const connectToRoom = useCallback(async (voiceMode: boolean) => {
     if (roomRef.current) return
+    intentionalDisconnectRef.current = false
     setStatus("connecting")
     setError(null)
     segmentMapRef.current.clear()
@@ -290,6 +296,7 @@ export function VoiceOrb() {
       room.on(RoomEvent.ConnectionStateChanged, (state: ConnectionState) => {
         if (state === ConnectionState.Connected) {
           setStatus("connected")
+            intentionalDisconnectRef.current = false
           if (connectTimeoutRef.current) {
             clearTimeout(connectTimeoutRef.current)
             connectTimeoutRef.current = null
@@ -412,6 +419,7 @@ export function VoiceOrb() {
   }, [expanded, chatMode, startVoiceSession])
 
   const endConversation = useCallback(async () => {
+    intentionalDisconnectRef.current = true
     if (connectTimeoutRef.current) {
       clearTimeout(connectTimeoutRef.current)
       connectTimeoutRef.current = null
@@ -473,7 +481,13 @@ export function VoiceOrb() {
 
   // Auto-reconnect on unexpected disconnect
   useEffect(() => {
-    if (status === "disconnected" && expanded && !roomRef.current && messages.length > 0) {
+    if (
+      status === "disconnected"
+      && expanded
+      && !roomRef.current
+      && messages.length > 0
+      && !intentionalDisconnectRef.current
+    ) {
       if (reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
         reconnectAttemptRef.current += 1
         const delay = reconnectAttemptRef.current * 2000
