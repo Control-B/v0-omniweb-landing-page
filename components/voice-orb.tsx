@@ -71,6 +71,7 @@ export function VoiceOrb() {
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttemptRef = useRef(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+    const pendingLanguageReconnectRef = useRef(false)
   // Track transcription segments by ID so we can update partial → final
   const segmentMapRef = useRef<Map<string, { role: "user" | "agent"; text: string; final: boolean }>>(new Map())
   const MAX_RECONNECT_ATTEMPTS = 3
@@ -404,10 +405,27 @@ export function VoiceOrb() {
 
   const changeLanguage = useCallback(async (languageCode: string) => {
     if (languageCode === selectedLanguage) return
-    if (roomRef.current) await endConversation()
+    // Remember if we were connected so we can auto-reconnect after language switch
+    const wasConnected = !!roomRef.current
+    if (wasConnected) await endConversation()
+    pendingLanguageReconnectRef.current = wasConnected
     setSelectedLanguage(languageCode)
+    setMessages([])
+    segmentMapRef.current.clear()
     setError(null)
   }, [endConversation, selectedLanguage])
+
+  // Auto-reconnect after language change
+  useEffect(() => {
+    if (!pendingLanguageReconnectRef.current) return
+    pendingLanguageReconnectRef.current = false
+    reconnectAttemptRef.current = 0
+    if (chatModeRef.current === "voice") {
+      void startVoiceSession()
+    } else {
+      void startTextSession()
+    }
+  }, [selectedLanguage, startVoiceSession, startTextSession])
 
   const isActive = status === "connected"
   const isBusy = status === "connecting"
