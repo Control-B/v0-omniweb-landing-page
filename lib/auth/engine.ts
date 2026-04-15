@@ -15,15 +15,10 @@ import 'server-only'
 
 import { cookies } from 'next/headers'
 import { auth } from '@clerk/nextjs/server'
+import { getServerEngineUrl } from '@/lib/engine-url'
 
 // Resolve the engine base URL
-const ENGINE_BASE_URL = (
-  process.env.OMNIWEB_ENGINE_URL ??
-  process.env.NEXT_PUBLIC_API_URL ??
-  process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ??
-  process.env.OMNIWEB_ORCHESTRATOR_URL ??
-  'https://api.omniweb.ai'
-).replace(/\/$/, '')
+const ENGINE_BASE_URL = getServerEngineUrl()
 
 export const COOKIE_NAME = 'omniweb_token'
 

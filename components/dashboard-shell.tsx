@@ -10,8 +10,9 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
+import { getPublicEngineUrl } from "@/lib/engine-url"
 
-const ENGINE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
+const ENGINE_URL = getPublicEngineUrl()
 
 type Tab = "overview" | "widget" | "embed" | "leads" | "settings"
 

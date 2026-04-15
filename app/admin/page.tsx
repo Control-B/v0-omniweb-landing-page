@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Shield, Eye, EyeOff } from "lucide-react"
+import { getPublicEngineUrl } from "@/lib/engine-url"
 
-const ENGINE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
+const ENGINE_URL = getPublicEngineUrl()
 
 export default function AdminAuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login")

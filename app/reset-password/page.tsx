@@ -4,11 +4,9 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import { getPublicEngineUrl } from "@/lib/engine-url"
 
-const ENGINE_URL =
-  process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://api.omniweb.ai"
+const ENGINE_URL = getPublicEngineUrl()
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()

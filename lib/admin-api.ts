@@ -1,7 +1,6 @@
-const ENGINE_URL =
-  process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://api.omniweb.ai";
+import { getPublicEngineUrl } from "@/lib/engine-url";
+
+const ENGINE_URL = getPublicEngineUrl();
 
 // ── Fetch wrapper — cookie-based auth (httpOnly omniweb_token) ───────────────
 

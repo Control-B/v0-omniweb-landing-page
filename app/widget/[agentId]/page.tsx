@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams, useSearchParams } from "next/navigation"
+import { getPublicEngineUrl } from "@/lib/engine-url"
 import {
   Room,
   RoomEvent,
@@ -11,7 +12,7 @@ import {
 } from "livekit-client"
 import { Suspense } from "react"
 
-const ENGINE_BASE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
+const ENGINE_BASE_URL = getPublicEngineUrl()
 
 type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"

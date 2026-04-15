@@ -4,6 +4,9 @@ import { useSignIn } from "@clerk/nextjs/legacy"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
+import { getPublicEngineUrl } from "@/lib/engine-url"
+
+const ENGINE_URL = getPublicEngineUrl()
 
 export default function ForgotPasswordPage() {
   const { signIn, isLoaded } = useSignIn()
@@ -43,7 +46,6 @@ export default function ForgotPasswordPage() {
       } else {
         // Fallback — send to engine's forgot-password endpoint
         try {
-          const ENGINE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
           const res = await fetch(`${ENGINE_URL}/api/auth/forgot-password`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },

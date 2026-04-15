@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { getPublicEngineUrl } from "@/lib/engine-url"
 import {
   Room,
   RoomEvent,
@@ -12,7 +13,7 @@ import {
   TranscriptionSegment,
 } from "livekit-client"
 
-const ENGINE_BASE_URL = process.env.NEXT_PUBLIC_OMNIWEB_ENGINE_URL || process.env.NEXT_PUBLIC_API_URL || "https://api.omniweb.ai"
+const ENGINE_BASE_URL = getPublicEngineUrl()
 
 type Message = { role: "user" | "agent"; text: string; isWelcome?: boolean }
 type ConvStatus = "disconnected" | "connecting" | "connected"
