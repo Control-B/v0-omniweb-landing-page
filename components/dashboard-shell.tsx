@@ -35,6 +35,7 @@ type AgentConfig = {
   elevenlabs_agent_id?: string
   industry?: string
   agent_mode?: string
+  website_domain?: string
 }
 
 type SubStatus = {
@@ -67,7 +68,7 @@ type Template = {
 }
 
 export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, firstName, engineToken }: DashboardShellProps) {
-  const { getToken } = useAuth()
+  const { getToken, signOut } = useAuth()
   const [tab, setTab] = useState<Tab>("overview")
   const [config, setConfig] = useState<AgentConfig | null>(null)
   const [subStatus, setSubStatus] = useState<SubStatus | null>(null)
@@ -88,6 +89,11 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
   const [industries, setIndustries] = useState<Industry[]>([])
   const [templates, setTemplates] = useState<Template[]>([])
   const [onboardingSaving, setOnboardingSaving] = useState(false)
+  const [obDomain, setObDomain] = useState("")
+
+  // Delete account state
+  const [deleting, setDeleting] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState("")
 
   // Widget customization state
   const [widgetColor, setWidgetColor] = useState("#6366f1")
@@ -237,6 +243,7 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
           business_name: obBusinessName,
           business_type: obBusinessType || undefined,
           industry: obIndustry,
+          website_domain: obDomain || undefined,
           agent_mode: "lead_qualifier",
           use_prompt_engine: true,
         }),
@@ -326,6 +333,16 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                     onChange={(e) => setObBusinessType(e.target.value)}
                     placeholder="e.g. Residential roofing contractor"
                     className="w-full rounded-xl border border-white/10 bg-[#0f1a2e] px-4 py-3 text-sm placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
+                />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">Website domain (optional)</label>
+                  <input
+                    type="text"
+                    value={obDomain}
+                    onChange={(e) => setObDomain(e.target.value)}
+                    placeholder="e.g. acmeroofing.com"
+                    className="w-full rounded-xl border border-white/10 bg-[#0f1a2e] px-4 py-3 text-sm placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
                   />
                 </div>
                 <Button
@@ -409,6 +426,12 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                     <div className="flex justify-between text-sm">
                       <span className="text-slate-400">Type</span>
                       <span className="font-medium">{obBusinessType}</span>
+                    </div>
+                  )}
+                  {obDomain && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Domain</span>
+                      <span className="font-medium">{obDomain}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
@@ -524,12 +547,18 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
           </nav>
 
           <div className="hidden px-4 pb-4 lg:block mt-auto">
-            <form action="/auth/signout" method="post">
-              <button className="flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors">
-                <LogOut className="h-4 w-4" />
-                Sign out
-              </button>
-            </form>
+            <button
+              onClick={async () => {
+                // Clear legacy cookie
+                await fetch("/auth/signout", { method: "POST" })
+                // Sign out of Clerk
+                await signOut({ redirectUrl: "/signin" })
+              }}
+              className="flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
           </div>
         </aside>
 
@@ -862,11 +891,53 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
               <div className="rounded-2xl border border-red-500/10 bg-red-500/[0.03] p-6 space-y-3">
                 <h3 className="font-semibold text-red-400">Danger zone</h3>
                 <p className="text-sm text-slate-400">
-                  Contact support to delete your account and all associated data.
+                  Permanently delete your account and all associated data. This action cannot be undone.
                 </p>
-                <Button variant="outline" className="border-red-500/20 text-red-400 hover:bg-red-500/10" asChild>
-                  <a href="mailto:support@omniweb.ai">Contact support</a>
-                </Button>
+                {deleteConfirm !== "DELETE" ? (
+                  <div className="space-y-3">
+                    <label className="block text-sm text-slate-400">
+                      Type <strong className="text-red-400">DELETE</strong> to confirm
+                    </label>
+                    <input
+                      type="text"
+                      value={deleteConfirm}
+                      onChange={(e) => setDeleteConfirm(e.target.value)}
+                      placeholder="DELETE"
+                      className="w-full max-w-xs rounded-lg border border-red-500/20 bg-white/5 px-4 py-2 text-sm placeholder:text-slate-600 focus:border-red-500/50 focus:outline-none"
+                    />
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="border-red-500/20 text-red-400 hover:bg-red-500/10"
+                    disabled={deleting}
+                    onClick={async () => {
+                      setDeleting(true)
+                      try {
+                        const res = await authFetch(`${ENGINE_URL}/api/auth/account`, { method: "DELETE" })
+                        if (res.ok) {
+                          await fetch("/auth/signout", { method: "POST" })
+                          await signOut({ redirectUrl: "/signin" })
+                        } else {
+                          const data = await res.json().catch(() => ({}))
+                          setSaveMsg(data.detail || "Failed to delete account")
+                          setTimeout(() => setSaveMsg(""), 4000)
+                        }
+                      } catch {
+                        setSaveMsg("Network error. Please try again.")
+                        setTimeout(() => setSaveMsg(""), 4000)
+                      } finally {
+                        setDeleting(false)
+                      }
+                    }}
+                  >
+                    {deleting ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting…</>
+                    ) : (
+                      "Delete my account permanently"
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           )}
