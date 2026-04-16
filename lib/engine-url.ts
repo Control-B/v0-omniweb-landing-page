@@ -1,8 +1,6 @@
-const CANONICAL_ENGINE_URL = "https://api.omniweb.ai"
+const CANONICAL_ENGINE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
-const NON_CANONICAL_ENGINE_HOSTS = new Set([
-  "omniweb-engine-rs6fr.ondigitalocean.app",
-])
+const LEGACY_ENGINE_HOSTS = new Set(["api.omniweb.ai"])
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/$/, "")
@@ -16,7 +14,7 @@ export function normalizeEngineUrl(value?: string | null): string {
 
   try {
     const parsed = new URL(candidate)
-    if (NON_CANONICAL_ENGINE_HOSTS.has(parsed.hostname.toLowerCase())) {
+    if (LEGACY_ENGINE_HOSTS.has(parsed.host)) {
       return CANONICAL_ENGINE_URL
     }
 

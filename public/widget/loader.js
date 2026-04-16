@@ -10,13 +10,34 @@
  *   s.async=true;
  *   s.dataset.embedCode='YOUR_EMBED_CODE';
  *   s.dataset.agentId='YOUR_AGENT_ID';
- *   s.dataset.engineUrl='https://api.omniweb.ai';
+ *   s.dataset.engineUrl='https://omniweb-engine-rs6fr.ondigitalocean.app';
  *   d.head.appendChild(s);
  * })();
  * </script>
  */
 (function () {
   "use strict";
+
+  var CANONICAL_ENGINE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app";
+
+  function normalizeEngineUrl(value) {
+    if (!value) {
+      return CANONICAL_ENGINE_URL;
+    }
+
+    try {
+      var parsed = new URL(value, window.location.origin);
+      if (parsed.host === "api.omniweb.ai") {
+        return CANONICAL_ENGINE_URL;
+      }
+      return parsed.toString().replace(/\/$/, "");
+    } catch (error) {
+      if (String(value).indexOf("api.omniweb.ai") !== -1) {
+        return CANONICAL_ENGINE_URL;
+      }
+      return String(value).replace(/\/$/, "");
+    }
+  }
 
   // Find our own script tag to read data attributes
   var scripts = document.querySelectorAll('script[src*="widget/loader"]');
@@ -29,7 +50,9 @@
 
   var embedCode = scriptTag.dataset.embedCode || scriptTag.getAttribute("data-embed-code");
   var agentId = scriptTag.dataset.agentId || scriptTag.getAttribute("data-agent-id");
-  var engineUrl = scriptTag.dataset.engineUrl || scriptTag.getAttribute("data-engine-url") || "https://api.omniweb.ai";
+  var engineUrl = normalizeEngineUrl(
+    scriptTag.dataset.engineUrl || scriptTag.getAttribute("data-engine-url") || CANONICAL_ENGINE_URL
+  );
   var platformUrl = scriptTag.dataset.platformUrl || scriptTag.getAttribute("data-platform-url") || "https://omniweb.ai";
   var position = scriptTag.dataset.position || "right";
   var color = scriptTag.dataset.color || "#6366f1";
