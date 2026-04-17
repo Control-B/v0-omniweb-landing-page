@@ -21,7 +21,7 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { useUser, useClerk, UserButton } from "@clerk/nextjs"
+import { useUser, useClerk } from "@clerk/nextjs"
 
 type NavSubItem = {
   label: string
@@ -237,10 +237,100 @@ const navItems: NavItem[] = [
   },
 ]
 
+/* ── Custom User Menu (replaces Clerk's UserButton) ── */
+function UserMenu({
+  user,
+  isOpen,
+  onToggle,
+  onClose,
+  onSignOut,
+}: {
+  user: any
+  isOpen: boolean
+  onToggle: () => void
+  onClose: () => void
+  onSignOut: () => void
+}) {
+  useEffect(() => {
+    if (!isOpen) return
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest("[data-user-menu]")) onClose()
+    }
+    document.addEventListener("click", handler)
+    return () => document.removeEventListener("click", handler)
+  }, [isOpen, onClose])
+
+  const initials = (user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0] || "?").toUpperCase()
+  const displayName = user?.firstName
+    ? `${user.firstName} ${user.lastName || ""}`.trim()
+    : user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "User"
+  const email = user?.emailAddresses?.[0]?.emailAddress || ""
+  const avatarUrl = user?.imageUrl
+
+  return (
+    <div className="relative" data-user-menu>
+      <button
+        onClick={onToggle}
+        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-2 ring-cyan-500/30 transition-all hover:ring-cyan-400/50"
+      >
+        {avatarUrl ? (
+          <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600 text-sm font-bold text-white">
+            {initials}
+          </span>
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-12 z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-[#0a1225] shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
+          <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-500 to-blue-600">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-sm font-bold text-white">{initials}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white">{displayName}</p>
+              <p className="truncate text-xs text-slate-400">{email}</p>
+            </div>
+          </div>
+          <div className="p-2">
+            <a
+              href="/dashboard"
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+              onClick={onClose}
+            >
+              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              Dashboard
+            </a>
+            <button
+              onClick={onSignOut}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-white"
+            >
+              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const { isSignedIn } = useUser()
+  const { isSignedIn, user } = useUser()
+  const { signOut } = useClerk()
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const pathname = usePathname()
   const currentSection = useMemo(() => pathname?.split("#")[0] ?? "/", [pathname])
   const isHome = currentSection === "/"
@@ -415,18 +505,12 @@ export function Header() {
               >
                 <Link href="/dashboard">Dashboard</Link>
               </Button>
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: "h-8 w-8 ring-2 ring-cyan-500/30",
-                    userButtonPopoverCard: "bg-[#0a1225] border border-white/10 shadow-2xl rounded-2xl",
-                    userButtonPopoverActionButton: "text-slate-300 hover:bg-white/[0.06] rounded-xl",
-                    userButtonPopoverActionButtonText: "text-slate-300",
-                    userButtonPopoverActionButtonIcon: "text-slate-400",
-                    userButtonPopoverFooter: "hidden",
-                  },
-                }}
+              <UserMenu
+                user={user}
+                isOpen={userMenuOpen}
+                onToggle={() => setUserMenuOpen(!userMenuOpen)}
+                onClose={() => setUserMenuOpen(false)}
+                onSignOut={() => { signOut({ redirectUrl: "/" }); setUserMenuOpen(false) }}
               />
             </>
           )}
@@ -519,21 +603,14 @@ export function Header() {
                   <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
                     <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
                   </Button>
-                  <div className="flex justify-start px-3">
-                    <UserButton
-                      afterSignOutUrl="/"
-                      appearance={{
-                        elements: {
-                          avatarBox: "h-8 w-8 ring-2 ring-cyan-500/30",
-                          userButtonPopoverCard: "bg-[#0a1225] border border-white/10 shadow-2xl rounded-2xl",
-                          userButtonPopoverActionButton: "text-slate-300 hover:bg-white/[0.06] rounded-xl",
-                          userButtonPopoverActionButtonText: "text-slate-300",
-                          userButtonPopoverActionButtonIcon: "text-slate-400",
-                          userButtonPopoverFooter: "hidden",
-                        },
-                      }}
-                    />
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="justify-start gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10"
+                    onClick={() => { signOut({ redirectUrl: "/" }); setMobileMenuOpen(false) }}
+                  >
+                    Sign out
+                  </Button>
                 </>
               )}
             </div>
