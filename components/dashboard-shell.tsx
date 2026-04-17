@@ -145,6 +145,26 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
           setWidgetGreeting(data.agent_greeting || "")
           if (data.widget_config?.color) setWidgetColor(data.widget_config.color as string)
           if (data.widget_config?.position) setWidgetPosition(data.widget_config.position as "right" | "left")
+          // If config exists but missing required fields (domain, business name), force onboarding
+          if (!data.website_domain || !data.business_name) {
+            setShowOnboarding(true)
+            // Pre-fill known values
+            if (data.business_name) setObBusinessName(data.business_name)
+            if (data.business_type) setObBusinessType(data.business_type)
+            if (data.industry) setObIndustry(data.industry)
+            if (data.website_domain) setObDomain(data.website_domain)
+            try {
+              const [indRes, tplRes] = await Promise.all([
+                authFetch(`${ENGINE_URL}/api/agent-config/meta/industries`),
+                authFetch(`${ENGINE_URL}/api/templates`),
+              ])
+              if (indRes.ok) setIndustries(await indRes.json())
+              if (tplRes.ok) {
+                const tplData = await tplRes.json()
+                setTemplates(tplData.templates || [])
+              }
+            } catch { /* non-critical */ }
+          }
         } else if (configRes.status === 404) {
           // No agent config — show onboarding
           setShowOnboarding(true)
@@ -469,12 +489,6 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
             )}
           </div>
 
-          <button
-            onClick={() => setShowOnboarding(false)}
-            className="mt-6 text-sm text-slate-500 hover:text-slate-400 transition-colors"
-          >
-            Skip for now — I&apos;ll set up later
-          </button>
         </div>
       </div>
     )
@@ -842,6 +856,14 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                   <div>
                     <p className="text-xs uppercase tracking-wider text-slate-500">Plan</p>
                     <p className="mt-1 text-sm capitalize">{subStatus?.plan || plan}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-slate-500">Business Name</p>
+                    <p className="mt-1 text-sm">{config?.business_name || <span className="text-amber-400">Not set — <button className="underline" onClick={() => setShowOnboarding(true)}>complete setup</button></span>}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-wider text-slate-500">Website Domain</p>
+                    <p className="mt-1 text-sm">{config?.website_domain || <span className="text-amber-400">Not set — <button className="underline" onClick={() => setShowOnboarding(true)}>complete setup</button></span>}</p>
                   </div>
                 </div>
               </div>
