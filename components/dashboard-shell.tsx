@@ -336,7 +336,7 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                 />
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">Website domain (optional)</label>
+                  <label className="block text-sm text-slate-400 mb-1">Website domain *</label>
                   <input
                     type="text"
                     value={obDomain}
@@ -347,7 +347,7 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                 </div>
                 <Button
                   onClick={() => setOnboardingStep(1)}
-                  disabled={!obBusinessName.trim()}
+                  disabled={!obBusinessName.trim() || !obDomain.trim()}
                   className="w-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white"
                 >
                   Continue <ArrowRight className="ml-2 h-4 w-4" />
@@ -428,12 +428,10 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                       <span className="font-medium">{obBusinessType}</span>
                     </div>
                   )}
-                  {obDomain && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Domain</span>
-                      <span className="font-medium">{obDomain}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Domain</span>
+                    <span className="font-medium">{obDomain}</span>
+                  </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-400">Industry</span>
                     <span className="font-medium capitalize">{obIndustry.replace(/_/g, " ")}</span>

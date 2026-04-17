@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { currentUser } from "@clerk/nextjs/server"
 import { getSession, getEngineToken } from "@/lib/auth/engine"
 import { DashboardShell } from "@/components/dashboard-shell"
 
@@ -14,7 +15,12 @@ export default async function DashboardPage() {
     redirect("/admin")
   }
 
-  const firstName = session.user.email.split("@")[0] || "there"
+  // Get the real first name from Clerk profile (Google sign-in populates this)
+  const clerkUser = await currentUser()
+  const firstName = clerkUser?.firstName
+    || clerkUser?.username
+    || session.user.email.split("@")[0]
+    || "there"
   const engineToken = await getEngineToken()
 
   return (
