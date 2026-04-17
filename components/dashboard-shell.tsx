@@ -549,10 +549,15 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
           <div className="hidden px-4 pb-4 lg:block mt-auto">
             <button
               onClick={async () => {
-                // Clear legacy cookie
-                await fetch("/auth/signout", { method: "POST" })
-                // Sign out of Clerk
-                await signOut({ redirectUrl: "/signin" })
+                try {
+                  // Clear legacy engine cookie (fire-and-forget, don't follow redirect)
+                  fetch("/auth/signout", { method: "POST", redirect: "manual" }).catch(() => {})
+                  // Sign out of Clerk — this handles the redirect
+                  await signOut({ redirectUrl: "/" })
+                } catch {
+                  // Fallback: hard redirect
+                  window.location.href = "/"
+                }
               }}
               className="flex w-full items-center gap-2 rounded-xl px-4 py-2.5 text-sm text-slate-400 hover:bg-white/5 hover:text-slate-200 transition-colors"
             >
@@ -916,8 +921,8 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
                       try {
                         const res = await authFetch(`${ENGINE_URL}/api/auth/account`, { method: "DELETE" })
                         if (res.ok) {
-                          await fetch("/auth/signout", { method: "POST" })
-                          await signOut({ redirectUrl: "/signin" })
+                          fetch("/auth/signout", { method: "POST", redirect: "manual" }).catch(() => {})
+                          await signOut({ redirectUrl: "/" })
                         } else {
                           const data = await res.json().catch(() => ({}))
                           setSaveMsg(data.detail || "Failed to delete account")

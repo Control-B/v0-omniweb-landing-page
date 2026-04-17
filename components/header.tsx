@@ -419,7 +419,12 @@ export function Header() {
                 afterSignOutUrl="/"
                 appearance={{
                   elements: {
-                    avatarBox: "h-8 w-8",
+                    avatarBox: "h-8 w-8 ring-2 ring-cyan-500/30",
+                    userButtonPopoverCard: "bg-[#0a1225] border border-white/10 shadow-2xl rounded-2xl",
+                    userButtonPopoverActionButton: "text-slate-300 hover:bg-white/[0.06] rounded-xl",
+                    userButtonPopoverActionButtonText: "text-slate-300",
+                    userButtonPopoverActionButtonIcon: "text-slate-400",
+                    userButtonPopoverFooter: "hidden",
                   },
                 }}
               />
@@ -519,7 +524,12 @@ export function Header() {
                       afterSignOutUrl="/"
                       appearance={{
                         elements: {
-                          avatarBox: "h-8 w-8",
+                          avatarBox: "h-8 w-8 ring-2 ring-cyan-500/30",
+                          userButtonPopoverCard: "bg-[#0a1225] border border-white/10 shadow-2xl rounded-2xl",
+                          userButtonPopoverActionButton: "text-slate-300 hover:bg-white/[0.06] rounded-xl",
+                          userButtonPopoverActionButtonText: "text-slate-300",
+                          userButtonPopoverActionButtonIcon: "text-slate-400",
+                          userButtonPopoverFooter: "hidden",
                         },
                       }}
                     />
