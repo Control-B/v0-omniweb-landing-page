@@ -17,10 +17,12 @@ export default async function DashboardPage() {
 
   // Get the real first name from Clerk profile (Google sign-in populates this)
   const clerkUser = await currentUser()
-  const firstName = clerkUser?.firstName
+  const rawName = clerkUser?.firstName
     || clerkUser?.username
     || session.user.email.split("@")[0]
     || "there"
+  // Title-case the name (Clerk sometimes returns ALL CAPS from Google)
+  const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase()
   const engineToken = await getEngineToken()
 
   return (
