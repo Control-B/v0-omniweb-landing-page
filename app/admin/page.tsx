@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -9,16 +9,55 @@ import { getPublicEngineUrl } from "@/lib/engine-url"
 
 const ENGINE_URL = getPublicEngineUrl()
 
+type AdminBootstrapStatus = {
+  bootstrap_open: boolean
+  has_owner: boolean
+  internal_user_count: number
+}
+
+function isInternalRole(role: string | null | undefined) {
+  return role === "owner" || role === "admin" || role === "support"
+}
+
 export default function AdminAuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
-  const [adminCode, setAdminCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [bootstrapStatus, setBootstrapStatus] = useState<AdminBootstrapStatus | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadBootstrapStatus() {
+      try {
+        const res = await fetch(`${ENGINE_URL}/api/auth/admin-bootstrap-status`, {
+          cache: "no-store",
+        })
+        const data = await res.json()
+        if (!cancelled) {
+          setBootstrapStatus(data)
+          if (data?.bootstrap_open) {
+            setMode("signup")
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setBootstrapStatus(null)
+        }
+      }
+    }
+
+    void loadBootstrapStatus()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,17 +77,22 @@ export default function AdminAuthPage() {
           setError(data.error || "Login failed")
           return
         }
-        if (data.role !== "admin") {
+        if (!isInternalRole(data.role)) {
           setError("This account does not have admin access. Use the regular sign-in page.")
           return
         }
         router.push("/admin/dashboard")
       } else {
-        // Signup — call engine directly with admin code
+        if (bootstrapStatus && !bootstrapStatus.bootstrap_open) {
+          setError("Owner signup is closed. Sign in or ask the workspace owner for an invite.")
+          return
+        }
+
+        // Signup — bootstrap the first owner account
         const res = await fetch(`${ENGINE_URL}/api/auth/admin-signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, admin_code: adminCode }),
+          body: JSON.stringify({ name, email, password }),
         })
         const data = await res.json()
         if (!res.ok) {
@@ -108,11 +152,16 @@ export default function AdminAuthPage() {
             <button
               type="button"
               onClick={() => { setMode("signup"); setError(null) }}
+              disabled={bootstrapStatus ? !bootstrapStatus.bootstrap_open : false}
               className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                mode === "signup" ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-white"
+                mode === "signup"
+                  ? "bg-white/10 text-white shadow-sm"
+                  : bootstrapStatus && !bootstrapStatus.bootstrap_open
+                    ? "text-slate-600 cursor-not-allowed"
+                    : "text-slate-400 hover:text-white"
               }`}
             >
-              Sign Up
+              {bootstrapStatus?.bootstrap_open ? "Create Owner" : "Sign Up"}
             </button>
           </div>
 
@@ -137,22 +186,10 @@ export default function AdminAuthPage() {
                     className="w-full rounded-lg border border-white/10 bg-card/50 px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
                   />
                 </div>
-                <div>
-                  <label htmlFor="adminCode" className="mb-2 block text-sm font-medium">
-                    Admin Authorization Code
-                  </label>
-                  <input
-                    id="adminCode"
-                    type="password"
-                    value={adminCode}
-                    onChange={(e) => setAdminCode(e.target.value)}
-                    placeholder="Enter admin code"
-                    required
-                    className="w-full rounded-lg border border-white/10 bg-card/50 px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <p className="mt-1 text-xs text-slate-500">
-                    Contact your team lead if you don&apos;t have this code.
-                  </p>
+                <div className="rounded-lg border border-cyan-500/20 bg-cyan-500/5 px-4 py-3 text-sm text-cyan-100">
+                  {bootstrapStatus?.bootstrap_open
+                    ? "Create the first owner account for this workspace. No admin code is required."
+                    : "Owner signup is closed for this workspace. Sign in with an existing internal account or use an invite/recovery link."}
                 </div>
               </>
             )}
@@ -201,6 +238,12 @@ export default function AdminAuthPage() {
               {loading ? "Please wait..." : mode === "login" ? "Sign In to Admin" : "Create Admin Account"}
             </Button>
           </form>
+
+          <p className="mt-4 text-center text-xs text-slate-500">
+            {bootstrapStatus?.bootstrap_open
+              ? "First-time owner setup is open."
+              : "Admin accounts are created by the workspace owner once setup is complete."}
+          </p>
 
           <p className="mt-6 text-center text-xs text-slate-500">
             Looking for the client dashboard?{" "}
