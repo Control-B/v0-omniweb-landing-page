@@ -40,4 +40,4 @@ Once signed in, open `/dashboard` to provision the tenant record, generate Shopi
 
 For the public website voice assistant, set `OMNIWEB_PUBLIC_TENANT_SLUG` to the tenant slug that should own the site assistant, set `LIVEKIT_AGENT_NAME` to the LiveKit Cloud agent dispatch name, and set `NEXT_PUBLIC_VOICE_TRANSPORT=livekit` so the chatbot uses LiveKit instead of the legacy Deepgram websocket path.
 
-To deploy on DigitalOcean App Platform, use `./.do/app.yaml` in this repo for the website and point its API env vars at `https://api.omniweb.ai`.
+To deploy on DigitalOcean App Platform, use `./.do/app.yaml` in this repo for the website and point its API env vars at `https://omniweb-engine-rs6fr.ondigitalocean.app`.

@@ -3,6 +3,10 @@ import { currentUser } from "@clerk/nextjs/server"
 import { getSession, getEngineToken } from "@/lib/auth/engine"
 import { DashboardShell } from "@/components/dashboard-shell"
 
+function isInternalRole(role: string | null | undefined) {
+  return role === "owner" || role === "admin" || role === "support"
+}
+
 export default async function DashboardPage() {
   const session = await getSession()
 
@@ -10,9 +14,9 @@ export default async function DashboardPage() {
     redirect("/signin")
   }
 
-  // Admins go to the admin dashboard
-  if (session.user.role === "admin") {
-    redirect("/admin")
+  // Internal staff should never land on the client dashboard.
+  if (isInternalRole(session.user.role)) {
+    redirect("/admin/dashboard")
   }
 
   // Get the real first name from Clerk profile (Google sign-in populates this)
