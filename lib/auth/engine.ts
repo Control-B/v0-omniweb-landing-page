@@ -95,6 +95,15 @@ async function getClerkSession(): Promise<EngineSession | null> {
 }
 
 /**
+ * Get session for the admin portal — only checks the legacy JWT cookie,
+ * intentionally ignoring any Clerk session so that a Clerk-signed-in client
+ * cannot accidentally access the admin dashboard.
+ */
+export async function getAdminSession(): Promise<EngineSession | null> {
+  return getLegacySession()
+}
+
+/**
  * Get session from legacy JWT cookie.
  */
 async function getLegacySession(): Promise<EngineSession | null> {

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { getSession } from "@/lib/auth/engine"
+import { getAdminSession } from "@/lib/auth/engine"
 
 function isInternalRole(role: string | null | undefined) {
   return role === "owner" || role === "admin" || role === "support"
@@ -10,7 +10,7 @@ export default async function AdminDashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getSession()
+  const session = await getAdminSession()
 
   if (!session) {
     redirect("/admin")
