@@ -229,7 +229,7 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
     setSaving(true)
     try {
       const res = await authFetch(`${ENGINE_URL}/api/agent-config/${clientId}`, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify({
           agent_greeting: widgetGreeting,
           widget_config: { color: widgetColor, position: widgetPosition },

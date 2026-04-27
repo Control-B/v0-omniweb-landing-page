@@ -6,7 +6,7 @@ export const metadata: Metadata = {
 }
 
 /**
- * Minimal layout for the embeddable widget — no global VoiceOrb,
+ * Minimal layout for the embeddable widget — no global site shell,
  * no fonts, no analytics. Just the widget itself in a transparent body.
  */
 export default function WidgetLayout({ children }: { children: React.ReactNode }) {

@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Oswald, Roboto_Condensed } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
 import { Analytics } from '@vercel/analytics/next'
-import { VoiceOrb } from '@/components/voice-orb'
+import { SiteAiWidget } from '@/components/site-ai-widget'
 import './globals.css'
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
@@ -101,7 +101,7 @@ export default function RootLayout({
           afterSignOutUrl="/"
         >
           {children}
-          <VoiceOrb />
+          <SiteAiWidget />
         </ClerkProvider>
         <Analytics />
       </body>
