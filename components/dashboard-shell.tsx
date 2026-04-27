@@ -103,10 +103,11 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
   const displayName = firstName || email.split("@")[0] || "there"
 
   /**
-   * Get a fresh Bearer token — prefers Clerk client-side token,
-   * falls back to the server-rendered engineToken prop.
+   * Get a Bearer token for engine APIs. The server-rendered token is the
+   * engine JWT produced by the Clerk session exchange.
    */
   const getFreshToken = useCallback(async (): Promise<string | null> => {
+    if (engineToken) return engineToken
     try {
       const clerkToken = await getToken()
       if (clerkToken) return clerkToken

@@ -10,7 +10,9 @@ import { Search, Loader2, AlertCircle, Eye, ChevronLeft, ChevronRight, Users } f
 interface Client {
   id: string; name: string; email: string;
   business_name: string | null; business_type: string | null;
-  plan: string; role: string; is_active: boolean; created_at: string
+  plan: string; role: string; is_active: boolean; created_at: string;
+  plan_minutes_used?: number; stripe_subscription_id?: string | null;
+  trial_ends_at?: string | null; embed_domain?: string | null
 }
 
 interface AdminClientsProps { onViewClient: (clientId: string) => void }
@@ -53,8 +55,8 @@ export function AdminClients({ onViewClient }: AdminClientsProps) {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white">Clients</h1>
-          <p className="text-sm text-slate-400 mt-1">Manage all tenant accounts</p>
+          <h1 className="text-xl font-bold text-white">Subscribers</h1>
+          <p className="text-sm text-slate-400 mt-1">Manage tenant accounts, subscriptions, and usage</p>
         </div>
         <div className="flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /><span className="text-sm text-slate-400">{total} total</span></div>
       </div>
@@ -85,7 +87,7 @@ export function AdminClients({ onViewClient }: AdminClientsProps) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10">
-                  {["Client", "Business", "Plan", "Role", "Status", "Joined", ""].map((h) => (
+                  {["Subscriber", "Domain", "Plan", "Usage", "Subscription", "Status", "Joined", ""].map((h) => (
                     <th key={h} className={cn("text-left px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider", !h && "text-right")}>{h}</th>
                   ))}
                 </tr>
@@ -94,9 +96,14 @@ export function AdminClients({ onViewClient }: AdminClientsProps) {
                 {clients.map((c) => (
                   <tr key={c.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-4 py-3"><div className="font-medium text-white">{c.name}</div><div className="text-xs text-slate-400">{c.email}</div></td>
-                    <td className="px-4 py-3 text-slate-400">{c.business_name || "—"}</td>
+                    <td className="px-4 py-3 text-slate-400">{c.embed_domain || c.business_name || "—"}</td>
                     <td className="px-4 py-3"><span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", planColors[c.plan] || "bg-white/10 text-white")}>{c.plan}</span></td>
-                    <td className="px-4 py-3"><Badge variant={c.role === "admin" ? "default" : "outline"} className={cn(c.role === "admin" && "bg-amber-500/80")}>{c.role}</Badge></td>
+                    <td className="px-4 py-3 text-slate-300 text-xs">{(c.plan_minutes_used ?? 0).toLocaleString()} min</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={c.stripe_subscription_id ? "default" : c.trial_ends_at ? "secondary" : "outline"} className={cn("text-[9px]", c.stripe_subscription_id && "bg-cyan-500/80")}>
+                        {c.stripe_subscription_id ? "Subscriber" : c.trial_ends_at ? "Trial" : "Lead"}
+                      </Badge>
+                    </td>
                     <td className="px-4 py-3"><Badge variant={c.is_active ? "default" : "destructive"} className={cn("text-[9px]", c.is_active && "bg-emerald-500/80")}>{c.is_active ? "Active" : "Inactive"}</Badge></td>
                     <td className="px-4 py-3 text-slate-400 text-xs">{new Date(c.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-right">

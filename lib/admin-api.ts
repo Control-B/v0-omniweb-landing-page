@@ -1,8 +1,4 @@
-import { getPublicEngineUrl } from "@/lib/engine-url";
-
-const ENGINE_URL = getPublicEngineUrl();
-
-// ── Fetch wrapper — cookie-based auth (httpOnly omniweb_token) ───────────────
+// ── Fetch wrapper — same-origin proxy uses httpOnly omniweb_token server-side ─
 
 async function apiFetch<T = any>(
   path: string,
@@ -13,7 +9,7 @@ async function apiFetch<T = any>(
     ...(options.headers as Record<string, string>),
   };
 
-  const res = await fetch(`${ENGINE_URL}/api${path}`, {
+  const res = await fetch(`/api/engine${path}`, {
     ...options,
     headers,
     credentials: "include",

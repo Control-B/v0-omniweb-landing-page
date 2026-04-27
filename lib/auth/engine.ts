@@ -3,9 +3,9 @@
  *
  * Supports TWO auth strategies:
  *
- * 1. **Clerk** (primary) — Clerk manages sign-in/sign-up. We get the Clerk
- *    session token and pass it as a Bearer token to the engine. The engine
- *    verifies the Clerk JWT via JWKS and resolves/creates the Client record.
+ * 1. **Clerk** (primary) — Clerk manages sign-in/sign-up. We exchange the
+ *    Clerk session token for an engine-issued JWT so dashboard calls use the
+ *    same `client_id`, plan, role, and permissions as the backend.
  *
  * 2. **Legacy JWT** (fallback) — The engine issues JWTs stored in an
  *    httpOnly cookie named `omniweb_token`. Kept for API key auth and admin
@@ -27,6 +27,9 @@ export type EngineUser = {
   email: string
   plan: string
   role: string
+  name?: string | null
+  first_name?: string | null
+  permissions?: string[]
 }
 
 export type EngineSession = {
@@ -48,13 +51,11 @@ export async function getSession(): Promise<EngineSession | null> {
 
 /**
  * Get a Bearer token for API calls to the engine.
- * Prefers Clerk token, falls back to legacy cookie.
+ * Prefers the engine-issued JWT from Clerk exchange, then legacy cookie.
  */
 export async function getEngineToken(): Promise<string | null> {
-  // Try Clerk first
-  const { getToken } = await auth()
-  const clerkToken = await getToken()
-  if (clerkToken) return clerkToken
+  const session = await getSession()
+  if (session?.access_token) return session.access_token
 
   // Fallback to legacy cookie
   const cookieStore = await cookies()
@@ -72,21 +73,28 @@ async function getClerkSession(): Promise<EngineSession | null> {
     const token = await getToken()
     if (!token) return null
 
-    // Decode Clerk JWT payload to extract user info
-    const parts = token.split('.')
-    if (parts.length !== 3) return null
+    const response = await fetch(`${ENGINE_BASE_URL}/api/auth/clerk-session`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      cache: 'no-store',
+    })
 
-    const payload = JSON.parse(
-      Buffer.from(parts[1], 'base64url').toString('utf-8'),
-    )
-
+    if (!response.ok) return null
+    const payload = await response.json().catch(() => null)
+    if (!payload?.access_token || !payload?.client_id) return null
     return {
-      access_token: token,
+      access_token: payload.access_token,
       user: {
-        client_id: payload.sub ?? userId,
-        email: payload.email ?? payload.primary_email_address ?? '',
+        client_id: payload.client_id ?? userId,
+        email: payload.email ?? '',
         plan: payload.plan ?? 'starter',
         role: payload.role ?? 'client',
+        name: payload.name ?? null,
+        first_name: payload.first_name ?? null,
+        permissions: payload.permissions ?? [],
       },
     }
   } catch {

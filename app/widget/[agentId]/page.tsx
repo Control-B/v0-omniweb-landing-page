@@ -13,6 +13,7 @@ import {
 import { Suspense } from "react"
 
 const ENGINE_BASE_URL = getPublicEngineUrl()
+const DEFAULT_WELCOME_MESSAGE = "Thank you for visiting today, I am your AI assistant... how can I assist you?"
 
 type Message = { role: "user" | "agent"; text: string }
 type ConvStatus = "disconnected" | "connecting" | "connected"
@@ -311,7 +312,7 @@ function EmbeddableWidget() {
                 <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: CONIC, animation: "w-spin 20s linear infinite" }} />
                 <div style={{ position: "absolute", inset: 3, borderRadius: "50%", background: "radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.5) 0%, transparent 50%)" }} />
               </div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: "white" }}>How can I help you?</p>
+              <p style={{ fontSize: 15, fontWeight: 600, color: "white" }}>{DEFAULT_WELCOME_MESSAGE}</p>
               <p style={{ fontSize: 12, color: "#64748b", marginTop: 6, maxWidth: 220 }}>Tap the orb or type below to get started</p>
             </div>
           )}

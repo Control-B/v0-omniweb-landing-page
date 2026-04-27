@@ -14,6 +14,7 @@ import {
 } from "livekit-client"
 
 const ENGINE_BASE_URL = getPublicEngineUrl()
+const DEFAULT_WELCOME_MESSAGE = "Thank you for visiting today, I am your AI assistant... how can I assist you?"
 
 type Message = { role: "user" | "agent"; text: string; isWelcome?: boolean }
 type ConvStatus = "disconnected" | "connecting" | "connected"
@@ -696,7 +697,7 @@ export function VoiceOrb() {
                 <div className="absolute inset-[3px] rounded-full" style={{ background: "radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.5) 0%, transparent 50%)" }} />
                 <div className="absolute inset-0 rounded-full" style={{ boxShadow: "inset 0 1px 3px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.12)" }} />
               </div>
-              <p className="text-[15px] font-semibold text-white">How can I help you?</p>
+              <p className="text-[15px] font-semibold text-white">{DEFAULT_WELCOME_MESSAGE}</p>
               <p className="text-xs text-slate-500 mt-1.5 max-w-[220px]">Tap the orb or type below to get started</p>
             </div>
           )}

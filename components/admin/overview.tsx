@@ -34,6 +34,7 @@ interface RecentToolCall {
 interface PlatformStats {
   total_clients: number; active_clients: number; total_calls: number;
   total_leads: number; total_numbers: number; calls_today: number;
+  active_subscribers: number; total_minutes_used: number;
   leads_today: number; calls_this_week: number; booked_appointments: number;
   leads_by_status: Record<string, number>; clients_by_plan: Record<string, number>;
   tool_calls_today: number; tool_summary: Record<string, number>;
@@ -89,6 +90,8 @@ export function AdminOverview() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: "Clients", value: stats.total_clients, icon: Users, color: "text-blue-400", bg: "bg-blue-500/10" },
+          { label: "Subscribers", value: stats.active_subscribers, icon: Bot, color: "text-violet-400", bg: "bg-violet-500/10" },
+          { label: "Minutes Used", value: stats.total_minutes_used, icon: TrendingUp, color: "text-cyan-400", bg: "bg-cyan-500/10" },
           { label: "Total Calls", value: stats.total_calls, icon: Phone, color: "text-emerald-400", bg: "bg-emerald-500/10" },
           { label: "Total Leads", value: stats.total_leads, icon: UserCheck, color: "text-amber-400", bg: "bg-amber-500/10" },
           { label: "Booked", value: stats.booked_appointments, icon: CalendarCheck, color: "text-violet-400", bg: "bg-violet-500/10" },
