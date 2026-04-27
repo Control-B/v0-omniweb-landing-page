@@ -1,4 +1,8 @@
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 /** @type {import('next').NextConfig} */
+const projectRoot = dirname(fileURLToPath(import.meta.url))
 const cdnOrigin = process.env.NEXT_PUBLIC_CDN_ORIGIN
 
 const remotePatterns = []
@@ -16,6 +20,9 @@ if (cdnOrigin) {
 }
 
 const nextConfig = {
+  turbopack: {
+    root: projectRoot,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
