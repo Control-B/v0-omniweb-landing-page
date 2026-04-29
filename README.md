@@ -1,43 +1,44 @@
 # Omniweb Landing App
 
-This Next.js app now acts as the customer-facing frontend for the wider `omniweb-ai-platform` stack.
+Customer-facing Next.js app for **omniweb.ai**. It runs as its **own** deployment and talks to the **[Omniweb-AI-Engine](https://github.com/Control-B/Omniweb-AI-Engine)** FastAPI service over the network (not the same git repo).
 
 ## What is wired
 
-- `Supabase Auth`: Sign-in and dashboard protection use the local `@supabase/ssr` client.
-- `Orchestrator`: Dashboard onboarding and Shopify status now call the FastAPI orchestrator with the authenticated Supabase bearer token.
-- `LiveKit`: `/api/livekit/token` now mints short-lived room tokens for the signed-in merchant when LiveKit env vars are present.
-- `Shopify`: The dashboard surfaces install status and install links from the orchestrator's Shopify flow.
-- `DigitalOcean App Platform`: `.do/app.yaml` now targets a DO-first web deployment instead of the old mixed Vercel/App Platform layout.
+- **Clerk** — Sign-in, sign-up (`/get-started`), and `/dashboard` use Clerk. You must use the **same Clerk application** as the engine so tokens validate on the backend.
+- **Engine JWT** — Server-side code exchanges the Clerk session for an engine-issued JWT via `POST {ENGINE_URL}/api/auth/clerk-session`, then stores it in an httpOnly cookie for `/api/engine/*` proxy calls (`lib/auth/engine.ts`).
+- **Engine proxy** — `GET|POST|… /api/engine/[...path]` forwards to `{ENGINE_URL}/api/{path}` with the Bearer token (`app/api/engine/[...path]/route.ts`).
+- **LiveKit / Shopify / widget** — Optional; see `.env.production.example`.
 
 ## Required environment variables
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-OMNIWEB_ORCHESTRATOR_URL=http://127.0.0.1:8000
-FASTAPI_ASSISTANT_URL=http://127.0.0.1:8000
-NEXT_PUBLIC_SHOPIFY_APP_URL=http://localhost:8787
-NEXT_PUBLIC_LIVEKIT_URL=wss://your-project.livekit.cloud
-LIVEKIT_API_KEY=
-LIVEKIT_API_SECRET=
-OMNIWEB_PUBLIC_TENANT_SLUG=
-LIVEKIT_AGENT_NAME=
-NEXT_PUBLIC_VOICE_TRANSPORT=livekit
-NEXT_PUBLIC_CDN_ORIGIN=https://cdn.omniweb.ai
-```
+Copy `.env.production.example` to `.env.production` (or `.env.local` from `.env.local.example` for dev).
+
+**Critical:**
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Same Clerk app as engine dashboard |
+| `CLERK_SECRET_KEY` | Clerk backend API key |
+| `NEXT_PUBLIC_OMNIWEB_ENGINE_URL` | Engine URL exposed to the browser (bootstrap, widget helpers) |
+| `OMNIWEB_ENGINE_URL` | Server-side engine URL (auth exchange, API proxy) |
+
+Align these with **Omniweb-AI-Engine** env: `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, and the deployed API base URL.
 
 ## Local development
 
-Run this app on `http://localhost:3000`, then run the orchestrator from the sibling `omniweb-ai-platform` repository on `http://localhost:8000`.
+1. Run **Omniweb-AI-Engine** on `http://localhost:8000`.
+2. Copy `.env.local.example` → `.env.local` and fill Clerk + engine URLs.
+3. Run this app:
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Once signed in, open `/dashboard` to provision the tenant record, generate Shopify install links, and test LiveKit token issuance.
+Open `http://localhost:3000`. Sign-up flows hit the engine’s `clerk-session` endpoint when you access dashboard features.
 
-For the public website voice assistant, set `OMNIWEB_PUBLIC_TENANT_SLUG` to the tenant slug that should own the site assistant, set `LIVEKIT_AGENT_NAME` to the LiveKit Cloud agent dispatch name, and set `NEXT_PUBLIC_VOICE_TRANSPORT=livekit` so the chatbot uses LiveKit instead of the legacy Deepgram websocket path.
+## Deploy
 
-To deploy on DigitalOcean App Platform, use `./.do/app.yaml` in this repo for the website and point its API env vars at `https://omniweb-engine-rs6fr.ondigitalocean.app`.
+Configure production env in Vercel / DigitalOcean / etc. Point `OMNIWEB_ENGINE_URL` at your live engine (e.g. `https://omniweb-engine-rs6fr.ondigitalocean.app` or `https://api.omniweb.ai`). In the **Clerk dashboard**, add your production omniweb.ai origin and redirect URLs.
+
+For DigitalOcean, see `.do/app.yaml` in this repo.

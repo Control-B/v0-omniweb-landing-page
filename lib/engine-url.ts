@@ -1,11 +1,13 @@
 const CANONICAL_ENGINE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app"
 
-const LEGACY_ENGINE_HOSTS = new Set(["api.omniweb.ai"])
-
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/$/, "")
 }
 
+/**
+ * Normalize the engine base URL. Respects explicit env (including https://api.omniweb.ai);
+ * do not rewrite hosts — that broke production when the public API is on api.omniweb.ai.
+ */
 export function normalizeEngineUrl(value?: string | null): string {
   const candidate = value?.trim()
   if (!candidate) {
@@ -14,10 +16,6 @@ export function normalizeEngineUrl(value?: string | null): string {
 
   try {
     const parsed = new URL(candidate)
-    if (LEGACY_ENGINE_HOSTS.has(parsed.host)) {
-      return CANONICAL_ENGINE_URL
-    }
-
     return trimTrailingSlash(parsed.toString())
   } catch {
     return trimTrailingSlash(candidate)
