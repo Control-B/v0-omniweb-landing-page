@@ -17,8 +17,8 @@ export default async function AdminDashboardLayout({
   }
 
   if (!isInternalRole(session.user.role)) {
-    redirect("/dashboard")
+    redirect("/")
   }
 
-  return <>{children}</>
+  redirect("/")
 }

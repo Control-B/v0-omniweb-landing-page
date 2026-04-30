@@ -54,7 +54,7 @@ const featureGroups = [
     icon: Mic,
     title: "AI Voice Agents",
     benefit: "Never miss a lead",
-    summary: "AI-powered voice agents answer inbound calls, qualify the opportunity, and push the right next step without waiting on your team.",
+    summary: "LiveKit-powered voice agents answer inbound calls, qualify the opportunity, and push the right next step without waiting on your team.",
     bullets: ["Answer sales calls after hours", "Qualify urgency, budget, and fit", "Route to booking or callback flows"],
   },
   {
@@ -96,12 +96,7 @@ export default function FeaturesPage() {
   )
 
   useEffect(() => {
-    const v = videoRefs.current[0]
-    if (v) {
-      v.setAttribute("muted", "")
-      v.muted = true
-      v.play().catch(() => {})
-    }
+    videoRefs.current[0]?.play().catch(() => {})
   }, [])
 
   // Rotate headlines every 4 seconds
@@ -121,28 +116,20 @@ export default function FeaturesPage() {
           {heroVideos.map((src, i) => (
             <video
               key={src}
-              ref={(el) => {
-                videoRefs.current[i] = el
-                if (el) {
-                  el.setAttribute("muted", "")
-                  el.muted = true
-                }
-              }}
+              ref={(el) => { videoRefs.current[i] = el }}
               src={src}
-              autoPlay={i === 0}
               muted
               playsInline
-              preload={i === currentVideo ? "auto" : "none"}
-              poster={src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
+              preload="auto"
               onEnded={() => handleVideoEnded(i)}
-              className={`absolute inset-0 h-full w-full object-cover brightness-110 transition-opacity duration-700 ${
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
                 i === currentVideo ? "opacity-100" : "opacity-0"
               }`}
             />
           ))}
           {/* Overlays for text legibility */}
-          <div className="absolute inset-0 bg-black/35" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12] via-transparent to-[#050a12]/30" />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12] via-transparent to-[#050a12]/40" />
         </div>
 
         {/* Centered content */}
@@ -271,7 +258,7 @@ export default function FeaturesPage() {
               { src: "/media/Beautiful lady store.mp4", label: "Beauty & Fashion" },
             ].map((v, i) => (
               <div key={`mv-${i}`} className="relative w-[min(540px,80vw)] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10" style={{ aspectRatio: "540/440" }}>
-                <img src={v.src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')} alt={v.label} loading="lazy" className="h-full w-full object-cover brightness-110" />
+                <video src={v.src} muted autoPlay loop playsInline preload="auto" className="h-full w-full object-cover" />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-6">
                   <span className="text-xs font-semibold tracking-wide text-white/90">{v.label}</span>
                 </div>
@@ -281,7 +268,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      <section id="chat-assistants" className="site-section-shell">
+      <section className="site-section-shell">
         <div className="site-shell grid gap-6 lg:grid-cols-2">
           {featureGroups.map((feature) => (
             <FeatureCard key={feature.title} {...feature} actionLabel="Launch this demo" />
@@ -290,7 +277,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* ─── BLOCK 1: Voice & Chat — image right ─── */}
-      <section id="voice-agents" className="px-4 py-24 lg:px-8">
+      <section className="px-4 py-24 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-start gap-16 lg:grid-cols-2">
             <div>
@@ -320,7 +307,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* ─── BLOCK 2: Lead Automation — image left (reversed) ─── */}
-      <section id="lead-automation" className="px-4 py-24 lg:px-8">
+      <section className="px-4 py-24 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="grid items-start gap-16 lg:grid-cols-2">
             <div className="order-2 lg:order-1">

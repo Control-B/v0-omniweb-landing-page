@@ -21,7 +21,6 @@ import {
 import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { useUser, useClerk } from "@clerk/nextjs"
 
 type NavSubItem = {
   label: string
@@ -55,7 +54,7 @@ const navItems: NavItem[] = [
       {
         label: "AI voice agents",
         href: "/features#voice-agents",
-        description: "AI-powered voice agents that answer, qualify, and book while your team focuses on closing.",
+        description: "LiveKit-powered voice agents that answer, qualify, and book while your team focuses on closing.",
         icon: LayoutTemplate,
         iconClassName: "text-fuchsia-200",
         iconChipClassName: "border-fuchsia-500/35 bg-gradient-to-br from-fuchsia-500/22 to-purple-500/18 shadow-[0_12px_30px_rgba(217,70,239,0.18)]",
@@ -237,100 +236,9 @@ const navItems: NavItem[] = [
   },
 ]
 
-/* ── Custom User Menu (replaces Clerk's UserButton) ── */
-function UserMenu({
-  user,
-  isOpen,
-  onToggle,
-  onClose,
-  onSignOut,
-}: {
-  user: any
-  isOpen: boolean
-  onToggle: () => void
-  onClose: () => void
-  onSignOut: () => void
-}) {
-  useEffect(() => {
-    if (!isOpen) return
-    const handler = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (!target.closest("[data-user-menu]")) onClose()
-    }
-    document.addEventListener("click", handler)
-    return () => document.removeEventListener("click", handler)
-  }, [isOpen, onClose])
-
-  const initials = (user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0] || "?").toUpperCase()
-  const displayName = user?.firstName
-    ? `${user.firstName} ${user.lastName || ""}`.trim()
-    : user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "User"
-  const email = user?.emailAddresses?.[0]?.emailAddress || ""
-  const avatarUrl = user?.imageUrl
-
-  return (
-    <div className="relative" data-user-menu>
-      <button
-        onClick={onToggle}
-        className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-2 ring-cyan-500/30 transition-all hover:ring-cyan-400/50"
-      >
-        {avatarUrl ? (
-          <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-600 text-sm font-bold text-white">
-            {initials}
-          </span>
-        )}
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 top-12 z-50 w-72 overflow-hidden rounded-2xl border border-white/10 bg-[#0a1225] shadow-[0_20px_60px_rgba(0,0,0,0.7)]">
-          <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-cyan-500 to-blue-600">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-sm font-bold text-white">{initials}</span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-white">{displayName}</p>
-              <p className="truncate text-xs text-slate-400">{email}</p>
-            </div>
-          </div>
-          <div className="p-2">
-            <a
-              href="/dashboard"
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-white"
-              onClick={onClose}
-            >
-              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              Dashboard
-            </a>
-            <button
-              onClick={onSignOut}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-white"
-            >
-              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Sign out
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const { isSignedIn, user } = useUser()
-  const { signOut } = useClerk()
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const pathname = usePathname()
   const currentSection = useMemo(() => pathname?.split("#")[0] ?? "/", [pathname])
   const isHome = currentSection === "/"
@@ -354,8 +262,8 @@ export function Header() {
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-indigo-500">
-            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.5 6L9 18h6.5L14.5 26 23 14h-6.5L17.5 6z" fill="white" stroke="white" strokeWidth="1" strokeLinejoin="round"/></svg>
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-200">
+            O
           </span>
           <span className="text-xl font-bold tracking-tight text-foreground">
             Omniweb
@@ -461,17 +369,6 @@ export function Header() {
         {/* Desktop Actions */}
         <div className="hidden items-center gap-2 lg:flex">
           <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="rounded-full border-emerald-400/50 bg-emerald-500/10 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.15)] transition-all hover:border-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-200 hover:shadow-[0_0_20px_rgba(52,211,153,0.25)]"
-          >
-            <Link href="/demo" className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span></span>
-              Live Demo
-            </Link>
-          </Button>
-          <Button
             variant="ghost"
             size="sm"
             asChild
@@ -481,39 +378,17 @@ export function Header() {
               Call Us
             </a>
           </Button>
-          {!isSignedIn ? (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
-              >
-                <Link href="/signin">Sign In</Link>
-              </Button>
-              <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-5 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
-                <Link href="/get-started">Get Started</Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
-              >
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
-              <UserMenu
-                user={user}
-                isOpen={userMenuOpen}
-                onToggle={() => setUserMenuOpen(!userMenuOpen)}
-                onClose={() => setUserMenuOpen(false)}
-                onSignOut={() => { signOut({ redirectUrl: "/" }); setUserMenuOpen(false) }}
-              />
-            </>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
+          >
+            <Link href="/signin">Sign In</Link>
+          </Button>
+          <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-5 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
+            <Link href="/get-started">Get Started</Link>
+          </Button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -533,7 +408,7 @@ export function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="absolute left-0 right-0 top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-border/40 bg-[#050a12]/95 backdrop-blur-xl lg:hidden">
+        <div className="absolute left-0 right-0 top-16 border-b border-border/40 bg-[#050a12]/95 backdrop-blur-xl lg:hidden">
           <nav className="flex flex-col px-4 py-4">
             {navItems.map((item) => (
               <div key={item.label} className="rounded-2xl border border-transparent transition hover:border-white/10 hover:bg-white/[0.03]">
@@ -573,12 +448,6 @@ export function Header() {
               </div>
             ))}
             <div className="mt-4 flex flex-col gap-2 border-t border-border/40 pt-4">
-              <Button variant="outline" size="sm" asChild className="justify-start border-emerald-400/50 bg-emerald-500/10 text-emerald-300 hover:border-emerald-400 hover:bg-emerald-500/20">
-                <Link href="/demo" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-1.5">
-                  <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span></span>
-                  Live Demo
-                </Link>
-              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -589,30 +458,12 @@ export function Header() {
                   Call Us
                 </a>
               </Button>
-              {!isSignedIn ? (
-                <>
-                  <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
-                    <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
-                  </Button>
-                  <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
-                    <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>Get Started</Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
-                    <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="justify-start gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10"
-                    onClick={() => { signOut({ redirectUrl: "/" }); setMobileMenuOpen(false) }}
-                  >
-                    Sign out
-                  </Button>
-                </>
-              )}
+              <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
+                <Link href="/signin">Sign In</Link>
+              </Button>
+              <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
+                <Link href="/get-started">Get Started</Link>
+              </Button>
             </div>
           </nav>
         </div>

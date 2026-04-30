@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { currentUser } from "@clerk/nextjs/server"
 import { getSession, getEngineToken } from "@/lib/auth/engine"
-import { DashboardShell } from "@/components/dashboard-shell"
+import { OmniwebDashboardShell } from "@/components/omniweb-dashboard-shell"
 
 function isInternalRole(role: string | null | undefined) {
   return role === "owner" || role === "admin" || role === "support"
@@ -16,21 +16,19 @@ export default async function DashboardPage() {
 
   // Internal staff should never land on the client dashboard.
   if (isInternalRole(session.user.role)) {
-    redirect("/admin/dashboard")
+    redirect("/")
   }
 
-  // Get the real first name from Clerk profile (Google sign-in populates this)
   const clerkUser = await currentUser()
   const rawName = clerkUser?.firstName
     || clerkUser?.username
     || session.user.email.split("@")[0]
     || "there"
-  // Title-case the name (Clerk sometimes returns ALL CAPS from Google)
   const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase()
   const engineToken = await getEngineToken()
 
   return (
-    <DashboardShell
+    <OmniwebDashboardShell
       email={session.user.email}
       plan={session.user.plan}
       clientId={session.user.client_id}

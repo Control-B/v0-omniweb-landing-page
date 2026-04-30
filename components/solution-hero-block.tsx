@@ -66,26 +66,7 @@ export function SolutionHeroBlock({
   // Multi-video seamless sequential playback — all videos preloaded and stacked
   const videos = videoSources ?? (videoSrc ? [videoSrc] : [])
   const [currentVideo, setCurrentVideo] = useState(0)
-  const [isNearViewport, setIsNearViewport] = useState(false)
-  const sectionRef = useRef<HTMLElement>(null)
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([])
-
-  // Lazy-load: only activate videos when section is near the viewport
-  useEffect(() => {
-    const el = sectionRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsNearViewport(true)
-          observer.disconnect() // Once visible, stay loaded
-        }
-      },
-      { rootMargin: "200px" } // Start loading 200px before entering viewport
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   // When the active video ends, instantly switch to the next (already preloaded)
   const handleVideoEnded = useCallback((idx: number) => {
@@ -98,17 +79,12 @@ export function SolutionHeroBlock({
   // Start the first video on mount
   useEffect(() => {
     if (videos.length > 0) {
-      const v = videoRefs.current[0]
-      if (v) {
-        v.setAttribute("muted", "")
-        v.muted = true
-        v.play().catch(() => {})
-      }
+      videoRefs.current[0]?.play().catch(() => {})
     }
   }, [videos.length])
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden border-b border-white/10">
+    <section className="relative overflow-hidden border-b border-white/10">
       {/* Background ambience */}
       <div className="pointer-events-none absolute inset-0">
         <div className={`absolute left-1/4 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full ${a.glow} blur-[120px]`} />
@@ -167,58 +143,19 @@ export function SolutionHeroBlock({
           >
             {/* Video container */}
             <div className="relative w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] shadow-2xl shadow-black/30" style={{ aspectRatio: "16/9" }}>
-              {videos.length > 0 && isNearViewport ? (
-                videos.map((src, i) => {
-                  // Only load the current and next video to save bandwidth
-                  const nextIdx = (currentVideo + 1) % videos.length
-                  const shouldLoad = i === currentVideo || i === nextIdx
-                  const posterUrl = src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')
-                  return (
+              {videos.length > 0 ? (
+                videos.map((src, i) => (
                   <video
                     key={src}
-                    ref={(el) => {
-                      videoRefs.current[i] = el
-                      if (el) {
-                        el.setAttribute("muted", "")
-                        el.muted = true
-                      }
-                    }}
-                    src={shouldLoad ? src : undefined}
-                    autoPlay={i === 0}
+                    ref={(el) => { videoRefs.current[i] = el }}
+                    src={src}
                     muted
                     playsInline
-                    preload={i === currentVideo ? "auto" : "none"}
-                    poster={posterUrl}
+                    preload="auto"
                     onEnded={() => handleVideoEnded(i)}
-                    onStalled={(e) => {
-                      const vid = e.currentTarget
-                      setTimeout(() => {
-                        if (vid && vid.paused && i === currentVideo) {
-                          vid.currentTime = Math.max(0, vid.currentTime - 0.1)
-                          vid.play().catch(() => {})
-                        }
-                      }, 4000)
-                    }}
-                    onWaiting={(e) => {
-                      const vid = e.currentTarget
-                      setTimeout(() => {
-                        if (vid && vid.paused && i === currentVideo) {
-                          vid.play().catch(() => {})
-                        }
-                      }, 4000)
-                    }}
-                    className={`absolute inset-0 h-full w-full object-cover brightness-110 transition-opacity duration-300 ${i === currentVideo ? "opacity-100" : "opacity-0"}`}
+                    className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${i === currentVideo ? "opacity-100" : "opacity-0"}`}
                   />
-                  )
-                })
-              ) : videos.length > 0 && !isNearViewport ? (
-                /* Show first poster as placeholder until section enters viewport */
-                <img
-                  src={videos[0].replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
-                  alt={title}
-                  loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover brightness-110"
-                />
+                ))
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
                   <div className="text-center">

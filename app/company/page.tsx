@@ -282,7 +282,7 @@ export default function CompanyPage() {
         </section>
 
         {/* ── Mission ────────────────────────────────────────────────── */}
-        <section id="mission" className="border-y border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
+        <section className="border-y border-white/10 bg-white/[0.02] px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <div className="kling-panel-strong relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/20 via-purple-600/10 to-cyan-600/20 px-8 py-16">
               <div className="absolute -left-16 -top-16 h-64 w-64 rounded-full bg-blue-600/20 blur-[80px]" />
@@ -302,7 +302,7 @@ export default function CompanyPage() {
         </section>
 
         {/* ── Values ─────────────────────────────────────────────────── */}
-        <section id="careers" className="px-4 py-24 lg:px-8">
+        <section className="px-4 py-24 lg:px-8">
           <div className="mx-auto max-w-6xl">
             <div className="mb-16 text-center">
               <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">What We Stand For</p>

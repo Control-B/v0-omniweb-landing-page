@@ -50,7 +50,7 @@ const sections = [
     body: ["We may share data with:"],
     bullets: [
       "Service Providers (hosting, AI, analytics)",
-      "Communication Providers used for voice and messaging services",
+      "Communication Providers such as LiveKit or Twilio",
       "Business Users / Clients using Omniweb services",
       "Legal Authorities when required",
     ],

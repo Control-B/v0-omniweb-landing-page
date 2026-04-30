@@ -186,7 +186,7 @@ function SystemsShowcaseSection() {
   }, [])
 
   return (
-    <section id="how-it-works" className="relative overflow-hidden border-b border-[#1e293b]/50 bg-black px-4 py-20 lg:px-8 lg:py-28">
+    <section className="relative overflow-hidden border-b border-[#1e293b]/50 bg-black px-4 py-20 lg:px-8 lg:py-28">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.18),transparent_36%),radial-gradient(circle_at_85%_15%,rgba(217,153,255,0.14),transparent_28%),radial-gradient(circle_at_15%_85%,rgba(255,153,161,0.12),transparent_24%)]" />
       <div className="relative mx-auto max-w-[1400px]">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-10">
@@ -440,8 +440,6 @@ function SolutionVideoPlayer({ solution }: { solution: typeof solutions[number] 
     if (videos.length > 0) {
       const v = videoRefs.current[currentVideo]
       if (v) {
-        v.setAttribute("muted", "")
-        v.muted = true
         v.currentTime = 0
         v.play().catch(() => {})
       }
@@ -457,21 +455,13 @@ function SolutionVideoPlayer({ solution }: { solution: typeof solutions[number] 
           videos.map((v, i) => (
             <video
               key={v.src}
-              ref={(el) => {
-                videoRefs.current[i] = el
-                if (el) {
-                  el.setAttribute("muted", "")
-                  el.muted = true
-                }
-              }}
+              ref={(el) => { videoRefs.current[i] = el }}
               src={v.src}
-              autoPlay={i === 0}
               muted
               playsInline
-              preload={i === currentVideo ? "auto" : "metadata"}
-              poster={v.src.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')}
+              preload="auto"
               onEnded={() => handleVideoEnded(i)}
-              className={`absolute inset-0 h-full w-full object-cover brightness-110 transition-opacity duration-500 ${i === currentVideo ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${i === currentVideo ? "opacity-100" : "opacity-0 pointer-events-none"}`}
             />
           ))
         ) : (
@@ -480,11 +470,11 @@ function SolutionVideoPlayer({ solution }: { solution: typeof solutions[number] 
             alt={`${solution.title} preview`}
             fill
             sizes="(min-width: 1024px) 40vw, 100vw"
-            className="object-cover brightness-110"
+            className="object-cover"
           />
         )}
         {/* Browser chrome overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#050a12]/10 to-[#050a12]/60 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050a12]/10 via-[#050a12]/20 to-[#050a12]/80 pointer-events-none" />
         <div className="absolute top-0 inset-x-0 flex items-center gap-1.5 border-b border-white/10 bg-black/35 px-4 py-3 backdrop-blur-sm">
           <span className="h-3 w-3 rounded-full bg-red-500/60" />
           <span className="h-3 w-3 rounded-full bg-yellow-500/60" />
@@ -708,7 +698,7 @@ export default function SolutionsPage() {
               <div>
                 <div className="kling-panel-strong overflow-hidden rounded-[2rem]">
                   <div className="relative aspect-[16/10]">
-                    <Image src="/images/generated/solutions-ecommerce.png" alt="E-Commerce AI storefront" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover brightness-110" />
+                    <Image src="/images/generated/solutions-ecommerce.png" alt="E-Commerce AI storefront" fill sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/85 via-transparent to-[#050a12]/20" />
                   </div>
                 </div>
@@ -820,7 +810,7 @@ export default function SolutionsPage() {
         <SystemsShowcaseSection />
 
         {/* ── Stats ──────────────────────────────────────────────────── */}
-        <section id="results" className="bg-white/[0.02] px-4 py-16 lg:px-8 border-b border-[#1e293b]/50">
+        <section className="bg-white/[0.02] px-4 py-16 lg:px-8 border-b border-[#1e293b]/50">
           <div className="mx-auto max-w-6xl">
             <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
               {stats.map((stat) => (

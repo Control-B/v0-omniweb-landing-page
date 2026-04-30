@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ArrowRight, Pause, Play, Volume2, VolumeX, Zap, BarChart3, Clock, Shield } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -49,79 +49,19 @@ export function PageHeroWithVideo({
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
   const [localVideoFailed, setLocalVideoFailed] = useState(false)
   const [isLargeDesktop, setIsLargeDesktop] = useState(false)
-  const [videoReady, setVideoReady] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const desktopVideoRef = useRef<HTMLVideoElement>(null)
-  const mobileVideoRef = useRef<HTMLVideoElement>(null)
-  const defaultVideoRef = useRef<HTMLVideoElement>(null)
-  const stallTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const retryCountRef = useRef(0)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const activeLocalVideo = localVideos?.[currentVideoIndex]
   const hasWorkingLocalVideo = Boolean(activeLocalVideo && !localVideoFailed)
-
-  // Pick the correct video ref based on context
-  const getActiveVideoRef = useCallback(() => {
-    if (size === "large") {
-      return isLargeDesktop ? desktopVideoRef : mobileVideoRef
-    }
-    return defaultVideoRef
-  }, [size, isLargeDesktop])
-
-  // ── Stall detection: recover blank/stuck videos ──
-  const clearStallTimer = useCallback(() => {
-    if (stallTimerRef.current) {
-      clearTimeout(stallTimerRef.current)
-      stallTimerRef.current = null
-    }
-  }, [])
-
-  const startStallTimer = useCallback((vid: HTMLVideoElement) => {
-    clearStallTimer()
-    stallTimerRef.current = setTimeout(() => {
-      if (vid && vid.paused && isPlaying && !vid.ended) {
-        // Video is supposed to be playing but is paused — try to recover
-        vid.currentTime = Math.max(0, vid.currentTime - 0.1)
-        vid.play().catch(() => {
-          // If still failing after 3 retries, fall back to YouTube
-          retryCountRef.current += 1
-          if (retryCountRef.current > 3) {
-            setLocalVideoFailed(true)
-          }
-        })
-      }
-    }, 4000)
-  }, [clearStallTimer, isPlaying])
-
-  // ── Page Visibility: pause when tab hidden, resume when visible ──
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.hidden) {
-        // Pause all videos when tab is hidden to prevent blank screens
-        ;[desktopVideoRef, mobileVideoRef, defaultVideoRef].forEach((ref) => {
-          ref.current?.pause()
-        })
-      } else if (isPlaying && hasWorkingLocalVideo) {
-        // Resume when tab becomes visible again
-        const vid = getActiveVideoRef().current
-        if (vid) {
-          vid.play().catch(() => {})
-        }
-      }
-    }
-
-    document.addEventListener("visibilitychange", handleVisibility)
-    return () => document.removeEventListener("visibilitychange", handleVisibility)
-  }, [isPlaying, hasWorkingLocalVideo, getActiveVideoRef])
 
   const playWithSound = async () => {
     setIsPlaying(true)
     setIsMuted(false)
 
     if (hasWorkingLocalVideo) {
-      const vid = getActiveVideoRef().current
-      if (!vid) return
-      vid.muted = false
-      await vid.play().catch(() => {})
+      if (!videoRef.current) return
+      videoRef.current.muted = false
+      await videoRef.current.play().catch(() => {})
       return
     }
 
@@ -145,8 +85,7 @@ export function PageHeroWithVideo({
     setIsMuted(true)
 
     if (hasWorkingLocalVideo) {
-      const vid = getActiveVideoRef().current
-      if (vid) vid.muted = true
+      if (videoRef.current) videoRef.current.muted = true
       return
     }
 
@@ -159,28 +98,13 @@ export function PageHeroWithVideo({
 
   useEffect(() => {
     setLocalVideoFailed(false)
-    setVideoReady(false)
-    retryCountRef.current = 0
   }, [activeLocalVideo])
-
-  // Force muted attribute via DOM for autoplay compliance
-  const ensureMutedAttr = useCallback((el: HTMLVideoElement | null) => {
-    if (el) {
-      el.setAttribute("muted", "")
-      el.muted = true
-    }
-  }, [])
 
   useEffect(() => {
     if (hasWorkingLocalVideo) {
-      const vid = getActiveVideoRef().current
-      if (vid) {
-        if (isPlaying) {
-          ensureMutedAttr(vid)
-          vid.play().catch(() => {})
-        } else {
-          vid.pause()
-        }
+      if (videoRef.current) {
+        if (isPlaying) videoRef.current.play().catch(() => {})
+        else videoRef.current.pause()
       }
       return
     }
@@ -191,12 +115,13 @@ export function PageHeroWithVideo({
       func: isPlaying ? "playVideo" : "pauseVideo"
     })
     iframeRef.current.contentWindow.postMessage(message, "*")
-  }, [hasWorkingLocalVideo, isPlaying, localVideos, getActiveVideoRef, ensureMutedAttr])
+  }, [hasWorkingLocalVideo, isPlaying, localVideos])
 
   useEffect(() => {
     if (hasWorkingLocalVideo) {
-      const vid = getActiveVideoRef().current
-      if (vid) vid.muted = isMuted
+      if (videoRef.current) {
+        videoRef.current.muted = isMuted
+      }
       return
     }
 
@@ -206,7 +131,7 @@ export function PageHeroWithVideo({
       func: isMuted ? "mute" : "unMute"
     })
     iframeRef.current.contentWindow.postMessage(message, "*")
-  }, [hasWorkingLocalVideo, isMuted, localVideos, getActiveVideoRef])
+  }, [hasWorkingLocalVideo, isMuted, localVideos])
 
   useEffect(() => {
     const handlePause = () => {
@@ -219,24 +144,11 @@ export function PageHeroWithVideo({
   }, [hasWorkingLocalVideo])
 
   useEffect(() => {
-    if (hasWorkingLocalVideo) {
+    if (hasWorkingLocalVideo && videoRef.current) {
+      // Auto-play when mounted if it's local videos (like hero autoplay)
       setIsPlaying(true)
-      // Kick-start playback on both refs for large hero
-      const tryPlay = (ref: React.RefObject<HTMLVideoElement | null>) => {
-        const v = ref.current
-        if (v) {
-          ensureMutedAttr(v)
-          v.play().catch(() => {})
-        }
-      }
-      if (size === "large") {
-        tryPlay(desktopVideoRef)
-        tryPlay(mobileVideoRef)
-      } else {
-        tryPlay(defaultVideoRef)
-      }
     }
-  }, [hasWorkingLocalVideo, size, ensureMutedAttr])
+  }, [hasWorkingLocalVideo])
 
   useEffect(() => {
     if (size !== "large") return
@@ -252,94 +164,54 @@ export function PageHeroWithVideo({
     return () => mediaQuery.removeEventListener("change", handleChange)
   }, [size])
 
-  // Cleanup stall timer on unmount
-  useEffect(() => {
-    return () => clearStallTimer()
-  }, [clearStallTimer])
-
   const handleVideoEnded = () => {
     if (localVideos && localVideos.length > 1) {
       setCurrentVideoIndex((prev) => (prev + 1) % localVideos.length)
+    } else if (videoRef.current) {
+      videoRef.current.play().catch(() => {}) // Loop single video
     }
   }
 
-  const posterSrc = activeLocalVideo?.replace('/media/', '/media/posters/').replace('.mp4', '.jpg')
-
-  const renderVideoElement = (
-    ref: React.RefObject<HTMLVideoElement | null>,
-    className?: string,
-    objectClassName?: string,
-  ) => (
-    <video
-      ref={(el) => {
-        (ref as React.MutableRefObject<HTMLVideoElement | null>).current = el
-        if (el) {
-          // Set muted attribute directly on DOM for autoplay
-          el.setAttribute("muted", "")
-          el.muted = true
-          el.play().catch(() => {})
-        }
-      }}
-      key={activeLocalVideo}
-      autoPlay
-      muted
-      playsInline
-      loop
-      preload="auto"
-      poster={posterSrc}
-      onCanPlay={() => {
-        setVideoReady(true)
-        retryCountRef.current = 0
-      }}
-      onPlaying={() => {
-        clearStallTimer()
-        retryCountRef.current = 0
-      }}
-      onWaiting={(e) => {
-        // Video is buffering — start stall timer
-        startStallTimer(e.currentTarget)
-      }}
-      onStalled={(e) => {
-        // Network stall — try to recover
-        startStallTimer(e.currentTarget)
-      }}
-      onEnded={handleVideoEnded}
-      onError={() => {
-        retryCountRef.current += 1
-        if (retryCountRef.current > 2) {
-          setLocalVideoFailed(true)
-        } else {
-          // Retry: reload the video source
-          const vid = ref.current
-          if (vid) {
-            setTimeout(() => {
-              vid.load()
-              vid.play().catch(() => {})
-            }, 1000 * retryCountRef.current)
-          }
-        }
-      }}
-      className={cn(className, objectClassName, "brightness-110")}
-    >
-      <source src={activeLocalVideo} type="video/mp4" />
-    </video>
-  )
-
-  const renderIframe = (
-    className?: string,
-    objectClassName?: string,
+  const renderVideoMedia = ({
+    className,
+    objectClassName,
     isBackground = false,
-  ) => (
-    <iframe
-      ref={iframeRef}
-      src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en&enablejsapi=1`}
-      title={videoTitle}
-      loading="lazy"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      className={cn(className, objectClassName, !isBackground && "pointer-events-none")}
-      style={isBackground ? { position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" } : undefined}
-    />
-  )
+  }: {
+    className?: string
+    objectClassName?: string
+    isBackground?: boolean
+  }) => {
+    if (hasWorkingLocalVideo) {
+      return (
+        <video
+          ref={videoRef}
+          key={activeLocalVideo}
+          autoPlay
+          muted={isMuted}
+          playsInline
+          loop
+          preload="auto"
+          onEnded={handleVideoEnded}
+          onError={() => setLocalVideoFailed(true)}
+          className={cn(className, objectClassName)}
+        >
+          <source src={activeLocalVideo} type="video/mp4" />
+        </video>
+      )
+    }
+
+    return (
+      <iframe
+        ref={iframeRef}
+        src={`https://www.youtube-nocookie.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&disablekb=1&iv_load_policy=3&fs=0&cc_load_policy=0&cc=0&hl=en&enablejsapi=1`}
+        title={videoTitle}
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        className={cn(className, objectClassName, !isBackground && "pointer-events-none")}
+        style={isBackground ? { position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" } : undefined}
+      />
+    )
+  }
 
   return (
     <section id={id} className={cn(
@@ -347,25 +219,12 @@ export function PageHeroWithVideo({
       size === "large" && "min-h-dvh"
     )}>
       {/* ─── FULL-SCREEN VIDEO BACKGROUND (large hero only) ─── */}
-      {size === "large" && (
+      {size === "large" && isLargeDesktop && (
         <div className="absolute inset-0 z-0 hidden items-center justify-center bg-[#050a12] lg:flex">
-          {hasWorkingLocalVideo
-            ? renderVideoElement(desktopVideoRef, "h-full w-full", "scale-[0.94] object-contain")
-            : renderIframe("h-full w-full", "scale-[0.94] object-contain", true)
-          }
-          {/* Poster fallback while video loads */}
-          {hasWorkingLocalVideo && !videoReady && posterSrc && (
-            <img
-              src={posterSrc}
-              alt=""
-              fetchPriority="high"
-              loading="eager"
-              className="absolute inset-0 h-full w-full object-contain scale-[0.94] brightness-110"
-            />
-          )}
-          {/* Light overlays — just enough for text legibility */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/40 via-transparent to-transparent" />
+          {renderVideoMedia({ className: "h-full w-full", objectClassName: "scale-[0.94] object-contain", isBackground: true })}
+          {/* Light overlays — just enough for text legibility without dimming the video */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/15 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/60 via-transparent to-transparent" />
         </div>
       )}
 
@@ -413,7 +272,7 @@ export function PageHeroWithVideo({
             : "mx-auto grid max-w-7xl gap-12 px-4 py-14 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center lg:px-8 lg:py-20 overflow-hidden"
         )}
       >
-        {size === "large" && (
+        {size === "large" && !isLargeDesktop && (
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -421,21 +280,8 @@ export function PageHeroWithVideo({
             className="relative mb-8 lg:hidden"
           >
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#04070d] shadow-2xl shadow-black/35 aspect-video">
-              {hasWorkingLocalVideo
-                ? renderVideoElement(mobileVideoRef, "h-full w-full", "object-cover")
-                : renderIframe("h-full w-full", "object-cover")
-              }
-              {/* Poster fallback while video loads on mobile */}
-              {hasWorkingLocalVideo && !videoReady && posterSrc && (
-                <img
-                  src={posterSrc}
-                  alt=""
-                  fetchPriority="high"
-                  loading="eager"
-                  className="absolute inset-0 h-full w-full object-cover brightness-110"
-                />
-              )}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/15 via-transparent to-transparent" />
+              {renderVideoMedia({ className: "h-full w-full", objectClassName: "object-cover" })}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/30 via-transparent to-black/10" />
 
               <button
                 onClick={() => void toggleMute()}
@@ -538,49 +384,19 @@ export function PageHeroWithVideo({
               </div>
               <div className="relative w-full overflow-hidden bg-[#04070d] aspect-video max-h-[56vw] sm:max-h-none">
                 {hasWorkingLocalVideo ? (
-                  <>
-                    <video
-                      ref={(el) => {
-                        (defaultVideoRef as React.MutableRefObject<HTMLVideoElement | null>).current = el
-                        if (el) {
-                          el.setAttribute("muted", "")
-                          el.muted = true
-                          el.play().catch(() => {})
-                        }
-                      }}
-                      key={activeLocalVideo}
-                      autoPlay
-                      muted
-                      playsInline
-                      preload="auto"
-                      poster={posterSrc}
-                      onCanPlay={() => setVideoReady(true)}
-                      onPlaying={() => {
-                        clearStallTimer()
-                        retryCountRef.current = 0
-                      }}
-                      onWaiting={(e) => startStallTimer(e.currentTarget)}
-                      onStalled={(e) => startStallTimer(e.currentTarget)}
-                      onEnded={handleVideoEnded}
-                      onError={() => {
-                        retryCountRef.current += 1
-                        if (retryCountRef.current > 2) setLocalVideoFailed(true)
-                      }}
-                      className="h-full w-full object-cover brightness-110"
-                    >
-                      <source src={activeLocalVideo} type="video/mp4" />
-                    </video>
-                    {/* Poster fallback while video loads */}
-                    {!videoReady && posterSrc && (
-                      <img
-                        src={posterSrc}
-                        alt=""
-                        fetchPriority="high"
-                        loading="eager"
-                        className="absolute inset-0 h-full w-full object-cover brightness-110"
-                      />
-                    )}
-                  </>
+                  <video
+                    ref={videoRef}
+                    key={activeLocalVideo}
+                    autoPlay
+                    muted={isMuted}
+                    playsInline
+                    preload="auto"
+                    onEnded={handleVideoEnded}
+                    onError={() => setLocalVideoFailed(true)}
+                    className="h-full w-full object-cover"
+                  >
+                    <source src={activeLocalVideo} type="video/mp4" />
+                  </video>
                 ) : (
                   <iframe
                     ref={iframeRef}
@@ -591,7 +407,7 @@ export function PageHeroWithVideo({
                     className="pointer-events-none h-full w-full scale-[1.05]"
                   />
                 )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/10 via-transparent to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050a12]/20 via-transparent to-transparent" />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-5 py-4">
                 <p className="text-sm text-white/45">Video explains the page first. AI assistant is there for deeper questions.</p>
@@ -613,6 +429,31 @@ export function PageHeroWithVideo({
                 </div>
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {/* Floating mute/unmute for fullscreen hero */}
+        {size === "large" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.5 }}
+            className="fixed bottom-6 right-6 z-50 hidden gap-2 lg:flex"
+          >
+            <button
+              onClick={() => setIsPlaying((value) => !value)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/80 backdrop-blur-lg transition hover:bg-black/80"
+              aria-label={isPlaying ? "Pause hero video" : "Play hero video"}
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </button>
+            <button
+              onClick={() => void toggleMute()}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white/80 backdrop-blur-lg transition hover:bg-black/80"
+              aria-label={isMuted ? "Play hero video with sound" : "Mute hero video"}
+            >
+              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </button>
           </motion.div>
         )}
       </div>
@@ -687,12 +528,9 @@ function HeroActionButton({ action }: { action: HeroAction }) {
         size="lg"
         variant="outline"
         asChild
-        className="group h-12 rounded-lg border border-emerald-400/50 bg-emerald-500/10 px-6 text-[13px] font-bold uppercase tracking-wider text-emerald-300 shadow-[0_0_20px_rgba(52,211,153,0.15)] transition-all hover:border-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-200 hover:shadow-[0_0_30px_rgba(52,211,153,0.3)]"
+        className="kling-pill h-12 rounded-lg border border-white/20 bg-transparent px-6 text-[13px] font-bold uppercase tracking-wider text-white hover:bg-white/10"
       >
-        <Link href={action.href} className="inline-flex items-center gap-2">
-          <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400"></span></span>
-          {action.label}
-        </Link>
+        <Link href={action.href}>{action.label}</Link>
       </Button>
     )
   }

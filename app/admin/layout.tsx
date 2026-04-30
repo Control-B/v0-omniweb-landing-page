@@ -5,6 +5,6 @@ export default function AdminLayout({
 }) {
   // Auth is handled by middleware.ts
   // /admin = public login page
-  // /admin/dashboard/* = protected (middleware checks admin role)
+  // /admin/dashboard/* now redirects away and no longer serves dashboard UI
   return <>{children}</>
 }
