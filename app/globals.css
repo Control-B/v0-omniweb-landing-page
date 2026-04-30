@@ -167,27 +167,32 @@
     --ow-card-highlight: linear-gradient(135deg, #f8fafc, #f0f9ff, #eef2ff);
     --ow-border: rgba(226, 232, 240, 1);
     --ow-border-subtle: rgba(226, 232, 240, 0.7);
+    --ow-text-primary: #0f172a;
+    --ow-text-secondary: #475569;
+    --ow-text-muted: #64748b;
     --ow-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
     --ow-shadow-soft: 0 2px 8px rgba(15, 23, 42, 0.03);
+    --ow-ring: rgba(59, 130, 246, 0.18);
+    --ow-button-secondary: rgba(255, 255, 255, 0.96);
   }
 
   [data-theme="dark"] .dashboard-theme {
-    --ow-bg: radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 22%), radial-gradient(circle at top right, rgba(139, 92, 246, 0.10), transparent 26%), linear-gradient(180deg, #08111f 0%, #0b1324 50%, #070d19 100%);
-    --ow-sidebar-bg: rgba(8, 15, 29, 0.94);
-    --ow-sidebar-border: rgba(51, 65, 85, 0.72);
-    --ow-header-bg: rgba(11, 19, 36, 0.8);
-    --ow-card-bg: rgba(15, 23, 42, 0.85);
-    --ow-card-muted: rgba(15, 23, 42, 0.6);
-    --ow-card-highlight: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.92), rgba(30, 41, 59, 0.85));
-    --ow-border: rgba(51, 65, 85, 0.65);
-    --ow-border-subtle: rgba(51, 65, 85, 0.45);
+    --ow-bg: linear-gradient(180deg, #000000 0%, #030409 52%, #000000 100%);
+    --ow-sidebar-bg: rgba(0, 0, 0, 0.96);
+    --ow-sidebar-border: rgba(63, 63, 70, 0.72);
+    --ow-header-bg: rgba(0, 0, 0, 0.86);
+    --ow-card-bg: rgba(9, 9, 11, 0.92);
+    --ow-card-muted: rgba(18, 18, 22, 0.82);
+    --ow-card-highlight: linear-gradient(135deg, rgba(9, 9, 11, 0.98), rgba(18, 18, 22, 0.94), rgba(24, 24, 27, 0.88));
+    --ow-border: rgba(63, 63, 70, 0.7);
+    --ow-border-subtle: rgba(63, 63, 70, 0.5);
     --ow-text-primary: #f8fafc;
     --ow-text-secondary: #cbd5e1;
     --ow-text-muted: #94a3b8;
-    --ow-shadow: 0 24px 60px rgba(2, 6, 23, 0.5);
-    --ow-shadow-soft: 0 8px 24px rgba(2, 6, 23, 0.4);
+    --ow-shadow: 0 24px 60px rgba(0, 0, 0, 0.72);
+    --ow-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.56);
     --ow-ring: rgba(96, 165, 250, 0.32);
-    --ow-button-secondary: rgba(15, 23, 42, 0.88);
+    --ow-button-secondary: rgba(18, 18, 22, 0.9);
   }
 
   .dashboard-sidebar-surface {

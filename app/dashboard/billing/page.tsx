@@ -42,7 +42,7 @@ export default async function DashboardBillingPage() {
 
         <DashboardCard className="flex min-h-[240px] flex-col">
           <div className="flex items-center gap-2 text-[15px] font-semibold text-slate-900"><CreditCard className="h-4 w-4 text-violet-500" />Payment Method</div>
-          <p className="dashboard-stat mt-5">No payment method added yet</p>
+          <p className="dashboard-stat mt-5">No payment method</p>
           <p className="dashboard-body mt-3">Stripe isn’t connected yet, but this card is ready for future customer billing and payment method management.</p>
           <div className="dashboard-card-muted mt-5 rounded-[18px] p-4 text-[15px] text-slate-700">
             Payment method collection will appear here once billing checkout is connected.
