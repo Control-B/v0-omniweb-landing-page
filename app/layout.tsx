@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
 import { Analytics } from '@vercel/analytics/next'
 import { SiteAiWidget } from '@/components/site-ai-widget'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
@@ -70,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Preload hero poster for instant first paint */}
         <link
@@ -88,21 +89,23 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geist.variable} ${geistMono.variable} ${oswald.variable} ${robotoCondensed.variable} font-sans antialiased`}>
-        <ClerkProvider
-          appearance={{
-            baseTheme: dark,
-            elements: {
-              userButtonAvatarBox: 'w-8 h-8 ring-2 ring-cyan-500/30',
-              userButtonPopoverCard: 'bg-[#0a1225] border border-white/[0.08] shadow-2xl rounded-2xl',
-              userButtonPopoverActionButton: 'text-slate-300 hover:bg-white/[0.05] rounded-xl',
-              userButtonPopoverFooter: 'hidden',
-            },
-          }}
-          afterSignOutUrl="/"
-        >
-          {children}
-          <SiteAiWidget />
-        </ClerkProvider>
+        <ThemeProvider attribute="data-theme" defaultTheme="default" enableSystem={false} themes={["default", "light", "dark"]}>
+          <ClerkProvider
+            appearance={{
+              baseTheme: dark,
+              elements: {
+                userButtonAvatarBox: 'w-8 h-8 ring-2 ring-cyan-500/30',
+                userButtonPopoverCard: 'bg-[#0a1225] border border-white/[0.08] shadow-2xl rounded-2xl',
+                userButtonPopoverActionButton: 'text-slate-300 hover:bg-white/[0.05] rounded-xl',
+                userButtonPopoverFooter: 'hidden',
+              },
+            }}
+            afterSignOutUrl="/"
+          >
+            {children}
+            <SiteAiWidget />
+          </ClerkProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>

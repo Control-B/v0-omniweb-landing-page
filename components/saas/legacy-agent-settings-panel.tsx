@@ -48,9 +48,9 @@ const LANGUAGE_OPTIONS = [
 const ALL_LANGUAGE_CODES = LANGUAGE_OPTIONS.map((language) => language.code)
 const MANUAL_LANGUAGE_CODES = LANGUAGE_OPTIONS.filter((language) => language.code !== "auto").map((language) => language.code)
 
-const cardClassName = "rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
-const inputClassName = "mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10"
-const textareaClassName = "mt-2 min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10"
+const cardClassName = "dashboard-card-surface rounded-[24px] p-6 lg:p-7"
+const inputClassName = "dashboard-input mt-2"
+const textareaClassName = "dashboard-textarea mt-2"
 const localDraftKey = (tenantId: string) => `omniweb-agent-page-draft:${tenantId}`
 
 type LegacyAgentSettingsPanelProps = {
@@ -177,14 +177,14 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </div>
       ) : null}
 
-      <section className="rounded-[32px] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(238,242,255,0.85),rgba(240,249,255,0.9),rgba(236,253,245,0.75))] p-6 shadow-[0_12px_36px_rgba(15,23,42,0.06)]">
+      <section className="dashboard-card-highlight rounded-[28px] p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-3xl font-semibold tracking-tight text-slate-900">AI Agent Settings</p>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Shape how your AI agent sells and supports. Set the welcome message, goals, languages, and operating rules that sync to your storefront widget.</p>
+            <p className="dashboard-page-title">AI Agent Settings</p>
+            <p className="dashboard-body mt-3 max-w-3xl">Shape how your AI agent sells and supports. Set the welcome message, goals, languages, and operating rules that sync to your storefront widget.</p>
           </div>
           <Link href="/dashboard/test-console">
-            <Button variant="outline" className="rounded-xl border-white/80 bg-white/90 text-slate-700 hover:bg-white">Test after save</Button>
+            <Button variant="outline" className="dashboard-secondary-button rounded-xl hover:bg-white">Test after save</Button>
           </Link>
         </div>
       </section>
@@ -206,7 +206,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
               <textarea value={systemInstructions} onChange={(event) => setSystemInstructions(event.target.value)} rows={5} className={textareaClassName} />
             </Field>
             <Field label="Response length">
-              <select value={responseLength} onChange={(event) => setResponseLength(event.target.value)} className={inputClassName}>
+              <select value={responseLength} onChange={(event) => setResponseLength(event.target.value)} className={`${inputClassName} dashboard-select`}>
                 <option>Short – concise replies</option>
                 <option>Moderate – balanced detail</option>
                 <option>Detailed – high context</option>
@@ -239,7 +239,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             {GOALS.map((goal) => {
               const active = selectedGoals.includes(goal)
               return (
-                <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition ${active ? "border-[#4f46e5]/25 bg-[#eef2ff] text-slate-900" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
+                <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-[#4f46e5]/25 bg-[#eef2ff] text-slate-900" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
                   <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
                   {goal}
                 </label>
@@ -256,7 +256,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           <p className="mt-1 text-sm text-slate-500">The widget will show a language picker to shoppers. Your agent will respond in the chosen language.</p>
           <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {LANGUAGE_OPTIONS.map((language) => (
-              <label key={language.code} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
+              <label key={language.code} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] text-slate-700 hover:bg-slate-50">
                 <input
                   ref={language.code === "auto" ? autoCheckboxRef : undefined}
                   type="checkbox"
@@ -272,9 +272,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-[28px] border border-amber-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+      <section className="overflow-hidden rounded-[24px] border border-amber-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="border-b border-amber-200 bg-amber-400/95 px-4 py-3 text-sm font-semibold text-amber-950"><ShieldAlert className="mr-2 inline h-4 w-4" />Financial Transaction Policy — Required</div>
-        <div className="p-6 text-sm text-slate-700">
+        <div className="p-6 text-[15px] leading-7 text-slate-700">
           <p className="mb-3">By saving, you agree that the Omniweb AI agent will:</p>
           <ul className="list-disc space-y-1 pl-5 text-slate-600">
             <li>Add products to the shopper&apos;s cart</li>
@@ -289,9 +289,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
         <Link href="/dashboard/test-console">
-          <Button variant="outline" className="rounded-xl border-slate-200 bg-white">Test in console</Button>
+          <Button variant="outline" className="dashboard-secondary-button rounded-xl">Test in console</Button>
         </Link>
-        <Button className="rounded-xl bg-slate-900 text-white hover:bg-slate-800" onClick={handleSave} disabled={saving}>
+        <Button className="dashboard-primary-button rounded-xl text-white hover:opacity-95" onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Save and sync agent
         </Button>

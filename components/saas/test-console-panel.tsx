@@ -23,14 +23,14 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(238,242,255,0.85),rgba(240,249,255,0.92),rgba(236,253,245,0.75))] p-6 shadow-[0_12px_36px_rgba(15,23,42,0.06)]">
+      <section className="dashboard-card-highlight rounded-[24px] p-6 lg:p-8">
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500"><TestTube2 className="h-4 w-4 text-violet-500" />Test Console</div>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Agent Test Console</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Validate the voice experience, greeting, and guided responses before Omniweb goes live to visitors.</p>
+        <h2 className="dashboard-page-title mt-4">Agent Test Console</h2>
+        <p className="dashboard-body mt-3">Validate the voice experience, greeting, and guided responses before Omniweb goes live to visitors.</p>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
-        <div className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+        <div className="dashboard-card-surface rounded-[24px] p-6 lg:p-7">
           <p className="text-sm font-medium text-slate-500">Voice selector</p>
           <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
@@ -67,13 +67,13 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
         </div>
         </div>
 
-        <section className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+        <section className="dashboard-card-surface rounded-[24px] p-6 lg:p-7">
           <p className="text-sm font-medium text-slate-500">Opening message</p>
           <p className="mt-4 text-base leading-7 text-slate-800">“{welcomeMessage}”</p>
         </section>
       </section>
 
-      <section className={`rounded-[28px] p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] ${agentReady ? "border border-emerald-200 bg-emerald-50/70" : "border border-dashed border-slate-300 bg-white/70"}`}>
+      <section className={`rounded-[24px] p-6 lg:p-7 shadow-[0_10px_30px_rgba(15,23,42,0.06)] ${agentReady ? "border border-emerald-200 bg-emerald-50/70" : "border border-dashed border-slate-300 bg-white/70"}`}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
             <div className={`mt-0.5 rounded-full p-2 ${agentReady ? "bg-emerald-100 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
@@ -91,19 +91,19 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
 
           <Link
             href="/dashboard/ai-agent"
-            className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(15,23,42,0.18)] transition hover:bg-slate-800"
+            className="dashboard-primary-button inline-flex h-12 items-center justify-center rounded-2xl px-5 text-[15px] font-semibold text-white transition hover:opacity-95"
           >
             Go to Agent Settings
           </Link>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
         {checklistItems.map(([title, description], index) => (
-          <div key={title} className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <div key={title} className="dashboard-card-surface flex min-h-[180px] flex-col rounded-[24px] p-5 lg:p-6">
             <div className="mb-3 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">{index + 1}</div>
-            <p className="font-semibold text-slate-900">{title}</p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
+            <p className="dashboard-card-title">{title}</p>
+            <p className="dashboard-body mt-2">{description}</p>
           </div>
         ))}
       </section>
