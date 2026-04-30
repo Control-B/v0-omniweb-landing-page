@@ -1,11 +1,14 @@
 "use client"
 
+import { useAuth, useClerk } from "@clerk/nextjs"
 import { useSignIn } from "@clerk/nextjs/legacy"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function SignInPage() {
+  const { isSignedIn } = useAuth()
+  const { signOut } = useClerk()
   const { signIn, isLoaded, setActive } = useSignIn()
   const router = useRouter()
 
@@ -15,6 +18,22 @@ export default function SignInPage() {
   const [step, setStep] = useState<"initial" | "password" | "code">("initial")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const handleSwitchAccount = async () => {
+    setLoading(true)
+    setError("")
+
+    try {
+      await fetch("/auth/signout", {
+        method: "POST",
+        credentials: "same-origin",
+      })
+    } catch {
+      // Clerk sign-out below is the important part for the client session.
+    }
+
+    await signOut({ redirectUrl: "/signin" })
+  }
 
   if (!isLoaded) {
     return (
@@ -185,7 +204,33 @@ export default function SignInPage() {
               </div>
             )}
 
-            {step === "initial" && (
+            {isSignedIn && step === "initial" && !error && (
+              <div className="mb-4 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-4 text-sm text-cyan-100">
+                <p className="font-medium text-cyan-200">We found an active sign-in session in this browser.</p>
+                <p className="mt-1 text-cyan-100/80">
+                  Continue to your dashboard or sign out first to use a different account.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push("/dashboard")}
+                    className="h-11 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-4 font-semibold text-white shadow-[0_4px_20px_rgba(6,182,212,0.3)] transition-all hover:from-cyan-400 hover:via-blue-400 hover:to-purple-400"
+                  >
+                    Continue to dashboard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSwitchAccount}
+                    disabled={loading}
+                    className="h-11 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 font-medium text-white transition-all hover:border-white/[0.15] hover:bg-white/[0.08] disabled:opacity-50"
+                  >
+                    {loading ? "Signing out..." : "Use a different account"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === "initial" && !isSignedIn && (
               <form onSubmit={handleEmailSubmit}>
                 <label className="mb-2 block text-sm font-medium text-slate-300">
                   Email address

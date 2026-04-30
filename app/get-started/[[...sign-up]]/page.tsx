@@ -1,11 +1,14 @@
 "use client"
 
+import { useAuth, useClerk } from "@clerk/nextjs"
 import { useSignUp } from "@clerk/nextjs/legacy"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function GetStartedPage() {
+  const { isSignedIn } = useAuth()
+  const { signOut } = useClerk()
   const { signUp, isLoaded, setActive } = useSignUp()
   const router = useRouter()
 
@@ -20,6 +23,22 @@ export default function GetStartedPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
+  const handleSwitchAccount = async () => {
+    setLoading(true)
+    setError("")
+
+    try {
+      await fetch("/auth/signout", {
+        method: "POST",
+        credentials: "same-origin",
+      })
+    } catch {
+      // Clerk sign-out below is the important part for the client session.
+    }
+
+    await signOut({ redirectUrl: "/get-started" })
+  }
+
   if (!isLoaded) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-[#050a12]">
@@ -33,7 +52,7 @@ export default function GetStartedPage() {
       await signUp.authenticateWithRedirect({
         strategy: strategy as any,
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/dashboard",
+        redirectUrlComplete: "/onboarding",
       })
     } catch (err: any) {
       setError(err?.errors?.[0]?.longMessage || "Something went wrong")
@@ -79,7 +98,7 @@ export default function GetStartedPage() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId })
-        router.push("/dashboard")
+        router.push("/onboarding")
       }
     } catch (err: any) {
       setError(err?.errors?.[0]?.longMessage || "Invalid verification code")
@@ -164,7 +183,33 @@ export default function GetStartedPage() {
               </div>
             )}
 
-            {step === "initial" && (
+            {isSignedIn && step === "initial" && !error && (
+              <div className="mb-4 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-4 text-sm text-cyan-100">
+                <p className="font-medium text-cyan-200">We found an active account session in this browser.</p>
+                <p className="mt-1 text-cyan-100/80">
+                  Continue to workspace setup or sign out first to create/use a different account.
+                </p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => router.push("/onboarding")}
+                    className="h-11 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-4 font-semibold text-white shadow-[0_4px_20px_rgba(6,182,212,0.3)] transition-all hover:from-cyan-400 hover:via-blue-400 hover:to-purple-400"
+                  >
+                    Continue to onboarding
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSwitchAccount}
+                    disabled={loading}
+                    className="h-11 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 font-medium text-white transition-all hover:border-white/[0.15] hover:bg-white/[0.08] disabled:opacity-50"
+                  >
+                    {loading ? "Signing out..." : "Use a different account"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === "initial" && !isSignedIn && (
               <form onSubmit={handleSubmit}>
                 {/* Name fields — side by side */}
                 <div className="grid grid-cols-2 gap-3">
