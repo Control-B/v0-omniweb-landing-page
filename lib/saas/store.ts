@@ -11,6 +11,7 @@ const STORE_PATH = path.join(STORE_DIR, "saas-state.json")
 
 const DEFAULT_WELCOME_MESSAGE = "Welcome! I’m here to answer questions, recommend the right solution, and help you get the most value from our services. How can I help you today?"
 const DEFAULT_GOALS = ["lead_qualification", "customer_support", "sales_assistance"]
+const DEFAULT_SUPPORTED_LANGUAGES = ["en"]
 
 type StoreFile = {
   tenants: TenantRecord[]
@@ -46,6 +47,9 @@ function mapAgentRow(row: Record<string, unknown>): AgentConfigRecord {
     goals: Array.isArray(row.goals)
       ? row.goals.map((goal) => String(goal))
       : DEFAULT_GOALS,
+    supportedLanguages: Array.isArray(row.supported_languages)
+      ? row.supported_languages.map((language) => String(language))
+      : DEFAULT_SUPPORTED_LANGUAGES,
     active: typeof row.active === "boolean" ? row.active : true,
     createdAt: new Date(String(row.created_at)).toISOString(),
     updatedAt: new Date(String(row.updated_at)).toISOString(),
@@ -290,8 +294,9 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
           welcome_message,
           tone,
           goals,
+          supported_languages,
           active
-        ) values ($1, $2, $3, $4, $5::jsonb, $6)
+        ) values ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7)
         on conflict (tenant_id) do update set updated_at = now()
         returning *
       `,
@@ -301,6 +306,7 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
         DEFAULT_WELCOME_MESSAGE,
         "professional",
         JSON.stringify(DEFAULT_GOALS),
+        JSON.stringify(DEFAULT_SUPPORTED_LANGUAGES),
         true,
       ],
     )
@@ -322,6 +328,7 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
     welcomeMessage: DEFAULT_WELCOME_MESSAGE,
     tone: "professional",
     goals: DEFAULT_GOALS,
+    supportedLanguages: DEFAULT_SUPPORTED_LANGUAGES,
     active: true,
     createdAt: now,
     updatedAt: now,
@@ -348,7 +355,8 @@ export async function updateAgentConfig(
           welcome_message = $3,
           tone = $4,
           goals = $5::jsonb,
-          active = $6,
+          supported_languages = $6::jsonb,
+          active = $7,
           updated_at = now()
         where tenant_id = $1
         returning *
@@ -359,6 +367,7 @@ export async function updateAgentConfig(
         updates.welcomeMessage ?? existing.welcomeMessage,
         updates.tone ?? existing.tone,
         JSON.stringify(updates.goals ?? existing.goals),
+        JSON.stringify(updates.supportedLanguages ?? existing.supportedLanguages),
         updates.active ?? existing.active,
       ],
     )
@@ -378,6 +387,7 @@ export async function updateAgentConfig(
         welcomeMessage: DEFAULT_WELCOME_MESSAGE,
         tone: "professional" as const,
         goals: DEFAULT_GOALS,
+        supportedLanguages: DEFAULT_SUPPORTED_LANGUAGES,
         active: true,
         createdAt: now,
         updatedAt: now,

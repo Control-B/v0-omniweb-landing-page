@@ -25,6 +25,7 @@ export type AgentConfigRecord = {
   welcomeMessage: string
   tone: AgentTone
   goals: string[]
+  supportedLanguages: string[]
   active: boolean
   createdAt: string
   updatedAt: string

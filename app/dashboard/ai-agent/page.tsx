@@ -23,6 +23,7 @@ export default async function DashboardAiAgentPage() {
               welcomeMessage: agentConfig.welcomeMessage,
               tone: agentConfig.tone,
               goals: agentConfig.goals,
+              supportedLanguages: agentConfig.supportedLanguages,
               active: agentConfig.active,
             }}
           />

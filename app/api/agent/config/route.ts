@@ -8,6 +8,7 @@ const agentConfigSchema = z.object({
   welcomeMessage: z.string().trim().min(10).optional(),
   tone: z.literal("professional").optional(),
   goals: z.array(z.string().trim().min(1)).min(1).optional(),
+  supportedLanguages: z.array(z.string().trim().min(1)).min(1).optional(),
   active: z.boolean().optional(),
 })
 
