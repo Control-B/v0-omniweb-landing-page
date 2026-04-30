@@ -1,4 +1,5 @@
 import { Bell, Bot, ShieldAlert, SlidersHorizontal, UserCog } from "lucide-react"
+import { DashboardCard } from "@/components/saas/dashboard-card"
 import { requireDashboardAccess } from "@/lib/saas/guards"
 
 const cards = [
@@ -38,22 +39,24 @@ export default async function DashboardSettingsPage() {
   await requireDashboardAccess({ allowExpiredBilling: true })
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-[1.75rem] border border-white/70 bg-[linear-gradient(90deg,rgba(99,102,241,0.10),rgba(34,211,238,0.08),rgba(16,185,129,0.06))] p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Settings</p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Workspace Settings</h2>
-        <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600">Manage account settings, workspace controls, notification preferences, agent defaults, and future admin actions.</p>
-      </section>
+    <div className="flex flex-col gap-6">
+      <DashboardCard tone="highlight">
+        <p className="dashboard-eyebrow">Settings</p>
+        <h2 className="dashboard-page-title mt-3">Workspace Settings</h2>
+        <p className="dashboard-body mt-3 max-w-3xl">
+          Manage account settings, workspace controls, notification preferences, agent defaults, and future admin actions.
+        </p>
+      </DashboardCard>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
-          <article key={card.title} className="rounded-[1.75rem] border border-white/70 bg-white/80 p-5 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-50 shadow-inner">
+          <DashboardCard key={card.title} className="flex h-full min-h-[200px] flex-col">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100">
               <card.icon className={`h-5 w-5 ${card.color}`} />
             </div>
-            <h3 className="mt-5 text-lg font-semibold text-slate-950">{card.title}</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">{card.description}</p>
-          </article>
+            <h3 className="dashboard-card-title mt-5">{card.title}</h3>
+            <p className="dashboard-body mt-2">{card.description}</p>
+          </DashboardCard>
         ))}
       </section>
     </div>

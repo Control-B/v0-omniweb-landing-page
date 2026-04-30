@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { CircleHelp, LifeBuoy, Mail } from "lucide-react"
+import { DashboardCard } from "@/components/saas/dashboard-card"
 import { requireDashboardAccess } from "@/lib/saas/guards"
 
 const sections = [
@@ -45,35 +46,42 @@ export default async function DashboardHelpPage() {
   await requireDashboardAccess({ allowExpiredBilling: true })
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-[1.75rem] border border-white/70 bg-[linear-gradient(90deg,rgba(99,102,241,0.10),rgba(34,211,238,0.08),rgba(16,185,129,0.06))] p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
-        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500"><CircleHelp className="h-4 w-4 text-cyan-500" />Help</div>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Help &amp; System Guide</h2>
-        <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600">Learn how to set up your AI agent, manage knowledge, review analytics, and use Omniweb to convert more visitors.</p>
-      </section>
+    <div className="flex flex-col gap-6">
+      <DashboardCard tone="highlight">
+        <div className="dashboard-eyebrow inline-flex items-center gap-2"><CircleHelp className="h-4 w-4 text-cyan-500" />Help</div>
+        <h2 className="dashboard-page-title mt-3">Help &amp; System Guide</h2>
+        <p className="dashboard-body mt-3 max-w-3xl">
+          Learn how to set up your AI agent, manage knowledge, review analytics, and use Omniweb to convert more visitors.
+        </p>
+      </DashboardCard>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
         {sections.map((section) => (
-          <article key={section.title} className="rounded-[1.75rem] border border-white/70 bg-white/80 p-5 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
-            <div className="h-1 w-full rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.9),rgba(99,102,241,0.85),rgba(16,185,129,0.8))]" />
-            <h3 className="mt-4 text-lg font-semibold text-slate-950">{section.title}</h3>
-            <p className="mt-3 text-sm leading-7 text-slate-600">{section.body}</p>
-          </article>
+          <DashboardCard key={section.title} className="flex h-full min-h-[200px] flex-col">
+            <div className="h-1 w-12 rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.9),rgba(99,102,241,0.85),rgba(139,92,246,0.85))]" />
+            <h3 className="dashboard-card-title mt-4">{section.title}</h3>
+            <p className="dashboard-body mt-3">{section.body}</p>
+          </DashboardCard>
         ))}
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
+      <DashboardCard>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500"><LifeBuoy className="h-4 w-4 text-violet-500" />Support</div>
-            <p className="mt-3 text-lg font-semibold text-slate-950">Need direct help?</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Email <span className="font-semibold text-slate-900">support@omniweb.ai</span> for setup assistance, troubleshooting, or account questions.</p>
+            <div className="dashboard-eyebrow inline-flex items-center gap-2"><LifeBuoy className="h-4 w-4 text-violet-500" />Support</div>
+            <p className="dashboard-card-title mt-3">Need direct help?</p>
+            <p className="dashboard-body mt-2">
+              Email <span className="font-semibold text-slate-900">support@omniweb.ai</span> for setup assistance, troubleshooting, or account questions.
+            </p>
           </div>
-          <Link href="mailto:support@omniweb.ai" className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800">
+          <Link
+            href="mailto:support@omniweb.ai"
+            className="inline-flex h-11 items-center justify-center rounded-full bg-slate-900 px-6 text-[14px] font-semibold text-white transition hover:bg-slate-800"
+          >
             <Mail className="mr-2 h-4 w-4" />Contact support
           </Link>
         </div>
-      </section>
+      </DashboardCard>
     </div>
   )
 }

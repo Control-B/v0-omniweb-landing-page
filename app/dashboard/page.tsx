@@ -32,7 +32,7 @@ function statusBadgeClassName(tone: "default" | "success" | "warning") {
 }
 
 function actionLinkClassName() {
-  return "mt-auto inline-flex items-center gap-2 text-[15px] font-semibold text-blue-600 transition hover:text-blue-500"
+  return "mt-auto inline-flex items-center gap-1.5 pt-5 text-[14px] font-semibold text-blue-600 transition hover:text-blue-500"
 }
 
 export default async function DashboardPage() {
@@ -89,56 +89,106 @@ export default async function DashboardPage() {
               cta: "Open analytics",
             }
 
+  const featureCards = [
+    {
+      icon: Bot,
+      iconClass: "text-cyan-500",
+      label: "AI Agent",
+      stat: aiAgentReady ? "Configured" : "Needs setup",
+      body: "Keep one shared Omniweb brain aligned across website chat and voice workflows.",
+      href: "/dashboard/ai-agent",
+      cta: "Open AI agent",
+    },
+    {
+      icon: Code2,
+      iconClass: "text-violet-500",
+      label: "Website Widget",
+      stat: widgetReady ? "Install ready" : "Setup pending",
+      body: "Deploy the widget snippet on your site and start turning traffic into tracked conversations.",
+      href: "/dashboard/ai-agent",
+      cta: "Review install",
+    },
+    {
+      icon: Brain,
+      iconClass: "text-emerald-500",
+      label: "Knowledge",
+      stat: knowledgeReady ? "Domain connected" : "Needs sources",
+      body: knowledgeReady
+        ? `Primary domain set to ${status.websiteDomain}. Keep adding pages, FAQs, and proof points.`
+        : "Add your main site and source content so the agent can answer with confidence.",
+      href: "/dashboard/knowledge",
+      cta: "Manage knowledge",
+    },
+    {
+      icon: BarChart3,
+      iconClass: "text-amber-500",
+      label: "Analytics",
+      stat: "0 sessions",
+      body: analyticsReady
+        ? "Live engagement and conversion insights are flowing in now."
+        : "Traffic-driven analytics will populate after chat or telephony sessions begin.",
+      href: "/dashboard/analytics",
+      cta: "View analytics",
+    },
+    {
+      icon: Phone,
+      iconClass: "text-sky-500",
+      label: "AI Telephony",
+      stat: telephonyReady ? "Configured" : "Needs setup",
+      body: "Extend the shared Omniweb agent to live phone calls with routing, escalation, and concise voice handling.",
+      href: "/dashboard/ai-telephony",
+      cta: "Open telephony",
+    },
+  ]
+
   return (
     <div className="flex flex-col gap-6">
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(360px,0.95fr)]">
-        <DashboardCard tone="highlight" className="flex min-h-[300px] flex-col justify-between gap-8">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
-            <div>
-              <p className="dashboard-eyebrow">Workspace launch posture</p>
-              <h2 className="dashboard-page-title mt-4">Your workspace launch posture</h2>
-              <p className="dashboard-body mt-4 max-w-3xl">
-                Keep agent readiness, site coverage, widget status, billing readiness, and telephony setup in one spacious command surface so the next action is always obvious.
-              </p>
-            </div>
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.95fr)]">
+        <DashboardCard tone="highlight" className="flex min-h-[280px] flex-col gap-7">
+          <div>
+            <p className="dashboard-eyebrow">Workspace launch posture</p>
+            <h2 className="dashboard-page-title mt-3">Your workspace launch posture</h2>
+            <p className="dashboard-body mt-3 max-w-2xl">
+              Keep agent readiness, site coverage, widget status, billing readiness, and telephony setup in one spacious command surface so the next action is always obvious.
+            </p>
+          </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <div className="dashboard-card-muted rounded-[20px] px-5 py-5">
-                <p className="dashboard-eyebrow">Business</p>
-                <p className="dashboard-card-title mt-3">{status.businessName || "Not set"}</p>
-                <p className="dashboard-body mt-2">{status.industry || "Industry pending"}</p>
-              </div>
-              <div className="dashboard-card-muted rounded-[20px] px-5 py-5">
-                <p className="dashboard-eyebrow">Website</p>
-                <p className="dashboard-card-title mt-3">{status.websiteDomain || "Add your domain"}</p>
-                <p className="dashboard-body mt-2">{setupProgress}% setup completion</p>
-              </div>
+          <div className="mt-auto grid gap-4 sm:grid-cols-2">
+            <div className="dashboard-card-muted rounded-2xl p-5">
+              <p className="dashboard-eyebrow">Business</p>
+              <p className="dashboard-card-title mt-3">{status.businessName || "Not set"}</p>
+              <p className="dashboard-body mt-2">{status.industry || "Industry pending"}</p>
+            </div>
+            <div className="dashboard-card-muted rounded-2xl p-5">
+              <p className="dashboard-eyebrow">Website</p>
+              <p className="dashboard-card-title mt-3">{status.websiteDomain || "Add your domain"}</p>
+              <p className="dashboard-body mt-2">{setupProgress}% setup completion</p>
             </div>
           </div>
         </DashboardCard>
 
-        <DashboardCard className="flex min-h-[300px] flex-col gap-5">
+        <DashboardCard className="flex min-h-[280px] flex-col gap-5">
           <div className="flex items-center justify-between gap-3">
             <p className="dashboard-section-title">Setup checklist</p>
             <span className="text-[15px] font-semibold text-slate-900">{setupProgress}%</span>
           </div>
-          <div className="h-3 overflow-hidden rounded-full bg-slate-200">
-            <div className="h-full rounded-full bg-[linear-gradient(90deg,#0ea5e9,#4f46e5)]" style={{ width: `${setupProgress}%` }} />
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200/70">
+            <div className="h-full rounded-full bg-[linear-gradient(90deg,#0ea5e9,#4f46e5,#8b5cf6)]" style={{ width: `${setupProgress}%` }} />
           </div>
-          <ul className="space-y-3.5 text-[15px] text-slate-600">
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-[18px] px-4 py-3.5">
+          <ul className="space-y-2.5 text-[15px] text-slate-600">
+            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
               <span>AI agent configured</span>
               <span className={aiAgentReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{aiAgentReady ? "Ready" : "Pending"}</span>
             </li>
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-[18px] px-4 py-3.5">
+            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
               <span>Knowledge source connected</span>
               <span className={knowledgeReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{knowledgeReady ? "Ready" : "Pending"}</span>
             </li>
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-[18px] px-4 py-3.5">
+            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
               <span>Widget snippet available</span>
               <span className={widgetReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{widgetReady ? "Ready" : "Pending"}</span>
             </li>
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-[18px] px-4 py-3.5">
+            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
               <span>Telephony routing configured</span>
               <span className={telephonyReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{telephonyReady ? "Ready" : "Optional"}</span>
             </li>
@@ -146,42 +196,42 @@ export default async function DashboardPage() {
         </DashboardCard>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-3">
-        <DashboardCard className="flex min-h-[220px] flex-col">
-          <div className="flex items-center gap-2 text-[15px] font-medium text-slate-500">
+      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <DashboardCard className="flex min-h-[260px] flex-col">
+          <div className="flex items-center gap-2 text-[14px] font-medium text-slate-500">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             Next best step
           </div>
-          <p className="dashboard-stat mt-5">{nextStep.title}</p>
-          <p className="dashboard-body mt-4">{nextStep.description}</p>
+          <p className="dashboard-stat mt-4">{nextStep.title}</p>
+          <p className="dashboard-body mt-3">{nextStep.description}</p>
           <Link href={nextStep.href} className={actionLinkClassName()}>
             {nextStep.cta}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </DashboardCard>
 
-        <DashboardCard className="flex min-h-[220px] flex-col">
+        <DashboardCard className="flex min-h-[260px] flex-col">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-[15px] font-medium text-slate-500">
+            <div className="flex items-center gap-2 text-[14px] font-medium text-slate-500">
               <Wallet className="h-4 w-4 text-blue-500" />
               Subscription snapshot
             </div>
-            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClassName(isTrial ? "warning" : "success")}`}>
+            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${statusBadgeClassName(isTrial ? "warning" : "success")}`}>
               {subscriptionLabel}
             </span>
           </div>
-          <p className="dashboard-stat mt-5">{planLabel}</p>
+          <p className="dashboard-stat mt-4">{planLabel}</p>
           <p className="dashboard-body mt-3">Current pricing is framed for {pricingContent.label.toLowerCase()} teams and tracks value using {planDetails.metricLabel.toLowerCase()}.</p>
-          <dl className="mt-5 space-y-3 text-[15px] text-slate-600">
-            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-[18px] px-4 py-3.5">
+          <dl className="mt-4 space-y-2.5 text-[14px] text-slate-600">
+            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-xl px-4 py-2.5">
               <dt>Current plan</dt>
               <dd className="font-semibold text-slate-900">{planLabel}</dd>
             </div>
-            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-[18px] px-4 py-3.5">
+            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-xl px-4 py-2.5">
               <dt>Billing status</dt>
               <dd className="font-semibold text-slate-900">{subscriptionLabel}</dd>
             </div>
-            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-[18px] px-4 py-3.5">
+            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-xl px-4 py-2.5">
               <dt>{planDetails.metricLabel}</dt>
               <dd className="font-semibold text-slate-900">{planDetails.conversationsPerMonth.toLocaleString()}</dd>
             </div>
@@ -192,18 +242,18 @@ export default async function DashboardPage() {
           </Link>
         </DashboardCard>
 
-        <DashboardCard className="flex min-h-[220px] flex-col">
+        <DashboardCard className="flex min-h-[260px] flex-col">
           <p className="dashboard-section-title">Quick actions</p>
-          <div className="mt-5 space-y-3.5">
-            <Link href="/dashboard/profile" className="dashboard-card-muted flex items-center justify-between rounded-[18px] px-4 py-3.5 text-[15px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
+          <div className="mt-5 space-y-2.5">
+            <Link href="/dashboard/profile" className="dashboard-card-muted flex items-center justify-between rounded-xl px-4 py-3 text-[14px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
               <span className="inline-flex items-center gap-2"><Building2 className="h-4 w-4 text-slate-500" /> Update workspace details</span>
               <ArrowRight className="h-4 w-4 text-slate-400" />
             </Link>
-            <Link href="/dashboard/knowledge" className="dashboard-card-muted flex items-center justify-between rounded-[18px] px-4 py-3.5 text-[15px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
+            <Link href="/dashboard/knowledge" className="dashboard-card-muted flex items-center justify-between rounded-xl px-4 py-3 text-[14px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
               <span className="inline-flex items-center gap-2"><Globe className="h-4 w-4 text-slate-500" /> Manage knowledge and widget</span>
               <ArrowRight className="h-4 w-4 text-slate-400" />
             </Link>
-            <Link href="/dashboard/ai-telephony" className="dashboard-card-muted flex items-center justify-between rounded-[18px] px-4 py-3.5 text-[15px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
+            <Link href="/dashboard/ai-telephony" className="dashboard-card-muted flex items-center justify-between rounded-xl px-4 py-3 text-[14px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
               <span className="inline-flex items-center gap-2"><Phone className="h-4 w-4 text-slate-500" /> Configure AI telephony</span>
               <ArrowRight className="h-4 w-4 text-slate-400" />
             </Link>
@@ -211,85 +261,21 @@ export default async function DashboardPage() {
         </DashboardCard>
       </section>
 
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
-        <DashboardCard className="flex min-h-[220px] flex-col">
-          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            <Bot className="h-4 w-4 text-cyan-500" />
-            AI Agent
-          </div>
-          <p className="dashboard-stat mt-5">{aiAgentReady ? "Configured" : "Needs setup"}</p>
-          <p className="dashboard-body mt-3">
-            Keep one shared Omniweb brain aligned across website chat and voice workflows.
-          </p>
-          <Link href="/dashboard/ai-agent" className={actionLinkClassName()}>
-            Open AI agent
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </DashboardCard>
-
-        <DashboardCard className="flex min-h-[220px] flex-col">
-          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            <Code2 className="h-4 w-4 text-violet-500" />
-            Website Widget
-          </div>
-          <p className="dashboard-stat mt-5">{widgetReady ? "Install ready" : "Setup pending"}</p>
-          <p className="dashboard-body mt-3">
-            Deploy the widget snippet on your site and start turning traffic into tracked conversations.
-          </p>
-          <Link href="/dashboard/ai-agent" className={actionLinkClassName()}>
-            Review install
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </DashboardCard>
-
-        <DashboardCard className="flex min-h-[220px] flex-col">
-          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            <Brain className="h-4 w-4 text-emerald-500" />
-            Knowledge
-          </div>
-          <p className="dashboard-stat mt-5">{knowledgeReady ? "Domain connected" : "Needs sources"}</p>
-          <p className="dashboard-body mt-3">
-            {knowledgeReady
-              ? `Primary domain set to ${status.websiteDomain}. Keep adding pages, FAQs, and proof points.`
-              : "Add your main site and source content so the agent can answer with confidence."}
-          </p>
-          <Link href="/dashboard/knowledge" className={actionLinkClassName()}>
-            Manage knowledge
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </DashboardCard>
-
-        <DashboardCard className="flex min-h-[220px] flex-col">
-          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            <BarChart3 className="h-4 w-4 text-amber-500" />
-            Analytics
-          </div>
-          <p className="dashboard-stat mt-5">0 sessions</p>
-          <p className="dashboard-body mt-3">
-            {analyticsReady
-              ? "Live engagement and conversion insights are flowing in now."
-              : "Traffic-driven analytics will populate after chat or telephony sessions begin."}
-          </p>
-          <Link href="/dashboard/analytics" className={actionLinkClassName()}>
-            View analytics
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </DashboardCard>
-
-        <DashboardCard className="flex min-h-[220px] flex-col">
-          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            <Phone className="h-4 w-4 text-sky-500" />
-            AI Telephony
-          </div>
-          <p className="dashboard-stat mt-5">{telephonyReady ? "Configured" : "Needs setup"}</p>
-          <p className="dashboard-body mt-3">
-            Extend the shared Omniweb agent to live phone calls with routing, escalation, and concise voice handling.
-          </p>
-          <Link href="/dashboard/ai-telephony" className={actionLinkClassName()}>
-            Open telephony
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </DashboardCard>
+      <section className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {featureCards.map((card) => (
+          <DashboardCard key={card.label} className="flex h-full min-h-[220px] flex-col">
+            <div className="flex items-center gap-2 text-[14px] font-medium text-slate-500">
+              <card.icon className={`h-4 w-4 ${card.iconClass}`} />
+              {card.label}
+            </div>
+            <p className="dashboard-stat mt-4">{card.stat}</p>
+            <p className="dashboard-body mt-3">{card.body}</p>
+            <Link href={card.href} className={actionLinkClassName()}>
+              {card.cta}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </DashboardCard>
+        ))}
       </section>
     </div>
   )

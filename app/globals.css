@@ -127,59 +127,63 @@
 
 @layer utilities {
   .dashboard-theme {
-    --ow-bg: radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 24%), radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 28%), linear-gradient(180deg, #f6f9ff 0%, #f7f9fc 44%, #f4f7fb 100%);
-    --ow-sidebar-bg: rgba(255, 255, 255, 0.82);
-    --ow-sidebar-border: rgba(226, 232, 240, 0.92);
-    --ow-header-bg: rgba(255, 255, 255, 0.76);
-    --ow-card-bg: rgba(255, 255, 255, 0.9);
-    --ow-card-muted: rgba(248, 250, 252, 0.94);
-    --ow-card-highlight: linear-gradient(135deg, rgba(238, 242, 255, 0.94), rgba(240, 249, 255, 0.98), rgba(243, 232, 255, 0.78));
-    --ow-border: rgba(226, 232, 240, 0.94);
-    --ow-border-subtle: rgba(226, 232, 240, 0.72);
+    --ow-bg: radial-gradient(circle at top left, rgba(59, 130, 246, 0.10), transparent 28%), radial-gradient(circle at top right, rgba(139, 92, 246, 0.08), transparent 32%), linear-gradient(180deg, #f7faff 0%, #f6f8fc 50%, #f4f7fb 100%);
+    --ow-sidebar-bg: rgba(255, 255, 255, 0.92);
+    --ow-sidebar-border: rgba(226, 232, 240, 0.9);
+    --ow-header-bg: rgba(255, 255, 255, 0.78);
+    --ow-card-bg: #ffffff;
+    --ow-card-muted: rgba(248, 250, 252, 0.95);
+    --ow-card-highlight: linear-gradient(135deg, rgba(238, 242, 255, 0.95), rgba(240, 249, 255, 0.98), rgba(243, 232, 255, 0.78));
+    --ow-border: rgba(226, 232, 240, 0.95);
+    --ow-border-subtle: rgba(226, 232, 240, 0.7);
     --ow-text-primary: #0f172a;
     --ow-text-secondary: #475569;
     --ow-text-muted: #64748b;
-    --ow-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
-    --ow-shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.06);
+    --ow-shadow: 0 18px 48px rgba(15, 23, 42, 0.06);
+    --ow-shadow-soft: 0 4px 14px rgba(15, 23, 42, 0.04);
     --ow-ring: rgba(59, 130, 246, 0.18);
     --ow-gradient: linear-gradient(135deg, #22d3ee 0%, #3b82f6 52%, #8b5cf6 100%);
-    --ow-button-secondary: rgba(255, 255, 255, 0.92);
+    --ow-button-secondary: rgba(255, 255, 255, 0.96);
     background: var(--ow-bg);
     color: var(--ow-text-primary);
   }
 
   [data-theme="light"] .dashboard-theme {
-    --ow-bg: linear-gradient(180deg, #ffffff 0%, #f8fafc 42%, #f6f8fb 100%);
-    --ow-sidebar-bg: rgba(255, 255, 255, 0.96);
-    --ow-header-bg: rgba(255, 255, 255, 0.94);
-    --ow-card-bg: rgba(255, 255, 255, 0.98);
-    --ow-card-muted: rgba(248, 250, 252, 0.98);
-    --ow-card-highlight: linear-gradient(135deg, rgba(248, 250, 252, 1), rgba(240, 249, 255, 0.96), rgba(238, 242, 255, 0.9));
+    --ow-bg: linear-gradient(180deg, #ffffff 0%, #fafbfd 50%, #f6f8fb 100%);
+    --ow-sidebar-bg: #ffffff;
+    --ow-sidebar-border: rgba(226, 232, 240, 0.95);
+    --ow-header-bg: #ffffff;
+    --ow-card-bg: #ffffff;
+    --ow-card-muted: #f8fafc;
+    --ow-card-highlight: linear-gradient(135deg, #f8fafc, #f0f9ff, #eef2ff);
+    --ow-border: rgba(226, 232, 240, 1);
+    --ow-border-subtle: rgba(226, 232, 240, 0.7);
+    --ow-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+    --ow-shadow-soft: 0 2px 8px rgba(15, 23, 42, 0.03);
   }
 
   [data-theme="dark"] .dashboard-theme {
-    --ow-bg: radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 20%), radial-gradient(circle at top right, rgba(139, 92, 246, 0.12), transparent 24%), linear-gradient(180deg, #08111f 0%, #0b1324 42%, #0a1020 100%);
-    --ow-sidebar-bg: rgba(9, 17, 33, 0.9);
-    --ow-sidebar-border: rgba(51, 65, 85, 0.82);
-    --ow-header-bg: rgba(11, 19, 36, 0.78);
-    --ow-card-bg: rgba(15, 23, 42, 0.88);
-    --ow-card-muted: rgba(15, 23, 42, 0.72);
-    --ow-card-highlight: linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.96), rgba(30, 41, 59, 0.92));
-    --ow-border: rgba(51, 65, 85, 0.9);
-    --ow-border-subtle: rgba(51, 65, 85, 0.66);
+    --ow-bg: radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 22%), radial-gradient(circle at top right, rgba(139, 92, 246, 0.14), transparent 26%), linear-gradient(180deg, #07101f 0%, #0a1324 50%, #08111f 100%);
+    --ow-sidebar-bg: rgba(9, 17, 33, 0.92);
+    --ow-sidebar-border: rgba(51, 65, 85, 0.7);
+    --ow-header-bg: rgba(11, 19, 36, 0.8);
+    --ow-card-bg: rgba(15, 23, 42, 0.85);
+    --ow-card-muted: rgba(15, 23, 42, 0.6);
+    --ow-card-highlight: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.92), rgba(30, 41, 59, 0.85));
+    --ow-border: rgba(51, 65, 85, 0.65);
+    --ow-border-subtle: rgba(51, 65, 85, 0.45);
     --ow-text-primary: #f8fafc;
     --ow-text-secondary: #cbd5e1;
     --ow-text-muted: #94a3b8;
-    --ow-shadow: 0 28px 70px rgba(2, 6, 23, 0.42);
-    --ow-shadow-soft: 0 16px 38px rgba(2, 6, 23, 0.34);
-    --ow-ring: rgba(96, 165, 250, 0.28);
+    --ow-shadow: 0 24px 60px rgba(2, 6, 23, 0.5);
+    --ow-shadow-soft: 0 8px 24px rgba(2, 6, 23, 0.4);
+    --ow-ring: rgba(96, 165, 250, 0.32);
     --ow-button-secondary: rgba(15, 23, 42, 0.88);
   }
 
   .dashboard-sidebar-surface {
     background: var(--ow-sidebar-bg);
     border-color: var(--ow-sidebar-border);
-    box-shadow: var(--ow-shadow);
   }
 
   .dashboard-header-surface,
@@ -187,16 +191,16 @@
     background: var(--ow-card-bg);
     border: 1px solid var(--ow-border);
     box-shadow: var(--ow-shadow-soft);
-    backdrop-filter: blur(20px);
   }
 
   .dashboard-card-surface {
-    border-radius: 24px;
+    border-radius: 20px;
+    transition: box-shadow 200ms ease, border-color 200ms ease;
   }
 
   .dashboard-card-muted {
     background: var(--ow-card-muted);
-    border-color: var(--ow-border-subtle);
+    border: 1px solid var(--ow-border-subtle);
   }
 
   .dashboard-card-highlight {
@@ -206,24 +210,24 @@
   }
 
   .dashboard-page-title {
-    font-size: clamp(1.75rem, 1.58rem + 0.7vw, 2rem);
-    line-height: 1.08;
+    font-size: clamp(1.75rem, 1.55rem + 0.85vw, 2rem);
+    line-height: 1.15;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
     color: var(--ow-text-primary);
   }
 
   .dashboard-section-title {
-    font-size: clamp(1.125rem, 1.04rem + 0.3vw, 1.25rem);
-    line-height: 1.25;
+    font-size: clamp(1.125rem, 1.06rem + 0.3vw, 1.25rem);
+    line-height: 1.3;
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.015em;
     color: var(--ow-text-primary);
   }
 
   .dashboard-card-title {
     font-size: clamp(1rem, 0.96rem + 0.25vw, 1.125rem);
-    line-height: 1.3;
+    line-height: 1.4;
     font-weight: 600;
     color: var(--ow-text-primary);
   }
@@ -244,23 +248,23 @@
     font-size: 0.75rem;
     line-height: 1.2;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ow-text-muted);
   }
 
   .dashboard-stat {
-    font-size: clamp(1.625rem, 1.44rem + 0.55vw, 2rem);
-    line-height: 1.15;
+    font-size: clamp(1.5rem, 1.35rem + 0.55vw, 1.875rem);
+    line-height: 1.2;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
     color: var(--ow-text-primary);
   }
 
   .dashboard-primary-button {
     background-image: var(--ow-gradient);
     color: white;
-    box-shadow: 0 16px 38px rgba(59, 130, 246, 0.24);
+    box-shadow: 0 10px 28px rgba(59, 130, 246, 0.22);
   }
 
   .dashboard-secondary-button {

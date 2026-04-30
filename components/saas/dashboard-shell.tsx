@@ -153,24 +153,24 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
   return (
     <div className="dashboard-theme min-h-dvh lg:h-screen lg:overflow-hidden">
       <aside
-        className="dashboard-sidebar-surface border-b backdrop-blur lg:fixed lg:bottom-4 lg:left-4 lg:top-4 lg:z-40 lg:h-[calc(100vh-2rem)] lg:overflow-y-auto lg:rounded-[28px] lg:border"
+        className="dashboard-sidebar-surface border-b backdrop-blur lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r"
         style={{ width: `min(100vw, ${DESKTOP_SIDEBAR_WIDTH}px)` }}
       >
-        <div className="flex min-h-full flex-col px-4 py-4 lg:px-4 lg:py-5">
+        <div className="flex min-h-full flex-col px-4 py-4 lg:px-5 lg:py-6">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 rounded-3xl px-2 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
+            className="flex items-center gap-3 rounded-2xl px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4f46e5] via-[#2563eb] to-[#22d3ee] text-white shadow-[0_14px_36px_rgba(79,70,229,0.28)]">
-              <Sparkles className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#4f46e5] via-[#2563eb] to-[#22d3ee] text-white shadow-[0_10px_24px_rgba(79,70,229,0.28)]">
+              <Sparkles className="h-[18px] w-[18px]" />
             </div>
-            <div>
-              <p className="text-[1.15rem] font-semibold tracking-tight text-slate-950">Omniweb</p>
-              <p className="dashboard-meta mt-0.5">{status.businessName || email || "Workspace"}</p>
+            <div className="min-w-0">
+              <p className="text-[17px] font-semibold tracking-tight text-slate-950">Omniweb</p>
+              <p className="dashboard-meta mt-0.5 truncate">{status.businessName || email || "Workspace"}</p>
             </div>
           </Link>
 
-          <nav className="mt-6 flex flex-1 gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible" aria-label="Dashboard navigation">
+          <nav className="mt-7 flex flex-1 gap-1.5 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible" aria-label="Dashboard navigation">
             {navItems.map((item) => {
               const active = isPathActive(pathname, item.href, item.aliases)
 
@@ -179,30 +179,30 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-[15px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 ${active ? "bg-slate-900 text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)]" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"}`}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 ${active ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]" : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"}`}
                 >
-                  <item.icon className={`h-[18px] w-[18px] ${active ? "text-cyan-300" : "text-sky-500"}`} />
+                  <item.icon className={`h-[18px] w-[18px] ${active ? "text-cyan-300" : "text-slate-500"}`} />
                   <span className="whitespace-nowrap">{item.label}</span>
                 </Link>
               )
             })}
           </nav>
 
-          <div className="mt-auto border-t border-slate-200/80 pt-4">
+          <div className="mt-auto border-t border-slate-200/70 pt-4">
             <div ref={accountContainerRef} className="relative">
               <div
                 id={accountMenuId}
                 role="menu"
                 aria-hidden={!accountMenuOpen}
-                className={`absolute inset-x-0 bottom-full mb-3 origin-bottom rounded-[1.6rem] border border-slate-200/80 bg-white/96 p-2 shadow-[0_24px_60px_rgba(15,23,42,0.18)] backdrop-blur transition duration-200 ${accountMenuOpen ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-[0.98] opacity-0"}`}
+                className={`absolute inset-x-0 bottom-full mb-3 origin-bottom rounded-2xl border border-slate-200/80 bg-white/98 p-2 shadow-[0_24px_60px_rgba(15,23,42,0.18)] backdrop-blur transition duration-200 ${accountMenuOpen ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-[0.98] opacity-0"}`}
               >
-                <div className="mb-2 rounded-[1.2rem] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(248,250,252,0.98),rgba(240,249,255,0.98),rgba(238,242,255,0.98))] px-3 py-3">
-                  <p className="truncate text-[15px] font-semibold text-slate-900">{displayName}</p>
+                <div className="mb-2 rounded-xl border border-slate-200/80 bg-[linear-gradient(135deg,rgba(248,250,252,0.98),rgba(240,249,255,0.98),rgba(238,242,255,0.98))] px-3 py-3">
+                  <p className="truncate text-[14px] font-semibold text-slate-900">{displayName}</p>
                   <p className="dashboard-meta truncate">{email}</p>
                   <p className="mt-2 inline-flex rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-200">{planLabel}</p>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   {accountMenuItems.map((item) => {
                     const active = isPathActive(pathname, item.href)
                     return (
@@ -212,11 +212,11 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                         role="menuitem"
                         tabIndex={accountMenuOpen ? 0 : -1}
                         onClick={() => setAccountMenuOpen(false)}
-                        className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${active ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"}`}
+                        className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${active ? "bg-slate-900 text-white" : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"}`}
                       >
-                        <item.icon className={`h-4 w-4 ${active ? "text-cyan-300" : "text-sky-500"}`} />
+                        <item.icon className={`h-4 w-4 ${active ? "text-cyan-300" : "text-slate-500"}`} />
                         <span>{item.label}</span>
-                        {item.href === "/dashboard/billing" ? <CreditCard className="ml-auto h-4 w-4 opacity-70" /> : null}
+                        {item.href === "/dashboard/billing" ? <CreditCard className="ml-auto h-4 w-4 opacity-60" /> : null}
                       </Link>
                     )
                   })}
@@ -233,7 +233,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                   role="menuitem"
                   tabIndex={accountMenuOpen ? 0 : -1}
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium text-rose-600 transition hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Log out</span>
@@ -245,15 +245,14 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                 aria-expanded={accountMenuOpen}
                 aria-controls={accountMenuId}
                 onClick={() => setAccountMenuOpen((open) => !open)}
-                className="flex w-full items-center gap-3 rounded-[1.5rem] border border-slate-200/80 bg-[linear-gradient(90deg,rgba(255,255,255,0.92),rgba(240,249,255,0.92),rgba(238,242,255,0.92))] px-3 py-3 text-left shadow-[0_10px_22px_rgba(148,163,184,0.12)] transition hover:border-cyan-200 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                className="flex w-full items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/85 px-3 py-2.5 text-left shadow-[0_8px_18px_rgba(148,163,184,0.10)] transition hover:border-cyan-200 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#4f46e5] via-[#2563eb] to-[#22d3ee] text-sm font-semibold text-white shadow-[0_10px_22px_rgba(79,70,229,0.22)]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#4f46e5] via-[#2563eb] to-[#22d3ee] text-[13px] font-semibold text-white shadow-[0_8px_18px_rgba(79,70,229,0.22)]">
                   {avatarUrl ? <img src={avatarUrl} alt={displayName} className="h-full w-full object-cover" /> : initials}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-semibold text-slate-900">{displayName}</p>
+                  <p className="truncate text-[14px] font-semibold text-slate-900">{displayName}</p>
                   <p className="dashboard-meta truncate">{email}</p>
-                  <p className="dashboard-meta mt-1 font-medium uppercase tracking-[0.16em]">{planLabel}</p>
                 </div>
                 <ChevronUp className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${accountMenuOpen ? "rotate-0" : "rotate-180"}`} />
               </button>
@@ -262,21 +261,19 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
         </div>
       </aside>
 
-      <div className="min-h-dvh lg:ml-[272px] lg:h-screen lg:overflow-y-auto">
-        <div className="px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-          <div className="mx-auto max-w-[1400px] space-y-6">
-            <header className="dashboard-header-surface flex flex-col gap-5 rounded-[24px] px-6 py-5 sm:flex-row sm:items-start sm:justify-between lg:px-8 lg:py-6">
-              <div>
-                <p className="dashboard-eyebrow inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-                  {activeNavItem.label}
-                </p>
-                <h1 className="dashboard-page-title mt-4">{status.businessName || "Your Omniweb workspace"}</h1>
+      <div className="min-h-dvh lg:ml-[240px] lg:h-screen lg:overflow-y-auto">
+        <div className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
+            <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="dashboard-eyebrow">{activeNavItem.label}</p>
+                <h1 className="dashboard-page-title mt-3">{status.businessName || "Your Omniweb workspace"}</h1>
                 <p className="dashboard-body mt-2 max-w-3xl">{pageDescription}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-3 self-start sm:justify-end">
+              <div className="flex flex-wrap items-center gap-3 self-start sm:self-end sm:justify-end">
                 <Link
                   href="/dashboard/billing"
-                  className="dashboard-secondary-button inline-flex h-12 items-center justify-center rounded-full px-6 text-[15px] font-semibold transition hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
+                  className="dashboard-secondary-button inline-flex h-11 items-center justify-center rounded-full px-5 text-[14px] font-semibold transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
                 >
                   Billing
                 </Link>
@@ -284,14 +281,14 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
             </header>
 
             {status.subscriptionStatus === "trialing" ? (
-              <div className="dashboard-card-highlight flex flex-col gap-4 rounded-[24px] px-6 py-5 sm:flex-row sm:items-center sm:justify-between lg:px-8 lg:py-6">
-                <div>
+              <div className="dashboard-card-highlight flex flex-col gap-4 rounded-[20px] px-6 py-5 sm:flex-row sm:items-center sm:justify-between lg:px-7">
+                <div className="min-w-0">
                   <p className="dashboard-card-title">Your 7-day free trial is active</p>
                   <p className="dashboard-body mt-1">You have {status.daysLeft ?? 7} day{status.daysLeft === 1 ? "" : "s"} left in your free trial.</p>
                 </div>
                 <Link
                   href="/dashboard/billing"
-                  className="dashboard-primary-button inline-flex h-12 items-center justify-center rounded-full px-6 text-[15px] font-semibold transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
+                  className="dashboard-primary-button inline-flex h-11 items-center justify-center rounded-full px-6 text-[14px] font-semibold transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
                 >
                   Upgrade plan
                 </Link>
@@ -299,14 +296,14 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
             ) : null}
 
             {status.subscriptionStatus === "expired" ? (
-              <div className="flex flex-col gap-4 rounded-[24px] border border-amber-200 bg-amber-50 px-6 py-5 text-sm text-amber-900 shadow-[0_12px_24px_rgba(245,158,11,0.10)] sm:flex-row sm:items-center sm:justify-between lg:px-8 lg:py-6">
+              <div className="flex flex-col gap-4 rounded-[20px] border border-amber-200 bg-amber-50 px-6 py-5 text-sm text-amber-900 shadow-[0_8px_24px_rgba(245,158,11,0.10)] sm:flex-row sm:items-center sm:justify-between lg:px-7">
                 <div>
                   <p className="dashboard-card-title text-amber-950">Trial expired</p>
                   <p className="dashboard-body text-amber-900/80">Your data is safe, but AI features stay locked until you upgrade.</p>
                 </div>
                 <Link
                   href="/dashboard/billing"
-                  className="inline-flex h-12 items-center justify-center rounded-full bg-slate-900 px-6 text-[15px] font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50"
+                  className="inline-flex h-11 items-center justify-center rounded-full bg-slate-900 px-6 text-[14px] font-semibold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-amber-50"
                 >
                   Open billing
                 </Link>
