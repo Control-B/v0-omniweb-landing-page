@@ -11,17 +11,12 @@ import {
   Phone,
   Wallet,
 } from "lucide-react"
+import { getDisplayPlanName, getPlanDetails, getPricingContent } from "@/lib/saas/billing"
 import { requireDashboardAccess } from "@/lib/saas/guards"
 import { getDashboardSnapshot } from "@/lib/saas/status"
 
 function cardClassName() {
   return "rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
-}
-
-function formatPlan(value: string | null | undefined) {
-  if (value === "business") return "Business"
-  if (value === "standard") return "Standard"
-  return "Starter"
 }
 
 function formatSubscriptionStatus(value: string | null | undefined) {
@@ -48,7 +43,9 @@ export default async function DashboardPage() {
   const snapshot = await getDashboardSnapshot()
   const { status, billingStatus, agentConfig, telephonyConfig, widgetEmbedCode } = snapshot
 
-  const planLabel = formatPlan(billingStatus?.plan ?? status.plan)
+  const pricingContent = getPricingContent(status.industry)
+  const planDetails = getPlanDetails(billingStatus?.plan ?? status.plan, status.industry)
+  const planLabel = getDisplayPlanName(billingStatus?.plan ?? status.plan, status.industry)
   const subscriptionLabel = formatSubscriptionStatus(status.subscriptionStatus)
   const isTrial = status.subscriptionStatus !== "active"
   const aiAgentReady = Boolean(agentConfig?.active)
@@ -149,6 +146,7 @@ export default async function DashboardPage() {
                 </span>
               </div>
               <p className="mt-4 text-2xl font-semibold text-slate-950">{planLabel}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Current pricing is framed for {pricingContent.label.toLowerCase()} teams and tracks value using {planDetails.metricLabel.toLowerCase()}.</p>
               <dl className="mt-5 space-y-3 text-sm text-slate-600">
                 <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
                   <dt>Current plan</dt>
@@ -161,6 +159,10 @@ export default async function DashboardPage() {
                 <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
                   <dt>Days remaining</dt>
                   <dd className="font-semibold text-slate-900">{billingStatus?.daysLeft ?? status.daysLeft ?? 7}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                  <dt>{planDetails.metricLabel}</dt>
+                  <dd className="font-semibold text-slate-900">{planDetails.conversationsPerMonth.toLocaleString()}</dd>
                 </div>
               </dl>
               <Link href="/dashboard/billing" className={actionLinkClassName()}>
