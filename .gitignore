@@ -18,6 +18,7 @@ ai/.venv/
 ai/__pycache__/
 .env.local
 *.pyc
+backend/
 
 # clerk configuration (can include secrets)
 /.clerk/
