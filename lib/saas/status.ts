@@ -1,17 +1,11 @@
 import "server-only"
 
 import { auth, currentUser } from "@clerk/nextjs/server"
-import { buildWidgetEmbedCode, ensureDefaultAgentConfig, getTenantByClerkUserId, updateTenantSubscriptionStatus } from "@/lib/saas/store"
+import { getTenantBillingStatus } from "@/lib/saas/billing"
+import { buildWidgetEmbedCode, ensureDefaultAgentConfig, ensureDefaultTelephonyConfig, getTenantByClerkUserId, updateTenantById } from "@/lib/saas/store"
 import type { DashboardSnapshot, TenantStatus } from "@/lib/saas/types"
 
 const TRIAL_LENGTH_MS = 7 * 24 * 60 * 60 * 1000
-
-function getDaysLeft(trialEndsAt: string | null) {
-  if (!trialEndsAt) return null
-  const diff = new Date(trialEndsAt).getTime() - Date.now()
-  if (diff <= 0) return 0
-  return Math.max(1, Math.ceil(diff / (24 * 60 * 60 * 1000)))
-}
 
 export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
   const { userId } = await auth()
@@ -22,9 +16,14 @@ export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
       onboardingCompleted: false,
       trialStartedAt: null,
       trialEndsAt: null,
+      subscriptionStartedAt: null,
+      subscriptionEndsAt: null,
       daysLeft: null,
       subscriptionStatus: null,
       canAccessDashboard: false,
+      canAccessFeatures: false,
+      isTrialActive: false,
+      isExpired: false,
       shouldRedirectToOnboarding: false,
       shouldRedirectToPricing: false,
       plan: null,
@@ -47,9 +46,14 @@ export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
       onboardingCompleted: false,
       trialStartedAt: null,
       trialEndsAt: null,
+      subscriptionStartedAt: null,
+      subscriptionEndsAt: null,
       daysLeft: null,
       subscriptionStatus: null,
       canAccessDashboard: false,
+      canAccessFeatures: false,
+      isTrialActive: false,
+      isExpired: false,
       shouldRedirectToOnboarding: true,
       shouldRedirectToPricing: false,
       plan: "starter",
@@ -63,40 +67,43 @@ export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
     }
   }
 
-  let subscriptionStatus = tenant.subscriptionStatus
-  if (
-    tenant.onboardingCompleted
-    && tenant.trialEndsAt
-    && new Date(tenant.trialEndsAt).getTime() < Date.now()
-    && subscriptionStatus !== "active"
-    && subscriptionStatus !== "expired"
-  ) {
-    const updated = await updateTenantSubscriptionStatus(userId, "expired")
-    subscriptionStatus = updated?.subscriptionStatus ?? "expired"
+  let nextTenant = tenant
+  let billingStatus = getTenantBillingStatus(nextTenant)
+
+  if (tenant.onboardingCompleted && billingStatus.subscriptionStatus !== tenant.subscriptionStatus) {
+    const updated = await updateTenantById(tenant.id, {
+      subscriptionStatus: billingStatus.subscriptionStatus,
+    })
+
+    if (updated) {
+      nextTenant = updated
+      billingStatus = getTenantBillingStatus(nextTenant)
+    }
   }
 
-  const daysLeft = getDaysLeft(tenant.trialEndsAt)
-  const canAccessDashboard = tenant.onboardingCompleted && (
-    subscriptionStatus === "active"
-    || (subscriptionStatus === "trialing" && (daysLeft === null || daysLeft > 0))
-  )
+  const canAccessDashboard = nextTenant.onboardingCompleted && billingStatus.canAccessFeatures
 
   return {
     isSignedIn: true,
-    onboardingCompleted: tenant.onboardingCompleted,
-    trialStartedAt: tenant.trialStartedAt,
-    trialEndsAt: tenant.trialEndsAt,
-    daysLeft,
-    subscriptionStatus,
+    onboardingCompleted: nextTenant.onboardingCompleted,
+    trialStartedAt: nextTenant.trialStartedAt,
+    trialEndsAt: nextTenant.trialEndsAt,
+    subscriptionStartedAt: nextTenant.subscriptionStartedAt,
+    subscriptionEndsAt: nextTenant.subscriptionEndsAt,
+    daysLeft: billingStatus.daysLeft,
+    subscriptionStatus: billingStatus.subscriptionStatus,
     canAccessDashboard,
-    shouldRedirectToOnboarding: !tenant.onboardingCompleted,
-    shouldRedirectToPricing: tenant.onboardingCompleted && !canAccessDashboard,
-    plan: tenant.plan,
-    tenantId: tenant.id,
-    businessName: tenant.businessName,
-    industry: tenant.industry,
-    websiteDomain: tenant.websiteDomain,
-    clerkUserId: tenant.clerkUserId,
+    canAccessFeatures: billingStatus.canAccessFeatures,
+    isTrialActive: billingStatus.isTrialActive,
+    isExpired: billingStatus.isExpired,
+    shouldRedirectToOnboarding: !nextTenant.onboardingCompleted,
+    shouldRedirectToPricing: nextTenant.onboardingCompleted && billingStatus.isExpired,
+    plan: billingStatus.plan,
+    tenantId: nextTenant.id,
+    businessName: nextTenant.businessName,
+    industry: nextTenant.industry,
+    websiteDomain: nextTenant.websiteDomain,
+    clerkUserId: nextTenant.clerkUserId,
     email: user?.primaryEmailAddress?.emailAddress ?? null,
     firstName: user?.firstName ?? user?.username ?? null,
   }
@@ -105,7 +112,7 @@ export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
 export function getSignedInAppRedirect(status: TenantStatus) {
   if (!status.isSignedIn) return "/signin"
   if (status.shouldRedirectToOnboarding) return "/onboarding"
-  if (status.shouldRedirectToPricing) return "/trial-expired"
+  if (status.shouldRedirectToPricing) return "/pricing"
   return "/dashboard"
 }
 
@@ -116,18 +123,24 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
     return {
       status,
       tenant: null,
+      billingStatus: null,
       agentConfig: null,
+      telephonyConfig: null,
       widgetEmbedCode: null,
     }
   }
 
   const tenant = await getTenantByClerkUserId(status.clerkUserId)
+  const billingStatus = getTenantBillingStatus(tenant)
   const agentConfig = tenant ? await ensureDefaultAgentConfig(tenant.id) : null
+  const telephonyConfig = tenant ? await ensureDefaultTelephonyConfig(tenant.id) : null
 
   return {
     status,
     tenant,
+    billingStatus,
     agentConfig,
+    telephonyConfig,
     widgetEmbedCode: tenant ? buildWidgetEmbedCode(tenant.id) : null,
   }
 }

@@ -18,7 +18,7 @@ export async function requireOnboardingPageAccess() {
 
   if (!status.shouldRedirectToOnboarding) {
     if (status.shouldRedirectToPricing) {
-      redirect("/trial-expired")
+      redirect("/pricing")
     }
 
     redirect("/dashboard")
@@ -27,15 +27,15 @@ export async function requireOnboardingPageAccess() {
   return status
 }
 
-export async function requireDashboardAccess(options?: { allowExpiredPricing?: boolean }) {
+export async function requireDashboardAccess(options?: { allowExpiredBilling?: boolean }) {
   const status = await requireSignedInUser()
 
   if (status.shouldRedirectToOnboarding) {
     redirect("/onboarding")
   }
 
-  if (status.shouldRedirectToPricing && !options?.allowExpiredPricing) {
-    redirect("/trial-expired")
+  if (status.shouldRedirectToPricing && !options?.allowExpiredBilling) {
+    redirect("/pricing")
   }
 
   return status

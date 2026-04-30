@@ -10,18 +10,18 @@ function cardClassName() {
 export default async function DashboardPage() {
   await requireDashboardAccess()
   const snapshot = await getDashboardSnapshot()
-  const { status, agentConfig, widgetEmbedCode } = snapshot
+  const { status, billingStatus, agentConfig, widgetEmbedCode } = snapshot
 
   return (
     <div className="space-y-5">
       <section className="grid gap-4 xl:grid-cols-5">
         <div className={cardClassName()}>
           <p className="text-sm font-medium text-slate-500">Subscription</p>
-          <p className="mt-4 text-2xl font-semibold text-slate-950">Free trial</p>
+          <p className="mt-4 text-2xl font-semibold text-slate-950">{billingStatus?.plan === "standard" ? "Standard" : billingStatus?.plan === "business" ? "Business" : "Starter"}</p>
           <p className="mt-2 text-sm text-slate-600">Status: {status.subscriptionStatus ?? "trialing"}</p>
-          <p className="mt-1 text-sm text-slate-600">Plan: Starter</p>
+          <p className="mt-1 text-sm text-slate-600">Plan: {billingStatus?.plan === "standard" ? "Standard" : billingStatus?.plan === "business" ? "Business" : "Starter"}</p>
           <p className="mt-1 text-sm text-slate-600">Days left: {status.daysLeft ?? 7}</p>
-          <Link href="/dashboard/pricing" className="mt-5 inline-flex text-sm font-semibold text-blue-600 hover:text-blue-500">Upgrade plan</Link>
+          <Link href="/dashboard/billing" className="mt-5 inline-flex text-sm font-semibold text-blue-600 hover:text-blue-500">Manage billing</Link>
         </div>
 
         <div className={cardClassName()}>
@@ -76,7 +76,7 @@ export default async function DashboardPage() {
               <p className="text-lg font-semibold text-slate-950">Widget embed code</p>
               <p className="mt-1 text-sm text-slate-600">Placeholder snippet for your website install.</p>
             </div>
-            <Link href="/dashboard/pricing" className="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">
+            <Link href="/dashboard/billing" className="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50">
               <Wallet className="mr-2 h-4 w-4" />
               Billing
             </Link>
