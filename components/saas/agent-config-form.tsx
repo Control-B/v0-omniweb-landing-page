@@ -52,6 +52,36 @@ function buildPayload(config: AgentConfigRecord): AgentConfigUpdatePayload {
   }
 }
 
+const DEFAULT_CONFIG: AgentConfigRecord = {
+  tenantId: "",
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  agentName: "Omniweb AI",
+  welcomeMessage: "Welcome! I'm here to answer questions, recommend the right solution, and help you get the most value from our services. How can I help you today?",
+  tone: "professional",
+  businessName: "",
+  businessType: null,
+  industry: null,
+  websiteDomain: null,
+  bookingUrl: null,
+  agentMode: "general_lead_gen",
+  goals: ["lead_qualification", "customer_support", "sales_assistance", "site_navigation", "product_or_service_explainer", "follow_up"],
+  enabledChannels: ["website_chat"],
+  leadCaptureFields: ["name", "email", "phone"],
+  enabledFeatures: { sales_associate: true, customer_service_specialist: true, lead_qualification_specialist: true, lead_capture_optimizer: true },
+  qualificationRules: {
+    requiredFields: ["name", "email"],
+    handoffTriggers: [],
+    disqualifiers: [],
+    conversionSignals: ["pricing", "demo", "quote", "book", "buy"],
+  },
+  customInstructions: "",
+  active: false,
+  promptPreview: "",
+  availableModes: [],
+  channelBehaviorProfiles: [],
+}
+
 export function AgentConfigForm() {
   const [config, setConfig] = useState<AgentConfigRecord | null>(null)
   const [templates, setTemplates] = useState<AgentTemplateRecord[]>([])
@@ -79,7 +109,8 @@ export function AgentConfigForm() {
           fetchAgentTemplates(),
         ])
         if (cancelled) return
-        setConfig(nextConfig)
+        // null = new tenant with no record yet — seed defaults so the form is usable
+        setConfig(nextConfig ?? DEFAULT_CONFIG)
         setTemplates(templatePayload.templates)
       } catch (loadError) {
         if (!cancelled) {

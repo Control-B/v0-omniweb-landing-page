@@ -16,6 +16,8 @@ async function parseJson<T>(response: Response): Promise<T> {
 
 export async function fetchAgentConfig() {
   const response = await fetch("/api/agent/config", { cache: "no-store" })
+  // 404 = tenant has no agent record yet — treat as empty, not an error
+  if (response.status === 404) return null
   return parseJson<AgentConfigRecord>(response)
 }
 
