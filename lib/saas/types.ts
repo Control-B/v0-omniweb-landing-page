@@ -118,6 +118,7 @@ export type AgentConfigUpdatePayload = Partial<{
   bookingUrl: string
   agentMode: string
   goals: string[]
+  supportedLanguages: string[]
   enabledChannels: string[]
   leadCaptureFields: string[]
   enabledFeatures: Record<string, boolean>

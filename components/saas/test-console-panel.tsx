@@ -22,15 +22,17 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
   const [voiceVariant, setVoiceVariant] = useState<"Female" | "Male">("Female")
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-[1.75rem] border border-white/70 bg-[linear-gradient(90deg,rgba(99,102,241,0.10),rgba(34,211,238,0.08),rgba(99,102,241,0.08))] p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
+    <div className="space-y-6">
+      <section className="rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(238,242,255,0.85),rgba(240,249,255,0.92),rgba(236,253,245,0.75))] p-6 shadow-[0_12px_36px_rgba(15,23,42,0.06)]">
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500"><TestTube2 className="h-4 w-4 text-violet-500" />Test Console</div>
         <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Agent Test Console</h2>
-        <p className="mt-2 text-sm text-slate-600">“Omniweb AI” — test voice and text before shoppers see it.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Validate the voice experience, greeting, and guided responses before Omniweb goes live to visitors.</p>
       </section>
 
-      <section className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+        <div className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <p className="text-sm font-medium text-slate-500">Voice selector</p>
+          <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-slate-500">Voice:</span>
             <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 p-1">
@@ -60,20 +62,21 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
               <span className="h-6 w-6 rounded-full bg-white/20 shadow-inner" />
               Ask AI
             </button>
-            <span className="text-sm text-slate-500">Opens your storefront</span>
+            <span className="text-sm text-slate-500">Opens your storefront widget</span>
           </div>
         </div>
+        </div>
+
+        <section className="rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <p className="text-sm font-medium text-slate-500">Opening message</p>
+          <p className="mt-4 text-base leading-7 text-slate-800">“{welcomeMessage}”</p>
+        </section>
       </section>
 
-      <section className="rounded-[1.2rem] border border-white/70 border-l-4 border-l-emerald-500 bg-white/80 px-5 py-4 shadow-[0_16px_35px_rgba(148,163,184,0.08)]">
-        <p className="text-sm text-slate-500">Opening message:</p>
-        <p className="mt-1 text-base text-slate-800">“{welcomeMessage}”</p>
-      </section>
-
-      <section className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white/70 p-6 shadow-[0_16px_35px_rgba(148,163,184,0.08)]">
+      <section className={`rounded-[28px] p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] ${agentReady ? "border border-emerald-200 bg-emerald-50/70" : "border border-dashed border-slate-300 bg-white/70"}`}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-full bg-amber-50 p-2 text-amber-600">
+            <div className={`mt-0.5 rounded-full p-2 ${agentReady ? "bg-emerald-100 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div>
@@ -95,9 +98,9 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
         </div>
       </section>
 
-      <section className="grid gap-3 xl:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {checklistItems.map(([title, description], index) => (
-          <div key={title} className="rounded-[1.25rem] border border-white/70 bg-white/80 p-4 shadow-[0_16px_35px_rgba(148,163,184,0.08)]">
+          <div key={title} className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
             <div className="mb-3 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">{index + 1}</div>
             <p className="font-semibold text-slate-900">{title}</p>
             <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>

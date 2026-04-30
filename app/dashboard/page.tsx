@@ -9,7 +9,6 @@ import {
   Code2,
   Globe,
   Phone,
-  Sparkles,
   Wallet,
 } from "lucide-react"
 import { requireDashboardAccess } from "@/lib/saas/guards"
@@ -98,16 +97,15 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(320px,3fr)]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.95fr)]">
         <div className="space-y-6">
-          <div className={cardClassName()}>
+          <section className={cardClassName()}>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="max-w-2xl">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Overview</p>
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Your launch posture at a glance</h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">Setup overview</p>
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Your workspace launch posture</h2>
                 <p className="mt-3 text-sm leading-6 text-slate-600">
-                  Keep the highest-impact systems visible in one place: AI readiness, website coverage, telephony, and the next action that unlocks more value.
+                  Keep agent readiness, site coverage, widget status, and telephony setup in one clean control surface so the next action is always obvious.
                 </p>
               </div>
 
@@ -118,168 +116,91 @@ export default async function DashboardPage() {
                   <p className="mt-1 text-sm text-slate-600">{status.industry || "Industry pending"}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Workspace health</p>
-                  <p className="mt-2 text-base font-semibold text-slate-900">{setupCompleted}/{setupItems.length} systems ready</p>
-                  <p className="mt-1 text-sm text-slate-600">Agent, knowledge, widget, and telephony coverage.</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Website</p>
+                  <p className="mt-2 text-base font-semibold text-slate-900">{status.websiteDomain || "Add your domain"}</p>
+                  <p className="mt-1 text-sm text-slate-600">{setupProgress}% setup completion</p>
                 </div>
               </div>
             </div>
+          </section>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+          <section className="grid gap-6 lg:grid-cols-2">
+            <div className={`${cardClassName()} flex min-h-[260px] flex-col`}>
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                Next best step
+              </div>
+              <p className="mt-4 text-2xl font-semibold text-slate-950">{nextStep.title}</p>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{nextStep.description}</p>
+              <Link href={nextStep.href} className={actionLinkClassName()}>
+                {nextStep.cta}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className={`${cardClassName()} flex min-h-[260px] flex-col`}>
+              <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                  <Sparkles className="h-4 w-4 text-cyan-500" />
-                  Next best step
+                  <Wallet className="h-4 w-4 text-blue-500" />
+                  Subscription snapshot
                 </div>
-                <p className="mt-4 text-xl font-semibold text-slate-950">{nextStep.title}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{nextStep.description}</p>
-                <Link href={nextStep.href} className={`${actionLinkClassName()} mt-5`}>
-                  {nextStep.cta}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-
-              <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    Setup progress
-                  </div>
-                  <span className="text-sm font-semibold text-slate-900">{setupProgress}%</span>
-                </div>
-                <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200">
-                  <div className="h-full rounded-full bg-[linear-gradient(90deg,#0ea5e9,#4f46e5)]" style={{ width: `${setupProgress}%` }} />
-                </div>
-                <ul className="mt-4 space-y-3 text-sm text-slate-600">
-                  <li className="flex items-center justify-between gap-3">
-                    <span>AI agent configured</span>
-                    <span className={aiAgentReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{aiAgentReady ? "Ready" : "Pending"}</span>
-                  </li>
-                  <li className="flex items-center justify-between gap-3">
-                    <span>Knowledge source connected</span>
-                    <span className={knowledgeReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{knowledgeReady ? "Ready" : "Pending"}</span>
-                  </li>
-                  <li className="flex items-center justify-between gap-3">
-                    <span>Widget snippet available</span>
-                    <span className={widgetReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{widgetReady ? "Ready" : "Pending"}</span>
-                  </li>
-                  <li className="flex items-center justify-between gap-3">
-                    <span>Telephony routing configured</span>
-                    <span className={telephonyReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{telephonyReady ? "Ready" : "Optional"}</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className={`${cardClassName()} flex min-h-[240px] flex-col`}>
-              <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                <Bot className="h-4 w-4 text-cyan-500" />
-                AI Agent status
-              </div>
-              <div className="mt-5 flex items-center gap-2">
-                <p className="text-2xl font-semibold text-slate-950">{aiAgentReady ? "Configured" : "Needs setup"}</p>
-                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusBadgeClassName(aiAgentReady ? "success" : "warning")}`}>
-                  {aiAgentReady ? "Ready" : "Action needed"}
+                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClassName(isTrial ? "warning" : "success")}`}>
+                  {subscriptionLabel}
                 </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                {agentConfig?.agentName || "Omniweb AI"} is your shared assistant for text and voice channels. Fine-tune its greeting, mode, and conversion goals here.
-              </p>
-              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                <span className="font-semibold text-slate-900">Mode:</span> {agentConfig?.modeDefinition?.label || agentConfig?.agentMode || "General lead gen"}
-              </div>
-              <Link href="/dashboard/ai-agent" className={actionLinkClassName()}>
-                Edit AI agent
+              <p className="mt-4 text-2xl font-semibold text-slate-950">{planLabel}</p>
+              <dl className="mt-5 space-y-3 text-sm text-slate-600">
+                <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                  <dt>Current plan</dt>
+                  <dd className="font-semibold text-slate-900">{planLabel}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                  <dt>Billing status</dt>
+                  <dd className="font-semibold text-slate-900">{subscriptionLabel}</dd>
+                </div>
+                <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                  <dt>Days remaining</dt>
+                  <dd className="font-semibold text-slate-900">{billingStatus?.daysLeft ?? status.daysLeft ?? 7}</dd>
+                </div>
+              </dl>
+              <Link href="/dashboard/billing" className={actionLinkClassName()}>
+                Open billing
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-
-            <div className={`${cardClassName()} flex min-h-[240px] flex-col`}>
-              <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-                <Code2 className="h-4 w-4 text-violet-500" />
-                Widget status
-              </div>
-              <div className="mt-5 flex items-center gap-2">
-                <p className="text-2xl font-semibold text-slate-950">{widgetReady ? "Ready to install" : "Install pending"}</p>
-                <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusBadgeClassName(widgetReady ? "default" : "warning")}`}>
-                  {widgetReady ? "Snippet ready" : "Pending"}
-                </span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Launch Omniweb on {status.websiteDomain || "your website"} with the tenant-specific embed snippet and start collecting live conversations.
-              </p>
-              <div className="mt-5 rounded-2xl bg-slate-950 p-4">
-                <pre className="overflow-x-auto text-[11px] leading-5 text-cyan-200">
-                  {widgetEmbedCode || "Widget embed code will appear once your workspace snippet is available."}
-                </pre>
-              </div>
-              <Link href="/dashboard/ai-agent" className={actionLinkClassName()}>
-                Review widget install
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
+          </section>
         </div>
 
-        <div className="space-y-4">
-          <div className={`${cardClassName()} flex flex-col`}>
+        <div className="space-y-6">
+          <section className={`${cardClassName()} flex min-h-[260px] flex-col`}>
             <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-slate-500">Billing snapshot</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{planLabel}</p>
-              </div>
-              <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClassName(isTrial ? "warning" : "success")}`}>
-                {subscriptionLabel}
-              </span>
+              <p className="text-sm font-medium text-slate-500">Setup checklist</p>
+              <span className="text-sm font-semibold text-slate-900">{setupProgress}%</span>
             </div>
-            <dl className="mt-5 space-y-3 text-sm text-slate-600">
-              <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
-                <dt>Current plan</dt>
-                <dd className="font-semibold text-slate-900">{planLabel}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
-                <dt>Billing status</dt>
-                <dd className="font-semibold text-slate-900">{subscriptionLabel}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
-                <dt>Days remaining</dt>
-                <dd className="font-semibold text-slate-900">{billingStatus?.daysLeft ?? status.daysLeft ?? 7}</dd>
-              </div>
-            </dl>
-            <Link href="/dashboard/billing" className={actionLinkClassName()}>
-              Open billing
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+            <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200">
+              <div className="h-full rounded-full bg-[linear-gradient(90deg,#0ea5e9,#4f46e5)]" style={{ width: `${setupProgress}%` }} />
+            </div>
+            <ul className="mt-5 space-y-3 text-sm text-slate-600">
+              <li className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                <span>AI agent configured</span>
+                <span className={aiAgentReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{aiAgentReady ? "Ready" : "Pending"}</span>
+              </li>
+              <li className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                <span>Knowledge source connected</span>
+                <span className={knowledgeReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{knowledgeReady ? "Ready" : "Pending"}</span>
+              </li>
+              <li className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                <span>Widget snippet available</span>
+                <span className={widgetReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{widgetReady ? "Ready" : "Pending"}</span>
+              </li>
+              <li className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                <span>Telephony routing configured</span>
+                <span className={telephonyReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{telephonyReady ? "Ready" : "Optional"}</span>
+              </li>
+            </ul>
+          </section>
 
-          <div className={`${cardClassName()} flex flex-col`}>
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-              <Wallet className="h-4 w-4 text-blue-500" />
-              Usage
-            </div>
-            <p className="mt-4 text-2xl font-semibold text-slate-950">{setupCompleted}/{setupItems.length} systems live</p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              Use this as your quick readiness signal while traffic ramps. Analytics will populate after the widget or telephony starts receiving conversations.
-            </p>
-            <div className="mt-5 grid gap-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Business</p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{status.businessName || "Not set"}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Website</p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{status.websiteDomain || "Not connected"}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Telephony</p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{telephonyConfig?.aiPhoneNumber || "Not configured"}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className={`${cardClassName()} flex flex-col`}>
+          <section className={`${cardClassName()} flex min-h-[260px] flex-col`}>
             <p className="text-sm font-medium text-slate-500">Quick actions</p>
             <div className="mt-5 space-y-3">
               <Link href="/dashboard/profile" className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
@@ -295,11 +216,11 @@ export default async function DashboardPage() {
                 <ArrowRight className="h-4 w-4 text-slate-400" />
               </Link>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <div className={`${cardClassName()} flex min-h-[224px] flex-col`}>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
             <Bot className="h-4 w-4 text-cyan-500" />
@@ -318,7 +239,7 @@ export default async function DashboardPage() {
         <div className={`${cardClassName()} flex min-h-[224px] flex-col`}>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
             <Code2 className="h-4 w-4 text-violet-500" />
-            Widget
+            Website Widget
           </div>
           <p className="mt-5 text-2xl font-semibold text-slate-950">{widgetReady ? "Install ready" : "Setup pending"}</p>
           <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -360,6 +281,21 @@ export default async function DashboardPage() {
           </p>
           <Link href="/dashboard/analytics" className={actionLinkClassName()}>
             View analytics
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className={`${cardClassName()} flex min-h-[224px] flex-col`}>
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            <Phone className="h-4 w-4 text-sky-500" />
+            AI Telephony
+          </div>
+          <p className="mt-5 text-2xl font-semibold text-slate-950">{telephonyReady ? "Configured" : "Needs setup"}</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Extend the shared Omniweb agent to live phone calls with routing, escalation, and concise voice handling.
+          </p>
+          <Link href="/dashboard/ai-telephony" className={actionLinkClassName()}>
+            Open telephony
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

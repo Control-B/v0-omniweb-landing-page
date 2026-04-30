@@ -259,7 +259,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
 
       <div className="min-h-dvh lg:ml-[317px] lg:h-screen lg:overflow-y-auto">
         <div className="px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
-          <div className="mx-auto max-w-[1280px] space-y-5">
+          <div className="mx-auto max-w-[1200px] space-y-6">
             <header className="flex flex-col gap-4 rounded-[28px] border border-slate-200/80 bg-white/88 px-5 py-4 shadow-[0_12px_32px_rgba(15,23,42,0.05)] backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <div>
                 <p className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
