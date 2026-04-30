@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Loader2, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { saveAgentConfig } from "@/lib/saas/agentConfigService"
@@ -45,6 +45,9 @@ const LANGUAGE_OPTIONS = [
   { code: "sw", label: "Swahili", flag: "🇰🇪" },
 ]
 
+const ALL_LANGUAGE_CODES = LANGUAGE_OPTIONS.map((language) => language.code)
+const MANUAL_LANGUAGE_CODES = LANGUAGE_OPTIONS.filter((language) => language.code !== "auto").map((language) => language.code)
+
 const cardClassName = "rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
 const inputClassName = "mt-2 h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10"
 const textareaClassName = "mt-2 min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10"
@@ -56,14 +59,23 @@ type LegacyAgentSettingsPanelProps = {
   businessName: string | null
 }
 
+function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
+  if (initialConfig.supportedLanguages?.length) {
+    return initialConfig.supportedLanguages
+  }
+
+  return ALL_LANGUAGE_CODES
+}
+
 export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName }: LegacyAgentSettingsPanelProps) {
+  const autoCheckboxRef = useRef<HTMLInputElement | null>(null)
   const [agentName, setAgentName] = useState(initialConfig.agentName || "Omniweb AI")
   const [workspaceName, setWorkspaceName] = useState(initialConfig.businessName || businessName || "")
   const [welcomeMessage, setWelcomeMessage] = useState(initialConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
   const [systemInstructions, setSystemInstructions] = useState(initialConfig.customInstructions || "Talk about what is on the website, answer common questions, and guide high-intent visitors toward the next best step.")
   const [responseLength, setResponseLength] = useState("Moderate – balanced detail")
   const [selectedGoals, setSelectedGoals] = useState<string[]>(initialConfig.goals?.length ? initialConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(initialConfig.supportedLanguages?.length ? initialConfig.supportedLanguages : ["en"])
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(getInitialSelectedLanguages(initialConfig))
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
@@ -94,6 +106,19 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     return "No indexed sources yet"
   }, [websiteDomain])
 
+  const selectedManualLanguageCount = useMemo(
+    () => selectedLanguages.filter((code) => MANUAL_LANGUAGE_CODES.includes(code)).length,
+    [selectedLanguages],
+  )
+  const autoSelected = selectedLanguages.includes("auto")
+  const autoIndeterminate = autoSelected && selectedManualLanguageCount < MANUAL_LANGUAGE_CODES.length
+
+  useEffect(() => {
+    if (autoCheckboxRef.current) {
+      autoCheckboxRef.current.indeterminate = autoIndeterminate
+    }
+  }, [autoIndeterminate])
+
   const toggleGoal = (goal: string) => {
     if (goal === "All goals") {
       setSelectedGoals((current) => current.includes("All goals") ? [] : GOALS)
@@ -110,10 +135,14 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   const toggleLanguage = (code: string) => {
     setSelectedLanguages((current) => {
+      if (code === "auto") {
+        return current.includes("auto") ? current.filter((item) => item !== "auto") : ALL_LANGUAGE_CODES
+      }
+
       if (current.includes(code)) {
-        if (code === "en") return current
         return current.filter((item) => item !== code)
       }
+
       return [...current, code]
     })
   }
@@ -129,7 +158,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         welcomeMessage,
         customInstructions: systemInstructions,
         goals: selectedGoals.includes("All goals") ? GOALS.filter((goal) => goal !== "All goals") : selectedGoals,
-        supportedLanguages: selectedLanguages.filter((code) => code !== "auto"),
+        supportedLanguages: selectedLanguages.filter((code) => MANUAL_LANGUAGE_CODES.includes(code)),
         active: true,
       })
       setMessage("AI agent saved and synced.")
@@ -228,7 +257,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {LANGUAGE_OPTIONS.map((language) => (
               <label key={language.code} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                <input type="checkbox" checked={selectedLanguages.includes(language.code)} onChange={() => toggleLanguage(language.code)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
+                <input
+                  ref={language.code === "auto" ? autoCheckboxRef : undefined}
+                  type="checkbox"
+                  checked={language.code === "auto" ? autoSelected : selectedLanguages.includes(language.code)}
+                  onChange={() => toggleLanguage(language.code)}
+                  className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]"
+                />
                 <span>{language.flag}</span>
                 <span>{language.label}</span>
               </label>
