@@ -40,14 +40,145 @@ export type AgentTone = "professional"
 
 export type AgentConfigRecord = {
   tenantId: string
+  id?: string
   agentName: string
   welcomeMessage: string
   tone: AgentTone
   goals: string[]
-  supportedLanguages: string[]
+  supportedLanguages?: string[]
   active: boolean
+  businessName?: string
+  businessType?: string | null
+  industry?: string | null
+  websiteDomain?: string | null
+  bookingUrl?: string | null
+  agentMode?: string
+  enabledChannels?: string[]
+  leadCaptureFields?: string[]
+  enabledFeatures?: Record<string, boolean>
+  qualificationRules?: {
+    requiredFields?: string[]
+    handoffTriggers?: string[]
+    disqualifiers?: string[]
+    conversionSignals?: string[]
+  }
+  customInstructions?: string | null
+  channelBehaviorProfiles?: Array<{
+    key: string
+    label: string
+    channels: string[]
+    description: string
+    behaviorRules: string[]
+  }>
+  promptPreview?: string
+  availableModes?: AgentModeRecord[]
+  modeDefinition?: {
+    key: string
+    label: string
+    description: string
+    conversionObjective: string
+    qualificationNotes: string[]
+    conversionStages: string[]
+  }
   createdAt: string
   updatedAt: string
+}
+
+export type AgentModeRecord = {
+  key: string
+  label: string
+  description: string
+  promptFocus: string
+  conversionObjective: string
+  defaultGoals: string[]
+  defaultChannels: string[]
+  defaultLeadCaptureFields: string[]
+  defaultEnabledFeatures: Record<string, boolean>
+  qualificationNotes: string[]
+  conversionStages: string[]
+}
+
+export type AgentTemplateRecord = {
+  id: string
+  name: string
+  description: string
+  agentMode: string
+  industry?: string
+  config?: Partial<AgentConfigUpdatePayload>
+}
+
+export type AgentConfigUpdatePayload = Partial<{
+  agentName: string
+  welcomeMessage: string
+  tone: AgentTone | string
+  businessName: string
+  businessType: string
+  industry: string
+  websiteDomain: string
+  bookingUrl: string
+  agentMode: string
+  goals: string[]
+  enabledChannels: string[]
+  leadCaptureFields: string[]
+  enabledFeatures: Record<string, boolean>
+  qualificationRules: {
+    requiredFields?: string[]
+    handoffTriggers?: string[]
+    disqualifiers?: string[]
+    conversionSignals?: string[]
+  }
+  channel: string
+  customInstructions: string
+  active: boolean
+}>
+
+export type AgentBuildPromptResponse = {
+  agentMode: string
+  channel: string
+  channelBehaviorProfiles: Array<{
+    key: string
+    label: string
+    channels: string[]
+    description: string
+    behaviorRules: string[]
+  }>
+  effectiveChannelProfile: {
+    key: string
+    label: string
+    channels: string[]
+    description: string
+    behaviorRules: string[]
+  }
+  modeDefinition: {
+    key: string
+    label: string
+    description: string
+    conversionObjective: string
+    conversionStages: string[]
+  }
+  promptPreview: string
+}
+
+export type AgentTestResponse = {
+  input: string
+  response: string
+  agentMode: string
+  channel: string
+  effectiveChannelProfile: {
+    key: string
+    label: string
+    channels: string[]
+    description: string
+    behaviorRules: string[]
+  }
+  conversionStage: string
+  analyticsTags: {
+    agentMode: string
+    channel: string
+    conversionStage: string
+  }
+  suggestedNextField: string | null
+  promptPreview: string
 }
 
 export type TelephonyConfigRecord = {
@@ -92,6 +223,9 @@ export type EngagementRecord = {
   productsOrServices: string[]
   recommendedNextAction: string | null
   ownerNotes: string | null
+  agentMode?: string | null
+  conversionStage?: string | null
+  metadata?: Record<string, unknown> | null
   messageCount: number
   summarySource: EngagementSummarySource
   summaryIsPlaceholder: boolean

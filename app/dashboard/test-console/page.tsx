@@ -14,7 +14,7 @@ export default async function DashboardTestConsolePage() {
     agentConfig?.active && (
       agentConfig.agentName !== DEFAULT_AGENT_NAME ||
       agentConfig.welcomeMessage !== DEFAULT_WELCOME_MESSAGE ||
-      agentConfig.supportedLanguages.length > 1
+      (agentConfig.supportedLanguages?.length ?? 0) > 1
     ),
   )
 

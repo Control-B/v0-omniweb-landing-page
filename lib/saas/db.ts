@@ -122,12 +122,19 @@ export async function ensureSaasSchema() {
           products_or_services jsonb not null default '[]'::jsonb,
           recommended_next_action text,
           owner_notes text,
+          agent_mode text not null default 'general_lead_gen',
+          conversion_stage text not null default 'awareness',
+          metadata jsonb not null default '{}'::jsonb,
           message_count integer not null default 0,
           summary_source text,
           summary_is_placeholder boolean not null default false,
           created_at timestamptz not null default now(),
           updated_at timestamptz not null default now()
         );
+
+        alter table public.omniweb_engagements add column if not exists agent_mode text not null default 'general_lead_gen';
+        alter table public.omniweb_engagements add column if not exists conversion_stage text not null default 'awareness';
+        alter table public.omniweb_engagements add column if not exists metadata jsonb not null default '{}'::jsonb;
 
         create table if not exists public.omniweb_follow_up_tasks (
           id uuid primary key default gen_random_uuid(),
