@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Check, Loader2 } from "lucide-react"
-import { BILLING_PLANS } from "@/lib/saas/billing"
+import { getBillingPlans } from "@/lib/saas/billing"
 import type { PlanType, SubscriptionStatus } from "@/lib/saas/types"
 
 type PlanSelectionGridProps = {
@@ -12,6 +12,7 @@ type PlanSelectionGridProps = {
   onboardingCompleted: boolean
   currentPlan: PlanType
   subscriptionStatus: SubscriptionStatus | null
+  industry?: string | null
 }
 
 function getActionLabel(
@@ -41,10 +42,11 @@ function getActionLabel(
   return "Upgrade"
 }
 
-export function PlanSelectionGrid({ variant, isSignedIn, onboardingCompleted, currentPlan, subscriptionStatus }: PlanSelectionGridProps) {
+export function PlanSelectionGrid({ variant, isSignedIn, onboardingCompleted, currentPlan, subscriptionStatus, industry }: PlanSelectionGridProps) {
   const router = useRouter()
   const [pendingPlan, setPendingPlan] = useState<NonNullable<PlanType> | null>(null)
   const [error, setError] = useState("")
+  const plans = getBillingPlans(industry)
 
   const handlePlanAction = async (plan: NonNullable<PlanType>) => {
     setError("")
@@ -103,7 +105,7 @@ export function PlanSelectionGrid({ variant, isSignedIn, onboardingCompleted, cu
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-3">
-        {BILLING_PLANS.map((plan) => {
+        {plans.map((plan) => {
           const label = getActionLabel(variant, isSignedIn, onboardingCompleted, subscriptionStatus, currentPlan, plan.key)
           const isCurrentPlan = subscriptionStatus === "active" && currentPlan === plan.key
           const isLoading = pendingPlan === plan.key
@@ -126,7 +128,7 @@ export function PlanSelectionGrid({ variant, isSignedIn, onboardingCompleted, cu
               <div className="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
                 <div className="flex items-center justify-between gap-3"><span>AI agent</span><span className="font-semibold text-slate-900">{plan.aiAgent}</span></div>
                 <div className="flex items-center justify-between gap-3"><span>Telephony</span><span className="font-semibold text-slate-900">{plan.telephony}</span></div>
-                <div className="flex items-center justify-between gap-3"><span>Conversations / month</span><span className="font-semibold text-slate-900">{plan.conversationsPerMonth.toLocaleString()}</span></div>
+                <div className="flex items-center justify-between gap-3"><span>{plan.metricLabel}</span><span className="font-semibold text-slate-900">{plan.conversationsPerMonth.toLocaleString()}</span></div>
               </div>
 
               <ul className="mt-5 space-y-3 text-sm text-slate-700">
