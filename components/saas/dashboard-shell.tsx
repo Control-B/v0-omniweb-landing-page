@@ -196,7 +196,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                 aria-hidden={!accountMenuOpen}
                 className={`absolute inset-x-0 bottom-full mb-3 origin-bottom rounded-2xl border border-slate-200/80 bg-white/98 p-2 shadow-[0_24px_60px_rgba(15,23,42,0.18)] backdrop-blur transition duration-200 ${accountMenuOpen ? "pointer-events-auto translate-y-0 scale-100 opacity-100" : "pointer-events-none translate-y-2 scale-[0.98] opacity-0"}`}
               >
-                <div className="mb-2 rounded-xl border border-slate-200/80 bg-[linear-gradient(135deg,rgba(248,250,252,0.98),rgba(240,249,255,0.98),rgba(238,242,255,0.98))] px-3 py-3">
+                <div className="dashboard-card-muted mb-2 rounded-xl px-3 py-3">
                   <p className="truncate text-[14px] font-semibold text-slate-900">{displayName}</p>
                   <p className="dashboard-meta truncate">{email}</p>
                   <p className="mt-2 inline-flex rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-200">{planLabel}</p>

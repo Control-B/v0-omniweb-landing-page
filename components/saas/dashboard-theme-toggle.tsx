@@ -1,11 +1,11 @@
 "use client"
 
-import { MonitorCog, MoonStar, SunMedium } from "lucide-react"
+import { MoonStar, Sparkles, SunMedium } from "lucide-react"
 import { useTheme } from "next-themes"
 
 const options = [
-  { value: "default", label: "Default", icon: MonitorCog },
-  { value: "light", label: "Light", icon: SunMedium },
+  { value: "default", label: "Omniweb", icon: Sparkles },
+  { value: "light", label: "White", icon: SunMedium },
   { value: "dark", label: "Dark", icon: MoonStar },
 ] as const
 

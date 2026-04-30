@@ -127,24 +127,33 @@
 
 @layer utilities {
   .dashboard-theme {
-    --ow-bg: radial-gradient(circle at top left, rgba(59, 130, 246, 0.10), transparent 28%), radial-gradient(circle at top right, rgba(139, 92, 246, 0.08), transparent 32%), linear-gradient(180deg, #f7faff 0%, #f6f8fc 50%, #f4f7fb 100%);
-    --ow-sidebar-bg: rgba(255, 255, 255, 0.92);
-    --ow-sidebar-border: rgba(226, 232, 240, 0.9);
-    --ow-header-bg: rgba(255, 255, 255, 0.78);
-    --ow-card-bg: #ffffff;
-    --ow-card-muted: rgba(248, 250, 252, 0.95);
-    --ow-card-highlight: linear-gradient(135deg, rgba(238, 242, 255, 0.95), rgba(240, 249, 255, 0.98), rgba(243, 232, 255, 0.78));
-    --ow-border: rgba(226, 232, 240, 0.95);
-    --ow-border-subtle: rgba(226, 232, 240, 0.7);
-    --ow-text-primary: #0f172a;
-    --ow-text-secondary: #475569;
-    --ow-text-muted: #64748b;
-    --ow-shadow: 0 18px 48px rgba(15, 23, 42, 0.06);
-    --ow-shadow-soft: 0 4px 14px rgba(15, 23, 42, 0.04);
-    --ow-ring: rgba(59, 130, 246, 0.18);
+    --ow-bg:
+      radial-gradient(circle at 14% 12%, rgba(59, 130, 246, 0.18), transparent 22%),
+      radial-gradient(circle at 86% 16%, rgba(168, 85, 247, 0.18), transparent 24%),
+      radial-gradient(circle at 50% 72%, rgba(34, 211, 238, 0.12), transparent 28%),
+      linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(180deg, #04070d 0%, #050a12 40%, #07111d 100%);
+    --ow-sidebar-bg: rgba(5, 10, 18, 0.9);
+    --ow-sidebar-border: rgba(96, 165, 250, 0.16);
+    --ow-header-bg: rgba(9, 15, 28, 0.78);
+    --ow-card-bg: rgba(9, 15, 28, 0.84);
+    --ow-card-muted: rgba(15, 23, 42, 0.7);
+    --ow-card-highlight:
+      linear-gradient(180deg, rgba(8, 13, 25, 0.92), rgba(5, 10, 18, 0.82)),
+      linear-gradient(135deg, rgba(59, 130, 246, 0.16), rgba(168, 85, 247, 0.12), rgba(34, 211, 238, 0.08));
+    --ow-border: rgba(148, 163, 184, 0.16);
+    --ow-border-subtle: rgba(148, 163, 184, 0.12);
+    --ow-text-primary: #f8fafc;
+    --ow-text-secondary: #cbd5e1;
+    --ow-text-muted: #94a3b8;
+    --ow-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
+    --ow-shadow-soft: 0 18px 50px rgba(0, 0, 0, 0.24);
+    --ow-ring: rgba(96, 165, 250, 0.3);
     --ow-gradient: linear-gradient(135deg, #22d3ee 0%, #3b82f6 52%, #8b5cf6 100%);
-    --ow-button-secondary: rgba(255, 255, 255, 0.96);
+    --ow-button-secondary: rgba(15, 23, 42, 0.72);
     background: var(--ow-bg);
+    background-size: auto, auto, auto, 72px 72px, 72px 72px, auto;
     color: var(--ow-text-primary);
   }
 
@@ -163,9 +172,9 @@
   }
 
   [data-theme="dark"] .dashboard-theme {
-    --ow-bg: radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 22%), radial-gradient(circle at top right, rgba(139, 92, 246, 0.14), transparent 26%), linear-gradient(180deg, #07101f 0%, #0a1324 50%, #08111f 100%);
-    --ow-sidebar-bg: rgba(9, 17, 33, 0.92);
-    --ow-sidebar-border: rgba(51, 65, 85, 0.7);
+    --ow-bg: radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 22%), radial-gradient(circle at top right, rgba(139, 92, 246, 0.10), transparent 26%), linear-gradient(180deg, #08111f 0%, #0b1324 50%, #070d19 100%);
+    --ow-sidebar-bg: rgba(8, 15, 29, 0.94);
+    --ow-sidebar-border: rgba(51, 65, 85, 0.72);
     --ow-header-bg: rgba(11, 19, 36, 0.8);
     --ow-card-bg: rgba(15, 23, 42, 0.85);
     --ow-card-muted: rgba(15, 23, 42, 0.6);
@@ -325,12 +334,31 @@
   .dashboard-theme .bg-white,
   .dashboard-theme .bg-white\/70,
   .dashboard-theme .bg-white\/80,
+  .dashboard-theme .bg-white\/85,
   .dashboard-theme .bg-white\/88,
   .dashboard-theme .bg-white\/90,
   .dashboard-theme .bg-white\/96,
+  .dashboard-theme .bg-white\/98,
   .dashboard-theme .bg-slate-50,
   .dashboard-theme .bg-slate-100 {
     background-color: var(--ow-card-muted);
+  }
+
+  [data-theme="default"] .dashboard-theme .bg-amber-50 {
+    background-color: rgba(120, 53, 15, 0.22);
+  }
+
+  [data-theme="default"] .dashboard-theme .bg-red-50 {
+    background-color: rgba(127, 29, 29, 0.22);
+  }
+
+  [data-theme="default"] .dashboard-theme .bg-emerald-50,
+  [data-theme="default"] .dashboard-theme .bg-emerald-50\/70,
+  [data-theme="default"] .dashboard-theme .bg-cyan-50,
+  [data-theme="default"] .dashboard-theme .bg-cyan-100,
+  [data-theme="default"] .dashboard-theme .bg-sky-100,
+  [data-theme="default"] .dashboard-theme .bg-amber-100 {
+    background-color: rgba(15, 23, 42, 0.74);
   }
 
   [data-theme="dark"] .dashboard-theme .bg-amber-50 {
@@ -351,6 +379,9 @@
   }
 
   [data-theme="dark"] .dashboard-theme input:not([type="checkbox"]):not([type="radio"]),
+  [data-theme="default"] .dashboard-theme input:not([type="checkbox"]):not([type="radio"]),
+  [data-theme="default"] .dashboard-theme textarea,
+  [data-theme="default"] .dashboard-theme select,
   [data-theme="dark"] .dashboard-theme textarea,
   [data-theme="dark"] .dashboard-theme select {
     background-color: rgba(15, 23, 42, 0.72);
@@ -359,6 +390,9 @@
   }
 
   [data-theme="dark"] .dashboard-theme .hover\:bg-slate-50:hover,
+  [data-theme="default"] .dashboard-theme .hover\:bg-slate-50:hover,
+  [data-theme="default"] .dashboard-theme .hover\:bg-white:hover,
+  [data-theme="default"] .dashboard-theme .hover\:bg-slate-100:hover,
   [data-theme="dark"] .dashboard-theme .hover\:bg-white:hover,
   [data-theme="dark"] .dashboard-theme .hover\:bg-slate-100:hover {
     background-color: rgba(30, 41, 59, 0.9);
