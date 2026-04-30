@@ -192,6 +192,31 @@ export type TelephonyConfigRecord = {
   updatedAt: string
 }
 
+export type WidgetSettingsRecord = {
+  publicWidgetId: string
+  embedCode: string
+  scriptUrl: string
+  allowedDomains: string[]
+  widgetEnabled: boolean
+  widgetInstalled: boolean
+  widgetLastSeenAt: string | null
+  widgetPrimaryColor: string
+  widgetPosition: "bottom-right" | "bottom-left"
+  widgetWelcomeMessage: string
+  voiceEnabled: boolean
+  businessName: string
+  agentMode: string
+}
+
+export type WidgetSettingsUpdatePayload = Partial<{
+  widgetEnabled: boolean
+  allowedDomains: string[]
+  widgetPrimaryColor: string
+  widgetPosition: "bottom-right" | "bottom-left"
+  widgetWelcomeMessage: string
+  voiceEnabled: boolean
+}>
+
 export type EngagementChannel = "website_chat" | "ai_voice_call" | "ai_telephony" | "shopify_storefront"
 export type EngagementLeadStatus = "new" | "qualified" | "needs_follow_up" | "not_qualified" | "resolved"
 export type EngagementIntent = "product_question" | "pricing_question" | "service_inquiry" | "support_request" | "booking_request_quote" | "complaint" | "other"

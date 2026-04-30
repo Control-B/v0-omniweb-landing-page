@@ -56,17 +56,6 @@ export default async function DashboardBillingPage() {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[1.75rem] border border-cyan-200 bg-[linear-gradient(90deg,rgba(14,165,233,0.12),rgba(99,102,241,0.12))] px-6 py-5 shadow-[0_16px_32px_rgba(125,211,252,0.14)]">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Billing</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{banner.title}</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{banner.body}</p>
-          </div>
-          <a href="#billing-plans" className="inline-flex h-11 items-center justify-center rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 px-5 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(59,130,246,0.25)] transition hover:from-cyan-400 hover:to-purple-400">{banner.action}</a>
-        </div>
-      </section>
-
       <section className="grid gap-5 xl:grid-cols-3">
         <div className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900"><Wallet className="h-4 w-4 text-cyan-500" />Subscription</div>

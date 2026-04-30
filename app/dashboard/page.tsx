@@ -44,14 +44,6 @@ function actionLinkClassName() {
   return "mt-auto inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-500"
 }
 
-function secondaryActionClassName() {
-  return "inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-}
-
-function gradientActionClassName() {
-  return "inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#0ea5e9,#4f46e5)] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(59,130,246,0.28)] transition hover:opacity-95"
-}
-
 export default async function DashboardPage() {
   await requireDashboardAccess()
   const snapshot = await getDashboardSnapshot()
@@ -87,7 +79,7 @@ export default async function DashboardPage() {
         ? {
             title: "Install the website widget",
             description: "Your tenant-specific snippet is ready. Add it to the site to start capturing real conversations and leads.",
-            href: "/dashboard/knowledge",
+            href: "/dashboard/ai-agent",
             cta: "Review widget install",
           }
         : !telephonyReady
@@ -105,66 +97,7 @@ export default async function DashboardPage() {
             }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-1 pb-2">
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
-            <Sparkles className="h-3.5 w-3.5 text-cyan-500" />
-            Omniweb dashboard
-          </div>
-          <h1 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-950 sm:text-4xl">
-            {status.businessName || "Your Omniweb workspace"}
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-[15px]">
-            A cleaner control center for launch readiness, conversion systems, and the next actions that move your workspace toward live traffic.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClassName(isTrial ? "warning" : "success")}`}>
-            {subscriptionLabel}
-          </span>
-          <Link href="/dashboard/billing" className={secondaryActionClassName()}>
-            Manage billing
-          </Link>
-          <Link href={isTrial ? "/pricing" : "/dashboard/ai-agent"} className={gradientActionClassName()}>
-            {isTrial ? "Upgrade plan" : "Open AI agent"}
-          </Link>
-        </div>
-      </section>
-
-      <section className="overflow-hidden rounded-[32px] border border-cyan-200/70 bg-[linear-gradient(135deg,rgba(240,249,255,1),rgba(238,242,255,0.95))] px-6 py-5 shadow-[0_16px_40px_rgba(14,165,233,0.10)] sm:px-7">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">Status strip</p>
-            <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-              {setupCompleted === setupItems.length
-                ? "Core workspace systems are configured and ready for live traffic."
-                : `You have ${setupItems.length - setupCompleted} key setup item${setupItems.length - setupCompleted === 1 ? "" : "s"} left before full launch readiness.`}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-slate-600">
-              {isTrial
-                ? `Your ${planLabel} workspace is trialing with ${status.daysLeft ?? 7} days left. Finish the remaining setup tasks and upgrade when you're ready to go live.`
-                : `Your ${planLabel} workspace is active. Keep the AI agent, widget, and knowledge sources aligned as traffic ramps up.`}
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[360px]">
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Plan</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{planLabel}</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Website</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{status.websiteDomain || "Add domain"}</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">Setup</p>
-              <p className="mt-1 text-sm font-semibold text-slate-900">{setupProgress}% complete</p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div className="flex flex-col gap-6">
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,7fr)_minmax(320px,3fr)]">
         <div className="space-y-6">
@@ -282,7 +215,7 @@ export default async function DashboardPage() {
                   {widgetEmbedCode || "Widget embed code will appear once your workspace snippet is available."}
                 </pre>
               </div>
-              <Link href="/dashboard/knowledge" className={actionLinkClassName()}>
+              <Link href="/dashboard/ai-agent" className={actionLinkClassName()}>
                 Review widget install
                 <ArrowRight className="h-4 w-4" />
               </Link>
@@ -391,7 +324,7 @@ export default async function DashboardPage() {
           <p className="mt-3 text-sm leading-6 text-slate-600">
             Deploy the widget snippet on your site and start turning traffic into tracked conversations.
           </p>
-          <Link href="/dashboard/knowledge" className={actionLinkClassName()}>
+          <Link href="/dashboard/ai-agent" className={actionLinkClassName()}>
             Review install
             <ArrowRight className="h-4 w-4" />
           </Link>

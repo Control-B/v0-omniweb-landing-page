@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
 import { proxyWidgetRequest } from "@/lib/saas/server/widgetProxy"
 
-export async function GET(request: NextRequest) {
-  return proxyWidgetRequest(request, "/embed-code")
+export async function PATCH(request: NextRequest) {
+  return proxyWidgetRequest(request, "/settings")
 }
