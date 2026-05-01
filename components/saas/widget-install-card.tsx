@@ -47,7 +47,7 @@ function formatLastSeen(value: string | null) {
   return `Installed · Last seen ${date.toLocaleString()}`
 }
 
-export function WidgetInstallCard() {
+export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {}) {
   const [settings, setSettings] = useState<WidgetSettingsRecord | null>(null)
   const [form, setForm] = useState<WidgetFormState | null>(null)
   const [loading, setLoading] = useState(true)
@@ -149,6 +149,17 @@ export function WidgetInstallCard() {
   }
 
   if (loading) {
+    if (compact) {
+      return (
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/3 p-4 text-left">
+          <div className="flex items-center gap-3 text-sm text-slate-400">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading widget install controls...
+          </div>
+        </div>
+      )
+    }
+
     return (
       <section className={sectionClassName}>
         <div className="flex items-center gap-3 text-sm text-slate-500">
@@ -160,6 +171,21 @@ export function WidgetInstallCard() {
   }
 
   if (!form || !settings) {
+    if (compact) {
+      return (
+        <div className="mt-6 rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-left">
+          <p className="text-sm font-semibold text-rose-100">Widget settings could not load</p>
+          <p className="mt-1 text-xs leading-5 text-rose-200/80">
+            {error || "The widget service did not return installation settings. Try again in a moment."}
+          </p>
+          <Button type="button" variant="outline" size="sm" className="mt-4 border-white/15 bg-white/10 text-white hover:bg-white/15" onClick={reloadStatus} disabled={checking}>
+            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Retry
+          </Button>
+        </div>
+      )
+    }
+
     return (
       <section className={sectionClassName}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -175,6 +201,89 @@ export function WidgetInstallCard() {
           </Button>
         </div>
       </section>
+    )
+  }
+
+  if (compact) {
+    return (
+      <div className="mt-6 rounded-2xl border border-white/10 bg-white/3 p-4 text-left">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Test or install</p>
+            <p className="mt-1 text-xs leading-5 text-slate-400">Verify the live widget or copy the install script.</p>
+          </div>
+          <span className={`shrink-0 rounded-full border border-current/10 px-2.5 py-1 text-[11px] font-semibold ${settings.widgetInstalled ? "text-emerald-300" : "text-amber-300"}`}>
+            {settings.widgetInstalled ? "Installed" : "Not installed"}
+          </span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl border border-white/10 bg-slate-950/80 p-1">
+          {[
+            { key: "test", label: "Test" },
+            { key: "install", label: "Install" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key as "test" | "install")}
+              className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                activeTab === tab.key ? "bg-cyan-400 text-slate-950" : "text-slate-400 hover:bg-white/5 hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "test" ? (
+          <div className="mt-4 space-y-3">
+            <div className="grid gap-2 rounded-xl border border-white/10 bg-slate-950/70 p-3 text-xs text-slate-300">
+              <PreviewRow label="Public widget ID" value={settings.publicWidgetId} />
+              <PreviewRow label="Last seen" value={settings.widgetLastSeenAt ? new Date(settings.widgetLastSeenAt).toLocaleString() : "Never"} />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button type="button" size="sm" className="justify-center rounded-xl bg-cyan-400 text-slate-950 hover:bg-cyan-300" onClick={reloadStatus} disabled={checking}>
+                {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                Verify
+              </Button>
+              {previewUrl ? (
+                <Button type="button" size="sm" variant="outline" className="justify-center rounded-xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                  <a href={previewUrl} target="_blank" rel="noreferrer">Open site</a>
+                </Button>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-slate-300">Embed code</p>
+              <Button type="button" size="sm" variant="outline" className="border-white/15 bg-white/10 text-white hover:bg-white/15" onClick={copyCode}>
+                <Copy className="h-4 w-4" />
+                {copied ? "Copied" : "Copy"}
+              </Button>
+            </div>
+            <pre className="mt-3 max-h-28 overflow-auto whitespace-pre-wrap break-all rounded-xl border border-white/10 bg-slate-950/80 p-3 text-[11px] leading-5 text-cyan-100">{settings.embedCode}</pre>
+          </div>
+        )}
+
+        <div className="mt-4 grid gap-3 rounded-xl border border-white/10 bg-slate-950/70 p-3">
+          <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
+            <span>Widget enabled</span>
+            <Switch checked={form.widgetEnabled} onCheckedChange={(checked) => updateField("widgetEnabled", checked)} />
+          </label>
+          <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
+            <span>Voice enabled</span>
+            <Switch checked={form.voiceEnabled} onCheckedChange={(checked) => updateField("voiceEnabled", checked)} />
+          </label>
+          <Button type="button" size="sm" className="justify-center rounded-xl bg-white text-slate-950 hover:bg-slate-100" onClick={submit} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Save widget
+          </Button>
+        </div>
+
+        {message ? <p className="mt-3 text-xs font-medium text-emerald-300">{message}</p> : null}
+        {error ? <p className="mt-3 text-xs font-medium text-rose-300">{error}</p> : null}
+      </div>
     )
   }
 
@@ -332,5 +441,14 @@ export function WidgetInstallCard() {
         </div>
       </div>
     </section>
+  )
+}
+
+function PreviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <span className="text-slate-500">{label}</span>
+      <span className="max-w-[170px] break-all text-right font-semibold text-slate-200">{value}</span>
+    </div>
   )
 }

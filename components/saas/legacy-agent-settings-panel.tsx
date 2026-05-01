@@ -505,8 +505,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </Button>
       </div>
 
-      <WidgetInstallCard />
-
       <section className="overflow-hidden rounded-[24px] border border-amber-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="border-b border-amber-200 bg-amber-400/95 px-4 py-3 text-sm font-semibold text-amber-950"><ShieldAlert className="mr-2 inline h-4 w-4" />Payments &amp; commerce — acknowledgment</div>
         <div className="p-6 text-[15px] leading-7 text-slate-700">
@@ -695,6 +693,8 @@ function LivePreviewPanel({
           </Button>
           <p className="text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
         </div>
+
+        <WidgetInstallCard compact />
       </div>
     </aside>
   )
