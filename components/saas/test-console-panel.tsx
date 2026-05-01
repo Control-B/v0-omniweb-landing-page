@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { AlertTriangle, Bot, TestTube2 } from "lucide-react"
+import { SiteAiWidget } from "@/components/site-ai-widget"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 
 type TestConsolePanelProps = {
@@ -24,6 +25,8 @@ export function TestConsolePanel({ welcomeMessage, agentReady, tenantId }: TestC
 
   return (
     <div className="space-y-6">
+      <SiteAiWidget agentId={tenantId ?? undefined} />
+
       <section className="dashboard-card-highlight rounded-[24px] p-6 lg:p-8">
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500"><TestTube2 className="h-4 w-4 text-violet-500" />Test Console</div>
         <h2 className="dashboard-page-title mt-4">Agent Test Console</h2>

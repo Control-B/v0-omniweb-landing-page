@@ -3,7 +3,6 @@ import { Geist, Geist_Mono, Oswald, Roboto_Condensed } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
 import { Analytics } from '@vercel/analytics/next'
-import { SiteAiWidget } from '@/components/site-ai-widget'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
@@ -103,7 +102,6 @@ export default function RootLayout({
             afterSignOutUrl="/"
           >
             {children}
-            <SiteAiWidget />
           </ClerkProvider>
         </ThemeProvider>
         <Analytics />
