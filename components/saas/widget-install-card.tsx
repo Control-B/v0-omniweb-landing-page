@@ -56,6 +56,7 @@ export function WidgetInstallCard() {
   const [copied, setCopied] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+  const [activeTab, setActiveTab] = useState<"test" | "install">("test")
 
   useEffect(() => {
     let cancelled = false
@@ -88,6 +89,12 @@ export function WidgetInstallCard() {
   const installStatusTone = useMemo(() => {
     return settings?.widgetInstalled ? "text-emerald-600" : "text-amber-600"
   }, [settings?.widgetInstalled])
+
+  const previewUrl = useMemo(() => {
+    const domain = settings?.allowedDomains?.[0]
+    if (!domain) return null
+    return domain.startsWith("http") ? domain : `https://${domain}`
+  }, [settings?.allowedDomains])
 
   const updateField = <K extends keyof WidgetFormState>(key: K, value: WidgetFormState[K]) => {
     setForm((current) => current ? { ...current, [key]: value } : current)
@@ -175,10 +182,10 @@ export function WidgetInstallCard() {
     <section className={sectionClassName}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Widget install</p>
-          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Install once, control remotely from the dashboard</h3>
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Test & install</p>
+          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950">Test the AI widget and copy the install snippet</h3>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Copy this script and paste it before the closing <code className="rounded bg-slate-100 px-1 text-slate-700">&lt;/body&gt;</code> tag on your website. After that, you can manage the AI widget from this dashboard without touching code again.
+            Use the test tab to verify the installed widget, then use the install tab to view and copy the script snippet for your website.
           </p>
         </div>
         <div className={`inline-flex items-center gap-2 rounded-full border border-current/10 bg-white px-4 py-2 text-sm font-semibold ${installStatusTone}`}>
@@ -187,40 +194,84 @@ export function WidgetInstallCard() {
         </div>
       </div>
 
+      <div className="mt-6 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
+        {[
+          { key: "test", label: "Test widget" },
+          { key: "install", label: "Install snippet" },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key as "test" | "install")}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+              activeTab === tab.key ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:bg-white"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-950 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Embed code</p>
-              <Button type="button" variant="outline" size="sm" className="border-white/15 bg-white/10 text-white hover:bg-white/15" onClick={copyCode}>
-                <Copy className="h-4 w-4" />
-                {copied ? "Copied" : "Copy code"}
-              </Button>
+          {activeTab === "test" ? (
+            <>
+              <div className="rounded-3xl border border-slate-200 bg-slate-950 p-5 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget test</p>
+                <h4 className="mt-3 text-xl font-semibold">Verify the installed website widget</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  After the script is installed on your site, open the live site, launch the widget, and send a test message. Then come back here and verify the latest widget activity.
+                </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <Button type="button" className="justify-center rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300" onClick={reloadStatus} disabled={checking}>
+                    {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    Verify install
+                  </Button>
+                  {previewUrl ? (
+                    <Button type="button" variant="outline" className="justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                      <a href={previewUrl} target="_blank" rel="noreferrer">Open website</a>
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Widget enabled</p>
+                      <p className="mt-1 text-sm text-slate-600">Block or allow the public widget without changing code on the site.</p>
+                    </div>
+                    <Switch checked={form.widgetEnabled} onCheckedChange={(checked) => updateField("widgetEnabled", checked)} />
+                  </div>
+                </label>
+
+                <label className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Voice enabled</p>
+                      <p className="mt-1 text-sm text-slate-600">Show the voice action in the widget when voice is part of your rollout.</p>
+                    </div>
+                    <Switch checked={form.voiceEnabled} onCheckedChange={(checked) => updateField("voiceEnabled", checked)} />
+                  </div>
+                </label>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-3xl border border-slate-200 bg-slate-950 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Embed code</p>
+                  <p className="mt-1 text-xs text-slate-400">Paste before the closing &lt;/body&gt; tag on your website.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" className="border-white/15 bg-white/10 text-white hover:bg-white/15" onClick={copyCode}>
+                  <Copy className="h-4 w-4" />
+                  {copied ? "Copied" : "Copy code"}
+                </Button>
+              </div>
+              <pre className="mt-4 overflow-x-auto whitespace-pre-wrap break-all text-xs leading-6 text-cyan-100">{settings.embedCode}</pre>
             </div>
-            <pre className="mt-4 overflow-x-auto whitespace-pre-wrap break-all text-xs leading-6 text-cyan-100">{settings.embedCode}</pre>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <label className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Widget enabled</p>
-                  <p className="mt-1 text-sm text-slate-600">Block or allow the public widget without changing code on the site.</p>
-                </div>
-                <Switch checked={form.widgetEnabled} onCheckedChange={(checked) => updateField("widgetEnabled", checked)} />
-              </div>
-            </label>
-
-            <label className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Voice enabled</p>
-                  <p className="mt-1 text-sm text-slate-600">Show the voice action in the widget when voice is part of your rollout.</p>
-                </div>
-                <Switch checked={form.voiceEnabled} onCheckedChange={(checked) => updateField("voiceEnabled", checked)} />
-              </div>
-            </label>
-          </div>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
@@ -253,7 +304,7 @@ export function WidgetInstallCard() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
             <p className="text-sm font-semibold text-slate-900">Install status</p>
             <ul className="mt-4 space-y-3 text-sm text-slate-600">
               <li className="flex items-center justify-between gap-3"><span>Public widget ID</span><span className="font-mono text-xs text-slate-900">{settings.publicWidgetId}</span></li>
@@ -266,7 +317,7 @@ export function WidgetInstallCard() {
             </Button>
           </div>
 
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
             <p className="font-semibold text-slate-900">Remote control summary</p>
             <p className="mt-2">This widget now handshakes with the backend using the public widget ID, validates the current domain, and only loads when the account is active and the widget is enabled.</p>
           </div>
