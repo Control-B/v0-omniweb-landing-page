@@ -63,6 +63,8 @@ export type AgentConfigRecord = {
     conversionSignals?: string[]
   }
   customInstructions?: string | null
+  knowledgeSources?: KnowledgeSourceRecord[]
+  widgetSettings?: WidgetSettingsPreferences
   channelBehaviorProfiles?: Array<{
     key: string
     label: string
@@ -82,6 +84,20 @@ export type AgentConfigRecord = {
   }
   createdAt: string
   updatedAt: string
+}
+
+export type KnowledgeSourceRecord = {
+  id: string
+  url: string
+  details: string
+  status: "indexing" | "ready"
+  addedAt: string
+}
+
+export type WidgetSettingsPreferences = {
+  allowedDomains?: string[]
+  widgetPrimaryColor?: string
+  widgetPosition?: "bottom-right" | "bottom-left"
 }
 
 export type AgentModeRecord = {

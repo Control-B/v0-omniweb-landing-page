@@ -12,7 +12,11 @@ export default async function DashboardKnowledgePage() {
 
   return (
     <div className="space-y-6">
-      <KnowledgeSourcesPanel tenantId={snapshot.status.tenantId} websiteDomain={snapshot.status.websiteDomain} />
+      <KnowledgeSourcesPanel
+        tenantId={snapshot.status.tenantId}
+        websiteDomain={snapshot.status.websiteDomain}
+        initialSources={snapshot.agentConfig?.knowledgeSources ?? []}
+      />
     </div>
   )
 }

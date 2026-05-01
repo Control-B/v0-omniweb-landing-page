@@ -1,21 +1,17 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Info } from "lucide-react"
 
 import { knowledgeSourcesStorageKey } from "@/lib/saas/widgetEmbed"
+import type { KnowledgeSourceRecord } from "@/lib/saas/types"
 
-type KnowledgeSource = {
-  id: string
-  url: string
-  details: string
-  status: "indexing" | "ready"
-  addedAt: string
-}
+type KnowledgeSource = KnowledgeSourceRecord
 
 type KnowledgeSourcesPanelProps = {
   tenantId: string
   websiteDomain: string | null
+  initialSources?: KnowledgeSource[]
 }
 
 function storageKey(tenantId: string) {
@@ -38,38 +34,87 @@ function buildDefaultSource(websiteDomain: string | null): KnowledgeSource[] {
   ]
 }
 
-export function KnowledgeSourcesPanel({ tenantId, websiteDomain }: KnowledgeSourcesPanelProps) {
+async function saveKnowledgeSourcesToAccount(sources: KnowledgeSource[]) {
+  const response = await fetch("/api/knowledge/sources", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sources }),
+  })
+  const payload = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new Error(payload?.error ?? "Unable to sync knowledge sources.")
+  }
+  return (payload?.sources ?? []) as KnowledgeSource[]
+}
+
+function mirrorKnowledgeSourcesToBrowser(tenantId: string, sources: KnowledgeSource[]) {
+  if (typeof window === "undefined") {
+    return
+  }
+  window.localStorage.setItem(storageKey(tenantId), JSON.stringify(sources))
+  window.dispatchEvent(new CustomEvent("omniweb:knowledge-sources-updated"))
+}
+
+export function KnowledgeSourcesPanel({ tenantId, websiteDomain, initialSources = [] }: KnowledgeSourcesPanelProps) {
   const [knowledgeUrl, setKnowledgeUrl] = useState(websiteDomain ? String(websiteDomain).replace(/^https?:\/\//, "") : "")
   const [knowledgeDetails, setKnowledgeDetails] = useState("")
-  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>([])
+  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSource[]>(initialSources.length ? initialSources : buildDefaultSource(websiteDomain))
+  const knowledgeSourcesRef = useRef(knowledgeSources)
   const [message, setMessage] = useState("")
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return
-    }
+    knowledgeSourcesRef.current = knowledgeSources
+  }, [knowledgeSources])
 
-    try {
-      const savedKnowledge = window.localStorage.getItem(storageKey(tenantId))
-      if (savedKnowledge) {
-        setKnowledgeSources(JSON.parse(savedKnowledge) as KnowledgeSource[])
-        return
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadAccountSources() {
+      try {
+        const response = await fetch("/api/knowledge/sources", { cache: "no-store" })
+        const payload = await response.json().catch(() => null)
+        if (!response.ok) {
+          throw new Error(payload?.error ?? "Unable to load account knowledge sources.")
+        }
+        if (cancelled) {
+          return
+        }
+        const sources = (payload?.sources ?? []) as KnowledgeSource[]
+        const nextSources = sources.length ? sources : buildDefaultSource(websiteDomain)
+        knowledgeSourcesRef.current = nextSources
+        setKnowledgeSources(nextSources)
+        mirrorKnowledgeSourcesToBrowser(tenantId, nextSources)
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(loadError instanceof Error ? loadError.message : "Unable to load account knowledge sources.")
+        }
       }
-    } catch {
-      return
     }
 
-    setKnowledgeSources(buildDefaultSource(websiteDomain))
+    void loadAccountSources()
+    return () => {
+      cancelled = true
+    }
   }, [tenantId, websiteDomain])
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return
-    }
-
-    window.localStorage.setItem(storageKey(tenantId), JSON.stringify(knowledgeSources))
-    window.dispatchEvent(new CustomEvent("omniweb:knowledge-sources-updated"))
-  }, [tenantId, knowledgeSources])
+  const updateKnowledgeSources = (updater: (current: KnowledgeSource[]) => KnowledgeSource[], successMessage: string) => {
+    setError("")
+    const next = updater(knowledgeSourcesRef.current)
+    knowledgeSourcesRef.current = next
+    setKnowledgeSources(next)
+    mirrorKnowledgeSourcesToBrowser(tenantId, next)
+    void saveKnowledgeSourcesToAccount(next)
+      .then((savedSources) => {
+        knowledgeSourcesRef.current = savedSources
+        setKnowledgeSources(savedSources)
+        mirrorKnowledgeSourcesToBrowser(tenantId, savedSources)
+      })
+      .catch((saveError) => {
+        setError(saveError instanceof Error ? saveError.message : "Unable to sync knowledge sources.")
+      })
+    showTemporaryMessage(successMessage)
+  }
 
   const hasUrl = knowledgeUrl.trim().length > 0
   const addDisabled = !hasUrl
@@ -95,24 +140,21 @@ export function KnowledgeSourcesPanel({ tenantId, websiteDomain }: KnowledgeSour
       addedAt: new Date().toISOString(),
     }
 
-    setKnowledgeSources((current) => [next, ...current])
+    void updateKnowledgeSources((current) => [next, ...current], "Knowledge source added and synced.")
     setKnowledgeUrl("")
     setKnowledgeDetails("")
-    showTemporaryMessage("Knowledge source added.")
 
     window.setTimeout(() => {
-      setKnowledgeSources((current) => current.map((item) => item.id === next.id ? { ...item, status: "ready" } : item))
+      void updateKnowledgeSources((current) => current.map((item) => item.id === next.id ? { ...item, status: "ready" } : item), "Knowledge source ready.")
     }, 1400)
   }
 
   const handleSaveKnowledgeDetails = (id: string, details: string) => {
-    setKnowledgeSources((current) => current.map((item) => item.id === id ? { ...item, details } : item))
-    showTemporaryMessage("Knowledge details saved.")
+    void updateKnowledgeSources((current) => current.map((item) => item.id === id ? { ...item, details } : item), "Knowledge details saved and synced.")
   }
 
   const handleRemoveKnowledge = (id: string) => {
-    setKnowledgeSources((current) => current.filter((item) => item.id !== id))
-    showTemporaryMessage("Knowledge source removed.")
+    void updateKnowledgeSources((current) => current.filter((item) => item.id !== id), "Knowledge source removed and synced.")
   }
 
   return (
@@ -170,6 +212,9 @@ export function KnowledgeSourcesPanel({ tenantId, websiteDomain }: KnowledgeSour
 
           {message ? (
             <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</div>
+          ) : null}
+          {error ? (
+            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
           ) : null}
 
           <div className="mt-5 space-y-5">

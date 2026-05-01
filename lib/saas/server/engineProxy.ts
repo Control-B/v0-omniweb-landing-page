@@ -9,10 +9,10 @@ const ENGINE_PROXY_TIMEOUT_MS = 15000
 
 export async function proxyEngineRequest(request: NextRequest, path: string) {
   const { userId, getToken } = await auth()
-  let token = userId ? await getToken() : null
+  let token = await getEngineToken()
 
   if (!token) {
-    token = await getEngineToken()
+    token = userId ? await getToken() : null
   }
 
   if (!token) {

@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Bot, CheckCircle2, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { saveAgentConfig } from "@/lib/saas/agentConfigService"
+import { WidgetInstallCard } from "@/components/saas/widget-install-card"
+import { fetchAgentConfig, saveAgentConfig } from "@/lib/saas/agentConfigService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
 import {
   knowledgeSourcesStorageKey,
+  primaryKnowledgePageUrlFromSources,
   readPrimaryKnowledgeOriginFromLocalStorage,
   readPrimaryKnowledgePageUrlFromLocalStorage,
 } from "@/lib/saas/widgetEmbed"
@@ -54,7 +56,6 @@ const MANUAL_LANGUAGE_CODES = LANGUAGE_OPTIONS.filter((language) => language.cod
 const cardClassName = "dashboard-card-surface rounded-[24px] p-6 lg:p-7"
 const inputClassName = "dashboard-input mt-2"
 const textareaClassName = "dashboard-textarea mt-2"
-const localDraftKey = (tenantId: string) => `omniweb-agent-page-draft:${tenantId}`
 
 const VOICE_OPTIONS = [
   {
@@ -103,6 +104,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [voiceCloneName, setVoiceCloneName] = useState("")
   const [voiceCloneSampleName, setVoiceCloneSampleName] = useState("")
   const [voiceCloneAudioUrl, setVoiceCloneAudioUrl] = useState("")
+  const [accountKnowledgeSources, setAccountKnowledgeSources] = useState(initialConfig.knowledgeSources ?? [])
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
@@ -111,35 +113,29 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   )
 
   useEffect(() => {
-    if (typeof window === "undefined") return
-    try {
-      const raw = window.localStorage.getItem(localDraftKey(initialConfig.tenantId))
-      if (!raw) return
-      const draft = JSON.parse(raw) as {
-        workspaceName?: string
-        systemInstructions?: string
-        responseLength?: string
-        voiceVariant?: VoiceVariant
-        voiceCloneEnabled?: boolean
-        voiceCloneName?: string
-        voiceCloneSampleName?: string
-      }
-      if (draft.workspaceName) setWorkspaceName(draft.workspaceName)
-      if (draft.systemInstructions) setSystemInstructions(draft.systemInstructions)
-      if (draft.responseLength) setResponseLength(draft.responseLength)
-      if (draft.voiceVariant) setVoiceVariant(draft.voiceVariant)
-      if (typeof draft.voiceCloneEnabled === "boolean") setVoiceCloneEnabled(draft.voiceCloneEnabled)
-      if (draft.voiceCloneName) setVoiceCloneName(draft.voiceCloneName)
-      if (draft.voiceCloneSampleName) setVoiceCloneSampleName(draft.voiceCloneSampleName)
-    } catch {
-      return
-    }
-  }, [initialConfig.tenantId])
+    let cancelled = false
 
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    window.localStorage.setItem(localDraftKey(initialConfig.tenantId), JSON.stringify({ workspaceName, systemInstructions, responseLength, voiceVariant, voiceCloneEnabled, voiceCloneName, voiceCloneSampleName }))
-  }, [initialConfig.tenantId, responseLength, systemInstructions, voiceCloneEnabled, voiceCloneName, voiceCloneSampleName, voiceVariant, workspaceName])
+    async function loadLatestConfig() {
+      try {
+        const latestConfig = await fetchAgentConfig()
+        if (cancelled || !latestConfig) return
+        setAgentName(latestConfig.agentName || "Omniweb AI")
+        setWorkspaceName(latestConfig.businessName || businessName || "")
+        setWelcomeMessage(latestConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
+        setSystemInstructions(latestConfig.customInstructions || "Talk about what is on the website, answer common questions, and guide high-intent visitors toward the next best step.")
+        setSelectedGoals(latestConfig.goals?.length ? latestConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
+        setSelectedLanguages(getInitialSelectedLanguages(latestConfig))
+        setAccountKnowledgeSources(latestConfig.knowledgeSources ?? [])
+      } catch {
+        return
+      }
+    }
+
+    void loadLatestConfig()
+    return () => {
+      cancelled = true
+    }
+  }, [businessName, initialConfig.tenantId])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -164,6 +160,10 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   }, [initialConfig.tenantId])
 
   const knowledgePreview = useMemo(() => {
+    const accountKnowledgePageUrl = primaryKnowledgePageUrlFromSources(accountKnowledgeSources)
+    if (accountKnowledgePageUrl) {
+      return accountKnowledgePageUrl
+    }
     if (typeof window !== "undefined") {
       const pageUrl = readPrimaryKnowledgePageUrlFromLocalStorage(initialConfig.tenantId)
       if (pageUrl) {
@@ -174,7 +174,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       return websiteDomain.startsWith("http") ? websiteDomain : `https://${websiteDomain}`
     }
     return "No indexed sources yet"
-  }, [websiteDomain, initialConfig.tenantId, lsKnowledgeOrigin])
+  }, [accountKnowledgeSources, websiteDomain, initialConfig.tenantId, lsKnowledgeOrigin])
 
   const autoSelected = selectedLanguages.includes("auto")
   const selectedVoice = VOICE_OPTIONS.find((voice) => voice.id === voiceVariant) ?? VOICE_OPTIONS[0]
@@ -221,7 +221,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       setSaving(true)
       setError("")
       setMessage("")
-      await saveAgentConfig({
+      const nextConfig = await saveAgentConfig({
         agentName,
         businessName: workspaceName,
         welcomeMessage,
@@ -230,6 +230,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         supportedLanguages: selectedLanguages.includes("auto") ? ["auto"] : selectedLanguages.filter((code) => MANUAL_LANGUAGE_CODES.includes(code)),
         active: true,
       })
+      setAgentName(nextConfig.agentName || "Omniweb AI")
+      setWorkspaceName(nextConfig.businessName || businessName || "")
+      setWelcomeMessage(nextConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
+      setSystemInstructions(nextConfig.customInstructions || "Talk about what is on the website, answer common questions, and guide high-intent visitors toward the next best step.")
+      setSelectedGoals(nextConfig.goals?.length ? nextConfig.goals : selectedGoals)
+      setSelectedLanguages(getInitialSelectedLanguages(nextConfig))
+      setAccountKnowledgeSources(nextConfig.knowledgeSources ?? [])
       setMessage("AI agent saved and synced.")
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save AI agent settings.")
@@ -679,7 +686,7 @@ function LivePreviewPanel({
           Configure {voiceLabel.toLowerCase()} for {businessName}. Test from the installed site widget or AI Telephony test call.
         </p>
 
-        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left text-sm text-slate-300">
+        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/3 p-4 text-left text-sm text-slate-300">
           <PreviewDetail label="Knowledge" value={knowledgePreview} />
           <PreviewDetail label="Voice" value={voiceLabel} />
           <PreviewDetail label="Cloning" value={voiceCloneEnabled ? "Saved" : "Off"} muted={!voiceCloneEnabled} />
@@ -692,6 +699,8 @@ function LivePreviewPanel({
           </Button>
           <p className="text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
         </div>
+
+        <WidgetInstallCard compact />
       </div>
     </aside>
   )

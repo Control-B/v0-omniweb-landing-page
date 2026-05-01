@@ -96,6 +96,8 @@ export async function ensureSaasSchema() {
         alter table public.omniweb_agent_configs add column if not exists enabled_features jsonb not null default '{}'::jsonb;
         alter table public.omniweb_agent_configs add column if not exists qualification_rules jsonb not null default '{}'::jsonb;
         alter table public.omniweb_agent_configs add column if not exists custom_instructions text;
+        alter table public.omniweb_agent_configs add column if not exists knowledge_sources jsonb not null default '[]'::jsonb;
+        alter table public.omniweb_agent_configs add column if not exists widget_settings jsonb not null default '{}'::jsonb;
 
         create table if not exists public.omniweb_telephony_configs (
           tenant_id uuid primary key references public.omniweb_tenants(id) on delete cascade,

@@ -131,7 +131,8 @@ export function TelephonyConfigForm() {
     const response = await fetch("/api/telephony/provider/status", { cache: "no-store" })
     const payload = await response.json().catch(() => null)
     if (!response.ok) {
-      setError(payload?.error ?? "Unable to load AI Telephony status.")
+      setData((current) => ({ ...current, status: "error" }))
+      setError(payload?.detail ?? payload?.error?.message ?? payload?.error ?? "Unable to load AI Telephony status.")
       setLoading(false)
       return
     }
@@ -401,7 +402,7 @@ export function TelephonyConfigForm() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+    <div className="rounded-2xl border border-white/10 bg-white/4 p-4">
       <p className="text-xs uppercase tracking-[0.18em] text-slate-500">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
     </div>
@@ -410,7 +411,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
+    <div className="flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
       <span className="text-slate-500">{label}</span>
       <span className="max-w-[220px] text-right font-medium text-slate-100">{value}</span>
     </div>

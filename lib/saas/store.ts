@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto"
 import { normalizePlanType } from "@/lib/saas/billing"
 import { buildWidgetEmbedScriptTag, resolveWidgetScriptOrigin } from "@/lib/saas/widgetEmbed"
 import { ensureSaasSchema, getSaasDbPool, hasDatabaseUrl } from "@/lib/saas/db"
-import type { AgentConfigRecord, SubscriptionStatus, TelephonyConfigRecord, TenantRecord } from "@/lib/saas/types"
+import type { AgentConfigRecord, KnowledgeSourceRecord, SubscriptionStatus, TelephonyConfigRecord, TenantRecord, WidgetSettingsPreferences } from "@/lib/saas/types"
 
 const STORE_DIR = path.join(process.cwd(), ".omniweb")
 const STORE_PATH = path.join(STORE_DIR, "saas-state.json")
@@ -14,6 +14,11 @@ const STORE_PATH = path.join(STORE_DIR, "saas-state.json")
 const DEFAULT_WELCOME_MESSAGE = "Welcome! I’m here to answer questions, recommend the right solution, and help you get the most value from our services. How can I help you today?"
 const DEFAULT_GOALS = ["lead_qualification", "customer_support", "sales_assistance"]
 const DEFAULT_SUPPORTED_LANGUAGES = ["auto"]
+const DEFAULT_WIDGET_SETTINGS: Required<Pick<WidgetSettingsPreferences, "allowedDomains" | "widgetPrimaryColor" | "widgetPosition">> = {
+  allowedDomains: [],
+  widgetPrimaryColor: "#22d3ee",
+  widgetPosition: "bottom-right",
+}
 const DEFAULT_TELEPHONY_CONFIG = {
   omniwebPhoneAgentId: "agent_xxxxxxxxxx",
   aiPhoneNumber: "+15551234567",
@@ -52,6 +57,64 @@ function mapTenantRow(row: Record<string, unknown>): TenantRecord {
   }
 }
 
+function readJsonArray(value: unknown): unknown[] {
+  if (Array.isArray(value)) {
+    return value
+  }
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }
+  return []
+}
+
+function readJsonObject(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value) as unknown
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {}
+    } catch {
+      return {}
+    }
+  }
+  return {}
+}
+
+function normalizeKnowledgeSources(value: unknown): KnowledgeSourceRecord[] {
+  return readJsonArray(value)
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object" && !Array.isArray(item))
+    .map((item) => ({
+      id: String(item.id ?? randomUUID()),
+      url: String(item.url ?? ""),
+      details: String(item.details ?? ""),
+      status: item.status === "ready" ? "ready" : "indexing",
+      addedAt: item.addedAt ? new Date(String(item.addedAt)).toISOString() : new Date().toISOString(),
+    }))
+    .filter((item) => item.url.trim().length > 0)
+}
+
+function normalizeWidgetSettings(value: unknown): WidgetSettingsPreferences {
+  const input = readJsonObject(value)
+  const allowedDomains = readJsonArray(input.allowedDomains).map((domain) => String(domain).trim()).filter(Boolean)
+  const widgetPosition = input.widgetPosition === "bottom-left" ? "bottom-left" : DEFAULT_WIDGET_SETTINGS.widgetPosition
+  const widgetPrimaryColor = typeof input.widgetPrimaryColor === "string" && input.widgetPrimaryColor.trim()
+    ? input.widgetPrimaryColor.trim()
+    : DEFAULT_WIDGET_SETTINGS.widgetPrimaryColor
+
+  return {
+    allowedDomains,
+    widgetPrimaryColor,
+    widgetPosition,
+  }
+}
+
 function mapAgentRow(row: Record<string, unknown>): AgentConfigRecord {
   const enabledFeatures = row.enabled_features && typeof row.enabled_features === "object" && !Array.isArray(row.enabled_features)
     ? row.enabled_features as Record<string, boolean>
@@ -83,6 +146,8 @@ function mapAgentRow(row: Record<string, unknown>): AgentConfigRecord {
     enabledFeatures,
     qualificationRules,
     customInstructions: row.custom_instructions ? String(row.custom_instructions) : null,
+    knowledgeSources: normalizeKnowledgeSources(row.knowledge_sources),
+    widgetSettings: normalizeWidgetSettings(row.widget_settings),
     createdAt: new Date(String(row.created_at)).toISOString(),
     updatedAt: new Date(String(row.updated_at)).toISOString(),
   }
@@ -505,6 +570,8 @@ export async function updateAgentConfig(
           enabled_features = $16::jsonb,
           qualification_rules = $17::jsonb,
           custom_instructions = $18,
+          knowledge_sources = $19::jsonb,
+          widget_settings = $20::jsonb,
           updated_at = now()
         where tenant_id = $1
         returning *
@@ -528,6 +595,8 @@ export async function updateAgentConfig(
         JSON.stringify(updates.enabledFeatures ?? existing.enabledFeatures ?? {}),
         JSON.stringify(updates.qualificationRules ?? existing.qualificationRules ?? {}),
         updates.customInstructions ?? existing.customInstructions ?? null,
+        JSON.stringify(updates.knowledgeSources ?? existing.knowledgeSources ?? []),
+        JSON.stringify(updates.widgetSettings ?? existing.widgetSettings ?? DEFAULT_WIDGET_SETTINGS),
       ],
     )
 

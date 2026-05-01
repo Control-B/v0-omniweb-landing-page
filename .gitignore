@@ -21,3 +21,6 @@ ai/__pycache__/
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Local git repair backup (do not commit — duplicates .git objects)
+.git-corrupt-backup-*/

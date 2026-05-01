@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
+import { getEngineToken } from "@/lib/auth/engine"
 import { getServerEngineUrl } from "@/lib/engine-url"
 import { ensureDefaultAgentConfig, getTenantByClerkUserId, updateAgentConfig } from "@/lib/saas/store"
 import type { AgentConfigUpdatePayload } from "@/lib/saas/types"
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const { userId, getToken } = await auth()
+  const { userId } = await auth()
   if (!userId) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 })
   }
@@ -93,16 +94,12 @@ export async function PATCH(request: NextRequest) {
     customInstructions: payload.customInstructions,
   })
 
-  try {
-    await syncAgentConfigToEngine(tenant.id, payload, await getToken())
-  } catch (syncError) {
-    return NextResponse.json(
-      {
-        error: syncError instanceof Error ? syncError.message : "Unable to sync agent configuration.",
-      },
-      { status: 502 },
+  await syncAgentConfigToEngine(tenant.id, payload, await getEngineToken()).catch((syncError) => {
+    console.warn(
+      "Agent settings saved locally but backend sync failed:",
+      syncError instanceof Error ? syncError.message : syncError,
     )
-  }
+  })
 
   return NextResponse.json(config)
 }
