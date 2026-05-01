@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react"
 import { Info } from "lucide-react"
 
+import { knowledgeSourcesStorageKey } from "@/lib/saas/widgetEmbed"
+
 type KnowledgeSource = {
   id: string
   url: string
@@ -17,7 +19,7 @@ type KnowledgeSourcesPanelProps = {
 }
 
 function storageKey(tenantId: string) {
-  return `omniweb-dashboard:${tenantId}:knowledge`
+  return knowledgeSourcesStorageKey(tenantId)
 }
 
 function buildDefaultSource(websiteDomain: string | null): KnowledgeSource[] {
@@ -66,6 +68,7 @@ export function KnowledgeSourcesPanel({ tenantId, websiteDomain }: KnowledgeSour
     }
 
     window.localStorage.setItem(storageKey(tenantId), JSON.stringify(knowledgeSources))
+    window.dispatchEvent(new CustomEvent("omniweb:knowledge-sources-updated"))
   }, [tenantId, knowledgeSources])
 
   const hasUrl = knowledgeUrl.trim().length > 0

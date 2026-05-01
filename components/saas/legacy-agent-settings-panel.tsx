@@ -1,12 +1,19 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Bot, CheckCircle2, Copy, Loader2, Mic2, Pause, Play, ShieldAlert, Volume2 } from "lucide-react"
+import { Bot, CheckCircle2, Copy, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
 import { SiteAiWidget } from "@/components/site-ai-widget"
 import { Button } from "@/components/ui/button"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import { saveAgentConfig } from "@/lib/saas/agentConfigService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
+import {
+  buildWidgetEmbedScriptTag,
+  knowledgeSourcesStorageKey,
+  readPrimaryKnowledgeOriginFromLocalStorage,
+  readPrimaryKnowledgePageUrlFromLocalStorage,
+  resolveWidgetScriptOrigin,
+} from "@/lib/saas/widgetEmbed"
 
 const GOALS = [
   "All goals",
@@ -72,7 +79,6 @@ type LegacyAgentSettingsPanelProps = {
   initialConfig: AgentConfigRecord
   websiteDomain: string | null
   businessName: string | null
-  widgetEmbedCode: string | null
 }
 
 function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
@@ -87,7 +93,7 @@ function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
   return ["auto"]
 }
 
-export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName, widgetEmbedCode }: LegacyAgentSettingsPanelProps) {
+export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName }: LegacyAgentSettingsPanelProps) {
   const configureRef = useRef<HTMLElement | null>(null)
   const [agentName, setAgentName] = useState(initialConfig.agentName || "Omniweb AI")
   const [workspaceName, setWorkspaceName] = useState(initialConfig.businessName || businessName || "")
@@ -104,6 +110,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+  const [lsKnowledgeOrigin, setLsKnowledgeOrigin] = useState<string | null>(() =>
+    typeof window !== "undefined" ? readPrimaryKnowledgeOriginFromLocalStorage(initialConfig.tenantId) : null,
+  )
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -136,12 +145,49 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     window.localStorage.setItem(localDraftKey(initialConfig.tenantId), JSON.stringify({ workspaceName, systemInstructions, responseLength, voiceVariant, voiceCloneEnabled, voiceCloneName, voiceCloneSampleName }))
   }, [initialConfig.tenantId, responseLength, systemInstructions, voiceCloneEnabled, voiceCloneName, voiceCloneSampleName, voiceVariant, workspaceName])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    function refreshKnowledgeFromStorage() {
+      setLsKnowledgeOrigin(readPrimaryKnowledgeOriginFromLocalStorage(initialConfig.tenantId))
+    }
+    refreshKnowledgeFromStorage()
+
+    function onStorage(event: StorageEvent) {
+      if (event.key === knowledgeSourcesStorageKey(initialConfig.tenantId)) {
+        refreshKnowledgeFromStorage()
+      }
+    }
+
+    window.addEventListener("storage", onStorage)
+    window.addEventListener("omniweb:knowledge-sources-updated", refreshKnowledgeFromStorage)
+    return () => {
+      window.removeEventListener("storage", onStorage)
+      window.removeEventListener("omniweb:knowledge-sources-updated", refreshKnowledgeFromStorage)
+    }
+  }, [initialConfig.tenantId])
+
   const knowledgePreview = useMemo(() => {
+    if (typeof window !== "undefined") {
+      const pageUrl = readPrimaryKnowledgePageUrlFromLocalStorage(initialConfig.tenantId)
+      if (pageUrl) {
+        return pageUrl
+      }
+    }
     if (websiteDomain) {
       return websiteDomain.startsWith("http") ? websiteDomain : `https://${websiteDomain}`
     }
     return "No indexed sources yet"
-  }, [websiteDomain])
+  }, [websiteDomain, initialConfig.tenantId, lsKnowledgeOrigin])
+
+  const widgetEmbedSnippet = useMemo(() => {
+    const origin = resolveWidgetScriptOrigin({
+      publicAppUrl: process.env.NEXT_PUBLIC_APP_URL,
+      knowledgeOrigin: lsKnowledgeOrigin,
+      websiteDomain,
+    })
+    return buildWidgetEmbedScriptTag(initialConfig.tenantId, origin)
+  }, [initialConfig.tenantId, lsKnowledgeOrigin, websiteDomain])
 
   const autoSelected = selectedLanguages.includes("auto")
   const selectedVoice = VOICE_OPTIONS.find((voice) => voice.id === voiceVariant) ?? VOICE_OPTIONS[0]
@@ -207,6 +253,22 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       setSaving(false)
     }
   }
+
+  const handleDeleteClonedVoice = () => {
+    if (voiceCloneAudioUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(voiceCloneAudioUrl)
+    }
+    setVoiceCloneAudioUrl("")
+    setVoiceCloneSampleName("")
+    setVoiceCloneName("")
+    setVoiceCloneEnabled(false)
+    if (voiceVariant === "clone") {
+      setVoiceVariant("female")
+    }
+    setMessage("Removed saved cloned voice.")
+  }
+
+  const canDeleteClonedVoice = Boolean(voiceCloneAudioUrl) || voiceVariant === "clone"
 
   return (
     <div className="space-y-6">
@@ -279,13 +341,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             ))}
           </div>
           <div className="grid gap-4 pt-5 md:grid-cols-2">
-            <Field label="Agent name" helper="The name shoppers will see in the chat widget">
+            <Field label="Agent name" helper="The name visitors will see in the chat widget">
               <input value={agentName} onChange={(event) => setAgentName(event.target.value)} className={inputClassName} />
             </Field>
             <Field label="Business name" helper="Used throughout the agent experience and system context">
               <input value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} className={inputClassName} />
             </Field>
-            <Field label="Welcome message" helper="The first message shoppers see when they open the chat" className="md:col-span-2">
+            <Field label="Welcome message" helper="The first message visitors see when they open the chat" className="md:col-span-2">
               <input value={welcomeMessage} onChange={(event) => setWelcomeMessage(event.target.value)} className={inputClassName} />
             </Field>
             <Field label="System instructions" helper="Describe your business, products, policies, and how the agent should behave" className="md:col-span-2">
@@ -379,6 +441,18 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                       setMessage("Cloned voice saved for testing.")
                     }}
                   />
+                  {canDeleteClonedVoice ? (
+                    <div className="flex justify-end pt-1 md:col-span-2">
+                      <button
+                        type="button"
+                        onClick={handleDeleteClonedVoice}
+                        className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete saved voice
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -394,7 +468,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             knowledgePreview={knowledgePreview}
             voiceLabel={voiceLabel}
             voiceCloneEnabled={voiceCloneEnabled}
-            widgetEmbedCode={widgetEmbedCode}
+            widgetEmbedCode={widgetEmbedSnippet}
             onSave={handleSave}
             onAsk={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
             saving={saving}
@@ -406,7 +480,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
         <div className="pt-5">
           <p className="text-lg font-semibold text-slate-900">Primary Goals</p>
-          <p className="mt-1 text-sm text-slate-500">Select what your AI agent should help shoppers accomplish</p>
+          <p className="mt-1 text-sm text-slate-500">Select what your AI agent should help visitors accomplish across your industry</p>
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {GOALS.map((goal) => {
               const active = selectedGoals.includes(goal)
@@ -425,7 +499,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
         <div className="pt-5">
           <p className="text-lg font-semibold text-slate-900">Supported Languages</p>
-          <p className="mt-1 text-sm text-slate-500">The widget will show a language picker to shoppers. Your agent will respond in the chosen language.</p>
+          <p className="mt-1 text-sm text-slate-500">When multiple languages are enabled, visitors can choose one and your agent will respond in that language.</p>
           <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {LANGUAGE_OPTIONS.map((language) => (
               <label key={language.code} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] text-slate-700 hover:bg-slate-50">
@@ -451,17 +525,20 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       </div>
 
       <section className="overflow-hidden rounded-[24px] border border-amber-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <div className="border-b border-amber-200 bg-amber-400/95 px-4 py-3 text-sm font-semibold text-amber-950"><ShieldAlert className="mr-2 inline h-4 w-4" />Financial Transaction Policy — Required</div>
+        <div className="border-b border-amber-200 bg-amber-400/95 px-4 py-3 text-sm font-semibold text-amber-950"><ShieldAlert className="mr-2 inline h-4 w-4" />Payments &amp; commerce — acknowledgment</div>
         <div className="p-6 text-[15px] leading-7 text-slate-700">
-          <p className="mb-3">By saving, you agree that the Omniweb AI agent will:</p>
-          <ul className="list-disc space-y-1 pl-5 text-slate-600">
-            <li>Add products to the shopper&apos;s cart</li>
-            <li>Send cart abandonment reminders</li>
-            <li>NOT process checkouts or complete payments</li>
-            <li>NOT issue refunds or access billing information</li>
-            <li>NOT handle any financial transactions</li>
+          <p className="mb-4">Omniweb works across many industries. By saving, you confirm you understand how the AI agent may act depending on your use case:</p>
+          <p className="mb-2 font-semibold text-slate-900">E-commerce / online store</p>
+          <ul className="mb-5 list-disc space-y-1 pl-5 text-slate-600">
+            <li>When your site is configured for it, the agent may help visitors add items to a cart and send cart or follow-up reminders.</li>
+            <li>The agent does <strong>not</strong> complete checkouts, charge cards, process payments, issue refunds, access your billing systems, or handle any financial transaction end to end.</li>
           </ul>
-          <p className="mt-3 text-slate-500">Any financial request from a shopper will be immediately escalated to a human representative.</p>
+          <p className="mb-2 font-semibold text-slate-900">Other industries (services, professional firms, bookings, lead capture, support, and similar)</p>
+          <ul className="mb-5 list-disc space-y-1 pl-5 text-slate-600">
+            <li>The agent answers questions, captures leads, and guides visitors toward contact or appointments — according to how you configured it.</li>
+            <li>The agent does <strong>not</strong> collect or process payments, refunds, invoicing, or any financial transaction.</li>
+          </ul>
+          <p className="mt-1 text-slate-500"><strong>For every business:</strong> any request involving money, refunds, billing, or sensitive financial decisions must be escalated to a person on your team.</p>
         </div>
       </section>
     </div>
@@ -601,14 +678,14 @@ function LivePreviewPanel({
   knowledgePreview: string
   voiceLabel: string
   voiceCloneEnabled: boolean
-  widgetEmbedCode: string | null
+  widgetEmbedCode: string
   onSave: () => void
   onAsk: () => void
   saving: boolean
 }) {
   const [activeTab, setActiveTab] = useState<"preview" | "install">("preview")
   const [copied, setCopied] = useState(false)
-  const script = widgetEmbedCode || "Widget script unavailable. Save your workspace and reload this page."
+  const script = widgetEmbedCode
 
   const copyScript = async () => {
     await navigator.clipboard.writeText(script)
@@ -669,7 +746,12 @@ function LivePreviewPanel({
       ) : (
         <div className="min-h-[420px] px-6 py-7">
           <h3 className="text-xl font-semibold">Install your widget</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-400">Copy this script and paste it before your website&apos;s closing body tag.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-400">
+            Copy this script and paste it before your website&apos;s closing body tag. The hostname prefers your Omniweb app URL when it is configured; otherwise it follows your primary Knowledge URL or connected domain so you are not left with a generic placeholder.
+          </p>
+          <p className="mt-3 text-sm leading-6 text-slate-400">
+            Before going live, add your real site pages under Dashboard → Knowledge (services, offerings, FAQs, policies, and any notes that are not on the page). The assistant pulls context from those sources so it can accurately help customers once the snippet is installed. This embed text updates automatically when Knowledge changes.
+          </p>
 
           <div className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
             <PreviewDetail label="Knowledge" value={knowledgePreview} />

@@ -159,7 +159,7 @@ export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
     billingStatus,
     agentConfig,
     telephonyConfig,
-    widgetEmbedCode: tenant ? buildWidgetEmbedCode(tenant.id) : null,
+    widgetEmbedCode: tenant ? buildWidgetEmbedCode(tenant.id, tenant.websiteDomain) : null,
   }
 }
 

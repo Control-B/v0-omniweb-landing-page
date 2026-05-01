@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { randomUUID } from "node:crypto"
 import { normalizePlanType } from "@/lib/saas/billing"
+import { buildWidgetEmbedScriptTag, resolveWidgetScriptOrigin } from "@/lib/saas/widgetEmbed"
 import { ensureSaasSchema, getSaasDbPool, hasDatabaseUrl } from "@/lib/saas/db"
 import type { AgentConfigRecord, SubscriptionStatus, TelephonyConfigRecord, TenantRecord } from "@/lib/saas/types"
 
@@ -679,7 +680,10 @@ export async function activateTenantSubscription(
   })
 }
 
-export function buildWidgetEmbedCode(tenantId: string) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "https://YOUR_DOMAIN"
-  return `<script src="${appUrl}/widget.js" data-tenant-id="${tenantId}" async></script>`
+export function buildWidgetEmbedCode(tenantId: string, websiteDomain?: string | null) {
+  const origin = resolveWidgetScriptOrigin({
+    publicAppUrl: process.env.NEXT_PUBLIC_APP_URL,
+    websiteDomain: websiteDomain ?? null,
+  })
+  return buildWidgetEmbedScriptTag(tenantId, origin)
 }

@@ -31,6 +31,13 @@ const nextConfig = {
     deviceSizes: [640, 828, 1080, 1200, 1920],
     remotePatterns,
   },
+  async rewrites() {
+    return [
+      // Single-file alias for embed snippets documented as /widget.js
+      { source: '/widget.js', destination: '/widget/loader.js' },
+    ]
+  },
+
   async headers() {
     return [
       {

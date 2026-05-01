@@ -39,10 +39,11 @@
     }
   }
 
-  // Find our own script tag to read data attributes
-  var scripts = document.querySelectorAll('script[src*="widget/loader"]');
+  // Find our own script tag to read data attributes (/widget/loader.js or /widget.js rewrite)
+  var scripts = document.querySelectorAll(
+    'script[src*="widget/loader"], script[src*="widget.js"]'
+  );
   var scriptTag = scripts[scripts.length - 1];
-
   if (!scriptTag) {
     console.error("[Omniweb] Loader script tag not found");
     return;
