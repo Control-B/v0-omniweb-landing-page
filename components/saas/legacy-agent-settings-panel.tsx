@@ -1,9 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
-import { Loader2, ShieldAlert } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Bot, CheckCircle2, Loader2, ShieldAlert, TestTube2 } from "lucide-react"
+import { SiteAiWidget } from "@/components/site-ai-widget"
 import { Button } from "@/components/ui/button"
+import { WidgetInstallCard } from "@/components/saas/widget-install-card"
+import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import { saveAgentConfig } from "@/lib/saas/agentConfigService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
 
@@ -51,6 +54,7 @@ const cardClassName = "dashboard-card-surface rounded-[24px] p-6 lg:p-7"
 const inputClassName = "dashboard-input mt-2"
 const textareaClassName = "dashboard-textarea mt-2"
 const localDraftKey = (tenantId: string) => `omniweb-agent-page-draft:${tenantId}`
+const stepClassName = "rounded-[22px] border p-5 transition"
 
 type LegacyAgentSettingsPanelProps = {
   initialConfig: AgentConfigRecord
@@ -71,6 +75,9 @@ function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
 }
 
 export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName }: LegacyAgentSettingsPanelProps) {
+  const configureRef = useRef<HTMLElement | null>(null)
+  const testRef = useRef<HTMLElement | null>(null)
+  const installRef = useRef<HTMLElement | null>(null)
   const [agentName, setAgentName] = useState(initialConfig.agentName || "Omniweb AI")
   const [workspaceName, setWorkspaceName] = useState(initialConfig.businessName || businessName || "")
   const [welcomeMessage, setWelcomeMessage] = useState(initialConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
@@ -81,6 +88,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
+  const [activeStep, setActiveStep] = useState<"configure" | "test" | "install">("configure")
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -109,6 +117,14 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   }, [websiteDomain])
 
   const autoSelected = selectedLanguages.includes("auto")
+
+  const scrollTo = (target: "configure" | "test" | "install") => {
+    setActiveStep(target)
+    const ref = target === "configure" ? configureRef : target === "test" ? testRef : installRef
+    window.setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }, 80)
+  }
 
   const toggleGoal = (goal: string) => {
     if (goal === "All goals") {
@@ -153,6 +169,10 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         active: true,
       })
       setMessage("AI agent saved and synced.")
+      scrollTo("test")
+      window.setTimeout(() => {
+        dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })
+      }, 500)
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save AI agent settings.")
     } finally {
@@ -162,21 +182,66 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   return (
     <div className="space-y-6">
+      <SiteAiWidget agentId={initialConfig.tenantId} />
+
+      <section className="dashboard-card-highlight rounded-[28px] p-6 lg:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
+            <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
+            <p className="dashboard-body mt-3">
+              Start here, save your agent, test the live widget, then copy the install script. No separate pages needed.
+            </p>
+          </div>
+          <Button className="dashboard-primary-button rounded-2xl px-5 text-white" onClick={() => scrollTo("configure")}>
+            Start setup
+          </Button>
+        </div>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-3">
+          <LaunchStep
+            active={activeStep === "configure"}
+            complete={activeStep !== "configure"}
+            number="1"
+            title="Configure"
+            body="Set the greeting, goals, languages, and operating rules."
+            onClick={() => scrollTo("configure")}
+          />
+          <LaunchStep
+            active={activeStep === "test"}
+            complete={activeStep === "install"}
+            number="2"
+            title="Test"
+            body="Save opens the live Ask AI widget so you can verify the experience."
+            onClick={() => scrollTo("test")}
+          />
+          <LaunchStep
+            active={activeStep === "install"}
+            complete={false}
+            number="3"
+            title="Install"
+            body="Copy one script, paste it before your website closing body tag, and verify."
+            onClick={() => scrollTo("install")}
+          />
+        </div>
+      </section>
+
       {(message || error) ? (
         <div className={`rounded-[24px] border px-4 py-3 text-sm ${error ? "border-red-200 bg-red-50 text-red-700" : "border-cyan-200 bg-cyan-50 text-cyan-800"}`}>
           {error || message}
         </div>
       ) : null}
 
-      <section className="dashboard-card-highlight rounded-[28px] p-6 lg:p-8">
+      <section id="configure-agent" ref={configureRef} className="dashboard-card-highlight scroll-mt-6 rounded-[28px] p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="dashboard-page-title">AI Agent Settings</p>
+            <p className="dashboard-page-title">1. Configure your AI agent</p>
             <p className="dashboard-body mt-3 max-w-3xl">Shape how your AI agent sells and supports. Set the welcome message, goals, languages, and operating rules that sync to your storefront widget.</p>
           </div>
-          <Link href="/dashboard/test-console">
-            <Button variant="outline" className="dashboard-secondary-button rounded-xl hover:bg-white">Test after save</Button>
-          </Link>
+          <Button className="dashboard-primary-button rounded-xl text-white hover:opacity-95" onClick={handleSave} disabled={saving}>
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Save and test
+          </Button>
         </div>
       </section>
 
@@ -211,11 +276,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           <InfoCard title="Knowledge base context" actionLabel="Edit KB" actionHref="/dashboard/knowledge" body="These sources and subscriber details are included when the agent syncs.">
             <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{knowledgePreview}</div>
           </InfoCard>
-          <InfoCard title="Test your agent" body="Save first, then test your agent’s voice, language switching, and greeting before shoppers see it.">
+          <InfoCard title="Test your agent" body="Save first, then this page opens your live widget so you can test voice, language switching, and greeting before shoppers see it.">
             <div className="mt-4 border-t border-slate-200 pt-4">
-              <Link href="/dashboard/test-console">
-                <Button variant="outline" className="rounded-xl border-slate-200 bg-white">Open test console</Button>
-              </Link>
+              <Button variant="outline" className="rounded-xl border-slate-200 bg-white" onClick={() => scrollTo("test")}>Jump to test</Button>
             </div>
           </InfoCard>
         </div>
@@ -278,14 +341,67 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       </section>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end lg:pr-72">
-        <Link href="/dashboard/test-console">
-          <Button variant="outline" className="dashboard-secondary-button rounded-xl">Test in console</Button>
-        </Link>
         <Button className="dashboard-primary-button rounded-xl text-white hover:opacity-95" onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save and sync agent
+          Save and test
         </Button>
       </div>
+
+      <section id="test-agent" ref={testRef} className="dashboard-card-surface scroll-mt-6 rounded-[28px] p-6 lg:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <TestTube2 className="h-4 w-4 text-violet-500" />
+              Step 2
+            </div>
+            <h2 className="dashboard-section-title mt-3">Test your AI agent</h2>
+            <p className="dashboard-body mt-2">
+              Click Ask AI, test the greeting, ask a real customer question, try a language, and check that the answer feels right.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              type="button"
+              onClick={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
+              className="dashboard-primary-button rounded-2xl px-5 text-white"
+            >
+              <Bot className="h-4 w-4" />
+              Ask AI
+            </Button>
+            <Button type="button" variant="outline" className="dashboard-secondary-button rounded-2xl" onClick={() => scrollTo("install")}>
+              Finish testing and install
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {[
+            ["Greeting", "Does it open with your saved welcome message?"],
+            ["Real answer", "Ask about your products, services, pricing, or policies."],
+            ["Next step", "Confirm it guides visitors toward booking, buying, or contacting you."],
+          ].map(([title, body]) => (
+            <div key={title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-900">{title}</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="install-widget" ref={installRef} className="scroll-mt-6 space-y-4">
+        <div className="dashboard-card-highlight rounded-[28px] p-6 lg:p-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Step 3</p>
+              <h2 className="dashboard-section-title mt-3">Install your website widget</h2>
+              <p className="dashboard-body mt-2 max-w-3xl">
+                Copy the script below and paste it before your website&apos;s closing body tag. After it is installed, use Verify install to confirm Omniweb can see it.
+              </p>
+            </div>
+          </div>
+        </div>
+        <WidgetInstallCard />
+      </section>
     </div>
   )
 }
@@ -307,6 +423,46 @@ function Field({
       {children}
       {helper ? <p className="mt-2 text-sm text-slate-500">{helper}</p> : null}
     </div>
+  )
+}
+
+function LaunchStep({
+  active,
+  complete,
+  number,
+  title,
+  body,
+  onClick,
+}: {
+  active: boolean
+  complete: boolean
+  number: string
+  title: string
+  body: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${stepClassName} text-left ${
+        active
+          ? "border-cyan-300 bg-white shadow-[0_18px_40px_rgba(14,165,233,0.14)]"
+          : complete
+            ? "border-emerald-200 bg-emerald-50/80"
+            : "border-slate-200 bg-white/70 hover:border-slate-300"
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${
+          complete ? "bg-emerald-600 text-white" : active ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"
+        }`}>
+          {complete ? <CheckCircle2 className="h-5 w-5" /> : number}
+        </span>
+        <span className="text-base font-semibold text-slate-950">{title}</span>
+      </div>
+      <p className="mt-3 text-sm leading-6 text-slate-600">{body}</p>
+    </button>
   )
 }
 

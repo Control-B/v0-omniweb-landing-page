@@ -17,8 +17,8 @@ const sections = [
     body: "Configure the voice agent, call handling behavior, summaries, and future phone workflows so visitors can request or receive AI-powered calls.",
   },
   {
-    title: "Test Console",
-    body: "Use the Test Console to simulate customer questions, preview greetings, and validate that the assistant is ready before going live.",
+    title: "Test and Install",
+    body: "Use the AI Agent launch flow to save, test the live widget, copy the install script, and verify the widget before going live.",
   },
   {
     title: "Knowledge",

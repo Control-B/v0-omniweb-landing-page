@@ -16,7 +16,6 @@ import {
   Phone,
   Settings,
   Sparkles,
-  TestTube2,
   UserRound,
   Wallet,
 } from "lucide-react"
@@ -29,7 +28,6 @@ const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, aliases: [] },
   { href: "/dashboard/ai-agent", label: "AI Agent", icon: Bot, aliases: [] },
   { href: "/dashboard/ai-telephony", label: "AI Telephony", icon: Phone, aliases: [] },
-  { href: "/dashboard/test-console", label: "Test Console", icon: TestTube2, aliases: [] },
   { href: "/dashboard/knowledge", label: "Knowledge", icon: Brain, aliases: [] },
   { href: "/dashboard/billing", label: "Billing", icon: Wallet, aliases: ["/dashboard/pricing"] },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, aliases: [] },
@@ -80,9 +78,8 @@ function isPathActive(pathname: string, href: string, aliases: readonly string[]
 
 function getPageDescription(pathname: string) {
   if (pathname === "/dashboard") return "See launch readiness, workspace health, and the next highest-impact actions in one place."
-  if (pathname.startsWith("/dashboard/ai-agent")) return "Configure Omniweb’s shared AI brain, prompts, goals, and delivery behavior across channels."
+  if (pathname.startsWith("/dashboard/ai-agent")) return "Configure, test, and install your AI widget from one guided setup flow."
   if (pathname.startsWith("/dashboard/ai-telephony")) return "Manage voice routing, escalation paths, and call experience settings for AI telephony."
-  if (pathname.startsWith("/dashboard/test-console")) return "Preview and validate how the agent responds before changes go live."
   if (pathname.startsWith("/dashboard/knowledge")) return "Control website sources, widget readiness, and the content the assistant can use."
   if (pathname.startsWith("/dashboard/billing") || pathname.startsWith("/dashboard/pricing")) return "Track plan status, trial timing, and subscription controls for the workspace."
   if (pathname.startsWith("/dashboard/analytics")) return "Review engagement performance, lead quality, and conversion signals as traffic arrives."

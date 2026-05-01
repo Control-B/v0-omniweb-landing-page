@@ -4,6 +4,8 @@ import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
 import { getServerEngineUrl } from "@/lib/engine-url"
 
+const WIDGET_PROXY_TIMEOUT_MS = 10000
+
 export async function proxyWidgetRequest(request: NextRequest, path: string) {
   const { userId, getToken } = await auth()
 
@@ -30,12 +32,35 @@ export async function proxyWidgetRequest(request: NextRequest, path: string) {
     headers.set("Content-Type", request.headers.get("content-type") || "application/json")
   }
 
-  const response = await fetch(target, {
-    method: request.method,
-    headers,
-    body: hasBody ? await request.text() : undefined,
-    cache: "no-store",
-  })
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), WIDGET_PROXY_TIMEOUT_MS)
+
+  let response: Response
+  try {
+    response = await fetch(target, {
+      method: request.method,
+      headers,
+      body: hasBody ? await request.text() : undefined,
+      cache: "no-store",
+      signal: controller.signal,
+    })
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === "AbortError"
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: timedOut ? "WIDGET_PROXY_TIMEOUT" : "WIDGET_PROXY_ERROR",
+          message: timedOut
+            ? "The widget service is taking too long to respond. Please try again."
+            : "Unable to reach the widget service. Please try again.",
+        },
+      },
+      { status: timedOut ? 504 : 502 },
+    )
+  } finally {
+    clearTimeout(timeoutId)
+  }
 
   const text = await response.text()
   return new NextResponse(text, {

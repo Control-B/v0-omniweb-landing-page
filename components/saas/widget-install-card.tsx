@@ -141,12 +141,31 @@ export function WidgetInstallCard() {
     }
   }
 
-  if (loading || !form || !settings) {
+  if (loading) {
     return (
       <section className={sectionClassName}>
         <div className="flex items-center gap-3 text-sm text-slate-500">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading widget installation settings…
+        </div>
+      </section>
+    )
+  }
+
+  if (!form || !settings) {
+    return (
+      <section className={sectionClassName}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-950">Widget settings could not load</p>
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {error || "The widget service did not return installation settings. Try again in a moment."}
+            </p>
+          </div>
+          <Button type="button" variant="outline" className="shrink-0" onClick={reloadStatus} disabled={checking}>
+            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Retry
+          </Button>
         </div>
       </section>
     )
