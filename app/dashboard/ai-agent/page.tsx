@@ -15,6 +15,7 @@ export default async function DashboardAiAgentPage() {
       initialConfig={snapshot.agentConfig}
       websiteDomain={snapshot.status.websiteDomain}
       businessName={snapshot.status.businessName}
+      widgetEmbedCode={snapshot.widgetEmbedCode}
     />
   )
 }

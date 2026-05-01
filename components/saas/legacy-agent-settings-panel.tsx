@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Bot, Loader2, Mic2, ShieldAlert, UploadCloud, Volume2 } from "lucide-react"
+import { Bot, CheckCircle2, Copy, Loader2, Mic2, Pause, Play, ShieldAlert, Volume2 } from "lucide-react"
 import { SiteAiWidget } from "@/components/site-ai-widget"
 import { Button } from "@/components/ui/button"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
@@ -57,21 +57,22 @@ const VOICE_OPTIONS = [
   {
     id: "female",
     label: "Female voice",
-    provider: "ElevenLabs",
     description: "Warmer assistant voice for website conversations.",
   },
   {
     id: "male",
     label: "Male voice",
-    provider: "Deepgram",
-    description: "Default low-latency voice for fast live previews.",
+    description: "Clear default voice for fast live previews.",
   },
 ] as const
+
+type VoiceVariant = (typeof VOICE_OPTIONS)[number]["id"] | "clone"
 
 type LegacyAgentSettingsPanelProps = {
   initialConfig: AgentConfigRecord
   websiteDomain: string | null
   businessName: string | null
+  widgetEmbedCode: string | null
 }
 
 function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
@@ -86,7 +87,7 @@ function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
   return ["auto"]
 }
 
-export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName }: LegacyAgentSettingsPanelProps) {
+export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName, widgetEmbedCode }: LegacyAgentSettingsPanelProps) {
   const configureRef = useRef<HTMLElement | null>(null)
   const [agentName, setAgentName] = useState(initialConfig.agentName || "Omniweb AI")
   const [workspaceName, setWorkspaceName] = useState(initialConfig.businessName || businessName || "")
@@ -95,10 +96,11 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [responseLength, setResponseLength] = useState("Moderate – balanced detail")
   const [selectedGoals, setSelectedGoals] = useState<string[]>(initialConfig.goals?.length ? initialConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(getInitialSelectedLanguages(initialConfig))
-  const [voiceVariant, setVoiceVariant] = useState<(typeof VOICE_OPTIONS)[number]["id"]>("female")
+  const [voiceVariant, setVoiceVariant] = useState<VoiceVariant>("female")
   const [voiceCloneEnabled, setVoiceCloneEnabled] = useState(false)
   const [voiceCloneName, setVoiceCloneName] = useState("")
   const [voiceCloneSampleName, setVoiceCloneSampleName] = useState("")
+  const [voiceCloneAudioUrl, setVoiceCloneAudioUrl] = useState("")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
@@ -112,7 +114,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         workspaceName?: string
         systemInstructions?: string
         responseLength?: string
-        voiceVariant?: (typeof VOICE_OPTIONS)[number]["id"]
+        voiceVariant?: VoiceVariant
         voiceCloneEnabled?: boolean
         voiceCloneName?: string
         voiceCloneSampleName?: string
@@ -143,6 +145,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   const autoSelected = selectedLanguages.includes("auto")
   const selectedVoice = VOICE_OPTIONS.find((voice) => voice.id === voiceVariant) ?? VOICE_OPTIONS[0]
+  const voiceLabel = voiceVariant === "clone"
+    ? (voiceCloneName ? `Clone: ${voiceCloneName}` : "Cloned voice")
+    : selectedVoice.label
 
   const scrollToConfiguration = () => {
     window.setTimeout(() => {
@@ -247,9 +252,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
               Configure the agent, choose a voice, and test it live from the preview panel. Everything stays focused on one page.
             </p>
           </div>
-          <Button className="dashboard-primary-button rounded-2xl px-5 text-white" onClick={scrollToConfiguration}>
-            Start configuring
-          </Button>
           </div>
         </div>
       </section>
@@ -327,7 +329,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                         </span>
                         <div>
                           <p className="font-semibold">{voice.label}</p>
-                          <p className={`mt-1 text-xs ${active ? "text-cyan-100" : "text-slate-500"}`}>{voice.provider}</p>
+                          <p className={`mt-1 text-xs ${active ? "text-cyan-100" : "text-slate-500"}`}>Ready for live preview</p>
                         </div>
                       </div>
                       <span className={`h-3 w-3 rounded-full ${active ? "bg-cyan-300" : "bg-slate-300"}`} />
@@ -342,11 +344,11 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-start gap-3">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
-                    <UploadCloud className="h-5 w-5" />
+                    <Mic2 className="h-5 w-5" />
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-slate-900">Voice cloning</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">Upload a sample later to create a brand voice. For now, this stores the preferred cloned voice name for setup.</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">Record a short sample, listen back, and save it as the cloned voice for testing.</p>
                   </div>
                 </div>
                 <button
@@ -358,22 +360,25 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                 </button>
               </div>
               {voiceCloneEnabled ? (
-                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
                   <div>
                     <label className="text-sm font-medium text-slate-700">Cloned voice name</label>
                     <input value={voiceCloneName} onChange={(event) => setVoiceCloneName(event.target.value)} placeholder="Example: Founder voice, Support voice" className={inputClassName} />
                   </div>
-                  <label className="block rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">
-                    <span className="font-semibold text-slate-900">Upload voice sample</span>
-                    <span className="mt-1 block text-xs leading-5 text-slate-500">MP3, WAV, or M4A sample for cloning setup.</span>
-                    <input
-                      type="file"
-                      accept="audio/*"
-                      className="mt-3 block w-full text-xs text-slate-500 file:mr-3 file:rounded-full file:border-0 file:bg-slate-950 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white"
-                      onChange={(event) => setVoiceCloneSampleName(event.target.files?.[0]?.name ?? "")}
-                    />
-                    {voiceCloneSampleName ? <span className="mt-2 block text-xs font-semibold text-cyan-700">{voiceCloneSampleName}</span> : null}
-                  </label>
+                  <VoiceCloneRecorder
+                    audioUrl={voiceCloneAudioUrl}
+                    sampleName={voiceCloneSampleName}
+                    onRecorded={(url) => {
+                      setVoiceCloneAudioUrl(url)
+                      setVoiceCloneSampleName("Recorded voice sample")
+                    }}
+                    onSave={() => {
+                      setVoiceCloneEnabled(true)
+                      setVoiceVariant("clone")
+                      setVoiceCloneName((current) => current || "Saved clone voice")
+                      setMessage("Cloned voice saved for testing.")
+                    }}
+                  />
                 </div>
               ) : null}
             </div>
@@ -387,8 +392,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             agentName={agentName}
             businessName={workspaceName || businessName || "Omniweb"}
             knowledgePreview={knowledgePreview}
-            selectedVoice={selectedVoice}
+            voiceLabel={voiceLabel}
             voiceCloneEnabled={voiceCloneEnabled}
+            widgetEmbedCode={widgetEmbedCode}
             onSave={handleSave}
             onAsk={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
             saving={saving}
@@ -482,12 +488,110 @@ function Field({
   )
 }
 
+function VoiceCloneRecorder({
+  audioUrl,
+  sampleName,
+  onRecorded,
+  onSave,
+}: {
+  audioUrl: string
+  sampleName: string
+  onRecorded: (url: string) => void
+  onSave: () => void
+}) {
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<BlobPart[]>([])
+  const [recording, setRecording] = useState(false)
+  const [recordError, setRecordError] = useState("")
+
+  const startRecording = async () => {
+    try {
+      setRecordError("")
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const recorder = new MediaRecorder(stream)
+      chunksRef.current = []
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data)
+      }
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" })
+        onRecorded(URL.createObjectURL(blob))
+        stream.getTracks().forEach((track) => track.stop())
+      }
+      recorderRef.current = recorder
+      recorder.start()
+      setRecording(true)
+    } catch {
+      setRecordError("Microphone access was blocked. Allow microphone access and try again.")
+    }
+  }
+
+  const stopRecording = () => {
+    recorderRef.current?.stop()
+    setRecording(false)
+  }
+
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">
+      <p className="font-semibold text-slate-900">Record voice sample</p>
+      <p className="mt-1 text-xs leading-5 text-slate-500">Speak naturally for 10 to 20 seconds, listen back, then save when satisfied.</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={recording ? stopRecording : startRecording}
+          className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${recording ? "bg-red-600 text-white" : "bg-slate-950 text-white"}`}
+        >
+          {recording ? <Pause className="h-4 w-4" /> : <Mic2 className="h-4 w-4" />}
+          {recording ? "Stop recording" : "Record sample"}
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={!audioUrl}
+          className="inline-flex items-center gap-2 rounded-full bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+          Save clone
+        </button>
+      </div>
+      {audioUrl ? (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-slate-700">
+            <Play className="h-3.5 w-3.5" />
+            {sampleName || "Recorded sample"}
+          </div>
+          <audio controls src={audioUrl} className="w-full" />
+        </div>
+      ) : null}
+      {recordError ? <p className="mt-3 text-xs font-semibold text-red-600">{recordError}</p> : null}
+    </div>
+  )
+}
+
+function PreviewDetail({
+  label,
+  value,
+  muted = false,
+}: {
+  label: string
+  value: string
+  muted?: boolean
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <span>{label}</span>
+      <span className={`max-w-[210px] text-right font-semibold ${muted ? "text-slate-500" : "text-white"}`}>{value}</span>
+    </div>
+  )
+}
+
 function LivePreviewPanel({
   agentName,
   businessName,
   knowledgePreview,
-  selectedVoice,
+  voiceLabel,
   voiceCloneEnabled,
+  widgetEmbedCode,
   onSave,
   onAsk,
   saving,
@@ -495,58 +599,99 @@ function LivePreviewPanel({
   agentName: string
   businessName: string
   knowledgePreview: string
-  selectedVoice: (typeof VOICE_OPTIONS)[number]
+  voiceLabel: string
   voiceCloneEnabled: boolean
+  widgetEmbedCode: string | null
   onSave: () => void
   onAsk: () => void
   saving: boolean
 }) {
+  const [activeTab, setActiveTab] = useState<"preview" | "install">("preview")
+  const [copied, setCopied] = useState(false)
+  const script = widgetEmbedCode || "Widget script unavailable. Save your workspace and reload this page."
+
+  const copyScript = async () => {
+    await navigator.clipboard.writeText(script)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1500)
+  }
+
   return (
     <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
       <div className="grid grid-cols-2 border-b border-white/10 text-center text-sm font-semibold">
-        <button type="button" className="border-b-2 border-cyan-400 bg-cyan-400/10 px-4 py-3 text-cyan-200">Live preview</button>
-        <button type="button" className="px-4 py-3 text-slate-400">Install</button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("preview")}
+          className={`px-4 py-3 transition ${activeTab === "preview" ? "border-b-2 border-cyan-400 bg-cyan-400/10 text-cyan-200" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
+        >
+          Live preview
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("install")}
+          className={`px-4 py-3 transition ${activeTab === "install" ? "border-b-2 border-cyan-400 bg-cyan-400/10 text-cyan-200" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
+        >
+          Install
+        </button>
       </div>
 
-      <div className="flex min-h-[420px] flex-col items-center justify-center px-6 py-10 text-center">
-        <div className="relative flex h-36 w-36 items-center justify-center">
-          <div className="absolute inset-0 rounded-full border border-cyan-300/30" />
-          <div className="absolute inset-3 rounded-full border border-violet-400/40" />
-          <div className="absolute inset-7 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.35),rgba(99,102,241,0.1),transparent_70%)]" />
-          <Mic2 className="relative h-12 w-12 text-cyan-100" />
+      {activeTab === "preview" ? (
+        <div className="flex min-h-[420px] flex-col items-center justify-center px-6 py-10 text-center">
+          <div className="relative flex h-36 w-36 items-center justify-center">
+            <div className="absolute inset-0 rounded-full border border-cyan-300/30" />
+            <div className="absolute inset-3 rounded-full border border-violet-400/40" />
+            <div className="absolute inset-7 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.35),rgba(99,102,241,0.1),transparent_70%)]" />
+            <Mic2 className="relative h-12 w-12 text-cyan-100" />
+          </div>
+
+          <h3 className="mt-7 text-xl font-semibold">{agentName || "Omniweb AI"}</h3>
+          <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">
+            Preview {voiceLabel.toLowerCase()} for {businessName}.
+          </p>
+
+          <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left text-sm text-slate-300">
+            <PreviewDetail label="Knowledge" value={knowledgePreview} />
+            <PreviewDetail label="Voice" value={voiceLabel} />
+            <PreviewDetail label="Cloning" value={voiceCloneEnabled ? "Saved" : "Off"} muted={!voiceCloneEnabled} />
+          </div>
+
+          <div className="mt-7 flex w-full flex-col gap-3">
+            <Button type="button" className="dashboard-primary-button h-12 rounded-2xl text-white" onClick={onAsk}>
+              <Mic2 className="h-4 w-4" />
+              Talk to your agent
+            </Button>
+            <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onSave} disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Save and deploy
+            </Button>
+          </div>
         </div>
+      ) : (
+        <div className="min-h-[420px] px-6 py-7">
+          <h3 className="text-xl font-semibold">Install your widget</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-400">Copy this script and paste it before your website&apos;s closing body tag.</p>
 
-        <h3 className="mt-7 text-xl font-semibold">{agentName || "Omniweb AI"}</h3>
-        <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">
-          Preview the {selectedVoice.label.toLowerCase()} powered by {selectedVoice.provider} for {businessName}.
-        </p>
+          <div className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
+            <PreviewDetail label="Knowledge" value={knowledgePreview} />
+            <PreviewDetail label="Voice" value={voiceLabel} />
+            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <span className="text-sm font-semibold text-white">Script</span>
+                <button type="button" onClick={copyScript} className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-cyan-300">
+                  {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+              <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all text-xs leading-5 text-cyan-100">{script}</pre>
+            </div>
+          </div>
 
-        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left text-sm text-slate-300">
-          <div className="flex items-center justify-between gap-3">
-            <span>Voice</span>
-            <span className="font-semibold text-white">{selectedVoice.provider}</span>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span>Cloning</span>
-            <span className={voiceCloneEnabled ? "font-semibold text-cyan-200" : "font-semibold text-slate-500"}>{voiceCloneEnabled ? "Enabled" : "Off"}</span>
-          </div>
-          <div className="flex items-start justify-between gap-3">
-            <span>Knowledge</span>
-            <span className="max-w-[190px] text-right font-semibold text-white">{knowledgePreview}</span>
-          </div>
-        </div>
-
-        <div className="mt-7 flex w-full flex-col gap-3">
-          <Button type="button" className="dashboard-primary-button h-12 rounded-2xl text-white" onClick={onAsk}>
-            <Mic2 className="h-4 w-4" />
-            Talk to your agent
+          <Button type="button" className="dashboard-primary-button mt-6 h-12 w-full rounded-2xl text-white" onClick={copyScript}>
+            <Copy className="h-4 w-4" />
+            {copied ? "Script copied" : "Copy script and deploy"}
           </Button>
-          <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onSave} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Save and deploy
-          </Button>
         </div>
-      </div>
+      )}
     </aside>
   )
 }
