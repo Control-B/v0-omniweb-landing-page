@@ -30,7 +30,7 @@ const sections = [
   },
   {
     title: "Analytics",
-    body: "View conversations, Deepgram summaries, lead quality, buying signals, follow-up needs, and owner-directed AI follow-up tasks in one place.",
+    body: "View conversations, AI summaries, lead quality, buying signals, follow-up needs, and owner-directed AI follow-up tasks in one place.",
   },
   {
     title: "Widget Installation",

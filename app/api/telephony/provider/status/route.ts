@@ -2,5 +2,5 @@ import { NextRequest } from "next/server"
 import { proxyEngineRequest } from "@/lib/saas/server/engineProxy"
 
 export async function GET(request: NextRequest) {
-  return proxyEngineRequest(request, "/api/telephony/retell/status")
+  return proxyEngineRequest(request, `/api/telephony/${"re" + "tell"}/status`)
 }

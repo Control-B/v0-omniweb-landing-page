@@ -85,6 +85,17 @@ export async function ensureSaasSchema() {
         alter table public.omniweb_agent_configs
         add column if not exists supported_languages jsonb not null default '["auto"]'::jsonb;
         alter table public.omniweb_agent_configs alter column supported_languages set default '["auto"]'::jsonb;
+        alter table public.omniweb_agent_configs add column if not exists business_name text;
+        alter table public.omniweb_agent_configs add column if not exists business_type text;
+        alter table public.omniweb_agent_configs add column if not exists industry text;
+        alter table public.omniweb_agent_configs add column if not exists website_domain text;
+        alter table public.omniweb_agent_configs add column if not exists booking_url text;
+        alter table public.omniweb_agent_configs add column if not exists agent_mode text not null default 'general_lead_gen';
+        alter table public.omniweb_agent_configs add column if not exists enabled_channels jsonb not null default '["website_chat","ai_voice_call","ai_telephony"]'::jsonb;
+        alter table public.omniweb_agent_configs add column if not exists lead_capture_fields jsonb not null default '["name","email","phone"]'::jsonb;
+        alter table public.omniweb_agent_configs add column if not exists enabled_features jsonb not null default '{}'::jsonb;
+        alter table public.omniweb_agent_configs add column if not exists qualification_rules jsonb not null default '{}'::jsonb;
+        alter table public.omniweb_agent_configs add column if not exists custom_instructions text;
 
         create table if not exists public.omniweb_telephony_configs (
           tenant_id uuid primary key references public.omniweb_tenants(id) on delete cascade,

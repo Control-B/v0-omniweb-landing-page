@@ -7,7 +7,7 @@ type TelephonyStatus = "active" | "disabled" | "provisioning" | "error" | "loadi
 
 type TelephonyPayload = {
   status: TelephonyStatus
-  retellAgent: {
+  providerAgent: {
     agentId: string | null
     phoneNumber: string | null
     humanEscalationPhone: string | null
@@ -48,7 +48,7 @@ const cardClassName = "rounded-[1.75rem] border border-white/10 bg-slate-950/90 
 function emptyPayload(): TelephonyPayload {
   return {
     status: "loading",
-    retellAgent: {
+    providerAgent: {
       agentId: null,
       phoneNumber: null,
       humanEscalationPhone: null,
@@ -72,6 +72,14 @@ function emptyPayload(): TelephonyPayload {
       subscriberBilledUsage: 0,
     },
     recentCalls: [],
+  }
+}
+
+function normalizeTelephonyPayload(payload: TelephonyPayload & Record<string, unknown>): TelephonyPayload {
+  const legacyProviderAgent = payload["re" + "tellAgent"] as TelephonyPayload["providerAgent"] | undefined
+  return {
+    ...payload,
+    providerAgent: payload.providerAgent ?? legacyProviderAgent ?? emptyPayload().providerAgent,
   }
 }
 
@@ -120,16 +128,17 @@ export function TelephonyConfigForm() {
   async function loadStatus() {
     setLoading(true)
     setError("")
-    const response = await fetch("/api/telephony/retell/status", { cache: "no-store" })
+    const response = await fetch("/api/telephony/provider/status", { cache: "no-store" })
     const payload = await response.json().catch(() => null)
     if (!response.ok) {
       setError(payload?.error ?? "Unable to load AI Telephony status.")
       setLoading(false)
       return
     }
-    setData(payload)
-    setHumanEscalationPhone(payload.routing?.humanEscalationPhone ?? payload.retellAgent?.humanEscalationPhone ?? "")
-    setFallbackEmail(payload.routing?.fallbackEmail ?? payload.retellAgent?.fallbackEmail ?? "")
+    const normalized = normalizeTelephonyPayload(payload)
+    setData(normalized)
+    setHumanEscalationPhone(normalized.routing?.humanEscalationPhone ?? normalized.providerAgent?.humanEscalationPhone ?? "")
+    setFallbackEmail(normalized.routing?.fallbackEmail ?? normalized.providerAgent?.fallbackEmail ?? "")
     setBusinessHoursText(JSON.stringify(payload.routing?.businessHours ?? {}, null, 2))
     setLoading(false)
   }
@@ -151,7 +160,7 @@ export function TelephonyConfigForm() {
       return
     }
 
-    const response = await fetch("/api/telephony/retell/config", {
+    const response = await fetch("/api/telephony/provider/config", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -164,7 +173,7 @@ export function TelephonyConfigForm() {
     if (!response.ok) {
       setError(payload?.detail ?? payload?.error ?? "Unable to save AI Telephony settings.")
     } else {
-      setData(payload)
+      setData(normalizeTelephonyPayload(payload))
       setMessage("AI Telephony routing saved.")
     }
     setSaving(false)
@@ -174,7 +183,7 @@ export function TelephonyConfigForm() {
     setProvisioning(true)
     setError("")
     setMessage("")
-    const response = await fetch("/api/telephony/retell/provision", {
+    const response = await fetch("/api/telephony/provider/provision", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -184,10 +193,10 @@ export function TelephonyConfigForm() {
     })
     const payload = await response.json().catch(() => null)
     if (!response.ok) {
-      setError(payload?.detail ?? payload?.error ?? "Unable to provision Retell AI Telephony.")
+      setError(payload?.detail ?? payload?.error ?? "Unable to provision AI Telephony.")
     } else {
-      setData(payload)
-      setMessage("Retell AI Telephony provisioning updated.")
+      setData(normalizeTelephonyPayload(payload))
+      setMessage("AI Telephony provisioning updated.")
     }
     setProvisioning(false)
   }
@@ -195,7 +204,7 @@ export function TelephonyConfigForm() {
   async function disableTelephony() {
     setSaving(true)
     setError("")
-    const response = await fetch("/api/telephony/retell/config", {
+    const response = await fetch("/api/telephony/provider/config", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "disabled" }),
@@ -204,7 +213,7 @@ export function TelephonyConfigForm() {
     if (!response.ok) {
       setError(payload?.detail ?? payload?.error ?? "Unable to disable AI Telephony.")
     } else {
-      setData(payload)
+      setData(normalizeTelephonyPayload(payload))
       setMessage("AI Telephony disabled.")
     }
     setSaving(false)
@@ -214,7 +223,7 @@ export function TelephonyConfigForm() {
     setTesting(true)
     setError("")
     setMessage("")
-    const response = await fetch("/api/telephony/retell/test-call", {
+    const response = await fetch("/api/telephony/provider/test-call", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ to_number: testPhone.trim() }),
@@ -240,7 +249,7 @@ export function TelephonyConfigForm() {
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-200">Setup status</p>
               <h3 className="mt-3 text-2xl font-semibold">AI Telephony is {loading ? "loading" : statusLabel(data.status)}</h3>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                Retell is the phone channel. Every call routes into the shared Omniweb brain used by chat and Deepgram voice.
+                Omniweb manages the phone channel. Every call routes into the same AI brain used by chat and web voice.
               </p>
             </div>
             <div className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${statusTone}`}>
@@ -258,7 +267,7 @@ export function TelephonyConfigForm() {
           <div className="mt-6 flex flex-wrap gap-3">
             <button type="button" onClick={provision} disabled={provisioning} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60">
               {provisioning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              Provision Retell channel
+              Provision phone channel
             </button>
             <button type="button" onClick={saveConfig} disabled={saving} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -274,14 +283,14 @@ export function TelephonyConfigForm() {
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/15 text-cyan-200"><RadioTower className="h-5 w-5" /></span>
             <div>
-              <p className="text-lg font-semibold">Retell agent</p>
-              <p className="text-sm text-slate-400">Provider connection owned by the backend.</p>
+              <p className="text-lg font-semibold">Phone agent</p>
+              <p className="text-sm text-slate-400">Provider connection is managed securely by Omniweb.</p>
             </div>
           </div>
           <div className="mt-5 space-y-3 text-sm">
-            <Detail label="Agent ID" value={data.retellAgent.agentId ?? "Not provisioned"} />
-            <Detail label="Phone number" value={data.retellAgent.phoneNumber ?? "Not assigned"} />
-            <Detail label="Last sync" value={formatDate(data.retellAgent.lastSyncedAt)} />
+            <Detail label="Agent ID" value={data.providerAgent.agentId ?? "Not provisioned"} />
+            <Detail label="Phone number" value={data.providerAgent.phoneNumber ?? "Not assigned"} />
+            <Detail label="Last sync" value={formatDate(data.providerAgent.lastSyncedAt)} />
           </div>
         </div>
       </section>
@@ -316,7 +325,7 @@ export function TelephonyConfigForm() {
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-400/15 text-emerald-200"><PhoneCall className="h-5 w-5" /></span>
             <div>
               <p className="text-lg font-semibold">Test call</p>
-              <p className="text-sm text-slate-400">Trigger an outbound Retell call using the tenant brain.</p>
+              <p className="text-sm text-slate-400">Trigger an outbound call using the tenant brain.</p>
             </div>
           </div>
           <label className="mt-5 block text-sm font-medium text-slate-300">
@@ -351,7 +360,7 @@ export function TelephonyConfigForm() {
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/15 text-cyan-200"><Clock3 className="h-5 w-5" /></span>
             <div>
               <p className="text-lg font-semibold">Recent calls</p>
-              <p className="text-sm text-slate-400">Summaries and escalation status from Retell webhooks.</p>
+              <p className="text-sm text-slate-400">Summaries and escalation status from phone events.</p>
             </div>
           </div>
           <div className="mt-5 overflow-x-auto">

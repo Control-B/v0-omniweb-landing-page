@@ -53,6 +53,13 @@ function mapTenantRow(row: Record<string, unknown>): TenantRecord {
 }
 
 function mapAgentRow(row: Record<string, unknown>): AgentConfigRecord {
+  const enabledFeatures = row.enabled_features && typeof row.enabled_features === "object" && !Array.isArray(row.enabled_features)
+    ? row.enabled_features as Record<string, boolean>
+    : undefined
+  const qualificationRules = row.qualification_rules && typeof row.qualification_rules === "object" && !Array.isArray(row.qualification_rules)
+    ? row.qualification_rules as AgentConfigRecord["qualificationRules"]
+    : undefined
+
   return {
     tenantId: String(row.tenant_id),
     agentName: String(row.agent_name ?? "Omniweb AI"),
@@ -65,6 +72,17 @@ function mapAgentRow(row: Record<string, unknown>): AgentConfigRecord {
       ? row.supported_languages.map((language) => String(language))
       : DEFAULT_SUPPORTED_LANGUAGES,
     active: typeof row.active === "boolean" ? row.active : true,
+    businessName: row.business_name ? String(row.business_name) : undefined,
+    businessType: row.business_type ? String(row.business_type) : null,
+    industry: row.industry ? String(row.industry) : null,
+    websiteDomain: row.website_domain ? String(row.website_domain) : null,
+    bookingUrl: row.booking_url ? String(row.booking_url) : null,
+    agentMode: row.agent_mode ? String(row.agent_mode) : undefined,
+    enabledChannels: Array.isArray(row.enabled_channels) ? row.enabled_channels.map((channel) => String(channel)) : undefined,
+    leadCaptureFields: Array.isArray(row.lead_capture_fields) ? row.lead_capture_fields.map((field) => String(field)) : undefined,
+    enabledFeatures,
+    qualificationRules,
+    customInstructions: row.custom_instructions ? String(row.custom_instructions) : null,
     createdAt: new Date(String(row.created_at)).toISOString(),
     updatedAt: new Date(String(row.updated_at)).toISOString(),
   }
@@ -476,6 +494,17 @@ export async function updateAgentConfig(
           goals = $5::jsonb,
           supported_languages = $6::jsonb,
           active = $7,
+          business_name = $8,
+          business_type = $9,
+          industry = $10,
+          website_domain = $11,
+          booking_url = $12,
+          agent_mode = $13,
+          enabled_channels = $14::jsonb,
+          lead_capture_fields = $15::jsonb,
+          enabled_features = $16::jsonb,
+          qualification_rules = $17::jsonb,
+          custom_instructions = $18,
           updated_at = now()
         where tenant_id = $1
         returning *
@@ -488,6 +517,17 @@ export async function updateAgentConfig(
         JSON.stringify(updates.goals ?? existing.goals),
         JSON.stringify(updates.supportedLanguages ?? existing.supportedLanguages),
         updates.active ?? existing.active,
+        updates.businessName ?? existing.businessName ?? null,
+        updates.businessType ?? existing.businessType ?? null,
+        updates.industry ?? existing.industry ?? null,
+        updates.websiteDomain ?? existing.websiteDomain ?? null,
+        updates.bookingUrl ?? existing.bookingUrl ?? null,
+        updates.agentMode ?? existing.agentMode ?? "general_lead_gen",
+        JSON.stringify(updates.enabledChannels ?? existing.enabledChannels ?? ["website_chat", "ai_voice_call", "ai_telephony"]),
+        JSON.stringify(updates.leadCaptureFields ?? existing.leadCaptureFields ?? ["name", "email", "phone"]),
+        JSON.stringify(updates.enabledFeatures ?? existing.enabledFeatures ?? {}),
+        JSON.stringify(updates.qualificationRules ?? existing.qualificationRules ?? {}),
+        updates.customInstructions ?? existing.customInstructions ?? null,
       ],
     )
 

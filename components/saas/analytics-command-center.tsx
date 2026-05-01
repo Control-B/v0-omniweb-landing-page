@@ -276,7 +276,7 @@ export function AnalyticsCommandCenter() {
         body: JSON.stringify({}),
       })
       syncEngagementIntoList(payload.engagement)
-      setActionMessage(payload.engagement.summarySource === "deepgram" ? "Deepgram summary refreshed." : "Mock summary generated because Deepgram is unavailable.")
+      setActionMessage(payload.engagement.summarySource === "deepgram" ? "AI summary refreshed." : "Mock summary generated because AI summaries are unavailable.")
       await loadAnalytics()
     } catch (summarizeError) {
       setDetailError(summarizeError instanceof Error ? summarizeError.message : "Unable to summarize engagement.")

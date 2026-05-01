@@ -1,5 +1,6 @@
 import "server-only"
 
+import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
 import { getEngineToken } from "@/lib/auth/engine"
 import { getServerEngineUrl } from "@/lib/engine-url"
@@ -7,7 +8,13 @@ import { getServerEngineUrl } from "@/lib/engine-url"
 const ENGINE_PROXY_TIMEOUT_MS = 15000
 
 export async function proxyEngineRequest(request: NextRequest, path: string) {
-  const token = await getEngineToken()
+  const { userId, getToken } = await auth()
+  let token = userId ? await getToken() : null
+
+  if (!token) {
+    token = await getEngineToken()
+  }
+
   if (!token) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 })
   }

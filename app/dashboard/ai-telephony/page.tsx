@@ -21,8 +21,8 @@ export default async function DashboardTelephonyPage() {
           </div>
           <h2 className="dashboard-page-title mt-4">AI Telephony Setup</h2>
           <p className="dashboard-body mt-3 max-w-4xl">
-            Retell handles the phone network. Omniweb handles the brain. This channel uses the same tenant instructions,
-            knowledge, lead qualification, memory, and escalation rules as chat and Deepgram web voice.
+            Omniweb manages the phone network and the AI brain. This channel uses the same tenant instructions,
+            knowledge, lead qualification, memory, and escalation rules as chat and web voice.
           </p>
           <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-700">
             <RadioTower className="h-4 w-4" />
