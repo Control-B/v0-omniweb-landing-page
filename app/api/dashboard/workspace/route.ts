@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { requireDashboardAccess } from "@/lib/saas/guards"
 import { updateTenantById } from "@/lib/saas/store"
+import { persistWorkspaceMetadata } from "@/lib/saas/workspace-metadata"
 
 const workspaceUpdateSchema = z.object({
   businessName: z.string().trim().min(2, "Business name is required").max(120),
@@ -31,6 +32,10 @@ export async function PATCH(request: Request) {
 
   if (!tenant) {
     return NextResponse.json({ error: "Workspace not found" }, { status: 404 })
+  }
+
+  if (status.clerkUserId) {
+    await persistWorkspaceMetadata(status.clerkUserId, tenant)
   }
 
   return NextResponse.json({ tenant })

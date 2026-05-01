@@ -4,6 +4,7 @@ import { z } from "zod"
 import { normalizeWebsiteDomain } from "@/lib/saas/domain"
 import { getTrialWindow } from "@/lib/saas/status"
 import { ensureDefaultAgentConfig, upsertTenantByClerkUserId } from "@/lib/saas/store"
+import { persistWorkspaceMetadata } from "@/lib/saas/workspace-metadata"
 
 const onboardingSchema = z.object({
   businessName: z.string().trim().min(2, "Business name is required"),
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
   })
 
   const agentConfig = await ensureDefaultAgentConfig(tenant.id)
+  await persistWorkspaceMetadata(userId, tenant)
 
   return NextResponse.json({
     tenant,

@@ -2,8 +2,9 @@ import "server-only"
 
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { getTenantBillingStatus } from "@/lib/saas/billing"
-import { buildWidgetEmbedCode, ensureDefaultAgentConfig, ensureDefaultTelephonyConfig, getTenantByClerkUserId, updateTenantById } from "@/lib/saas/store"
+import { buildWidgetEmbedCode, ensureDefaultAgentConfig, ensureDefaultTelephonyConfig, getTenantByClerkUserId, updateTenantById, upsertTenantByClerkUserId } from "@/lib/saas/store"
 import type { DashboardSnapshot, TenantStatus } from "@/lib/saas/types"
+import { readWorkspaceMetadata } from "@/lib/saas/workspace-metadata"
 
 const TRIAL_LENGTH_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -38,7 +39,24 @@ export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
   }
 
   const user = await currentUser()
-  const tenant = await getTenantByClerkUserId(userId)
+  let tenant = await getTenantByClerkUserId(userId)
+
+  if (!tenant) {
+    const workspaceMetadata = readWorkspaceMetadata(user)
+    if (workspaceMetadata) {
+      tenant = await upsertTenantByClerkUserId(userId, {
+        id: workspaceMetadata.tenantId,
+        businessName: workspaceMetadata.businessName,
+        industry: workspaceMetadata.industry,
+        websiteDomain: workspaceMetadata.websiteDomain,
+        onboardingCompleted: true,
+        trialStartedAt: workspaceMetadata.trialStartedAt,
+        trialEndsAt: workspaceMetadata.trialEndsAt,
+        subscriptionStatus: workspaceMetadata.subscriptionStatus,
+        plan: workspaceMetadata.plan,
+      })
+    }
+  }
 
   if (!tenant) {
     return {

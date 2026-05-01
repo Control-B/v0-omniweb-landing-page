@@ -167,7 +167,7 @@ export async function upsertTenantByClerkUserId(
     const db = getSaasDbPool()
     const existing = await getTenantByClerkUserId(clerkUserId)
     const now = new Date().toISOString()
-    const nextId = existing?.id ?? randomUUID()
+    const nextId = existing?.id ?? updates.id ?? randomUUID()
 
     const result = await db.query(
       `
@@ -241,7 +241,7 @@ export async function upsertTenantByClerkUserId(
   const existing = index >= 0 ? store.tenants[index] : null
 
   const next: TenantRecord = {
-    id: existing?.id ?? randomUUID(),
+    id: existing?.id ?? updates.id ?? randomUUID(),
     clerkUserId,
     clerkOrgId: updates.clerkOrgId ?? existing?.clerkOrgId ?? null,
     businessName: updates.businessName ?? existing?.businessName ?? "",
