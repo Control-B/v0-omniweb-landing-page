@@ -8,8 +8,7 @@
  *   var d=document,s=d.createElement('script');
  *   s.src='https://omniweb.ai/widget/loader.js';
  *   s.async=true;
- *   s.dataset.embedCode='YOUR_EMBED_CODE';
- *   s.dataset.agentId='YOUR_AGENT_ID';
+ *   s.dataset.tenantId='YOUR_PUBLIC_WIDGET_ID';
  *   s.dataset.engineUrl='https://omniweb-engine-rs6fr.ondigitalocean.app';
  *   d.head.appendChild(s);
  * })();
@@ -19,6 +18,18 @@
   "use strict";
 
   var CANONICAL_ENGINE_URL = "https://omniweb-engine-rs6fr.ondigitalocean.app";
+
+  function getDataAttribute(element, key) {
+    if (!element) {
+      return "";
+    }
+    if (element.dataset && element.dataset[key]) {
+      return element.dataset[key];
+    }
+    return element.getAttribute("data-" + key.replace(/[A-Z]/g, function (letter) {
+      return "-" + letter.toLowerCase();
+    })) || "";
+  }
 
   function normalizeEngineUrl(value) {
     if (!value) {
@@ -39,6 +50,24 @@
     }
   }
 
+  function injectBackendWidget(scriptTag, publicWidgetId, engineUrl) {
+    var backendScript = document.createElement("script");
+    backendScript.src = engineUrl + "/widget.js";
+    backendScript.async = true;
+    backendScript.setAttribute("data-tenant-id", publicWidgetId);
+
+    var position = getDataAttribute(scriptTag, "position");
+    var color = getDataAttribute(scriptTag, "color");
+    if (position) {
+      backendScript.setAttribute("data-position", position);
+    }
+    if (color) {
+      backendScript.setAttribute("data-color", color);
+    }
+
+    (document.head || document.body || document.documentElement).appendChild(backendScript);
+  }
+
   // Find our own script tag to read data attributes (/widget/loader.js or /widget.js rewrite)
   var scripts = document.querySelectorAll(
     'script[src*="widget/loader"], script[src*="widget.js"]'
@@ -49,90 +78,18 @@
     return;
   }
 
-  var embedCode = scriptTag.dataset.embedCode || scriptTag.getAttribute("data-embed-code");
-  var agentId = scriptTag.dataset.agentId || scriptTag.getAttribute("data-agent-id");
+  var publicWidgetId =
+    getDataAttribute(scriptTag, "tenantId") ||
+    getDataAttribute(scriptTag, "publicWidgetId") ||
+    getDataAttribute(scriptTag, "embedCode");
   var engineUrl = normalizeEngineUrl(
-    scriptTag.dataset.engineUrl || scriptTag.getAttribute("data-engine-url") || CANONICAL_ENGINE_URL
+    getDataAttribute(scriptTag, "engineUrl") || CANONICAL_ENGINE_URL
   );
-  var platformUrl = scriptTag.dataset.platformUrl || scriptTag.getAttribute("data-platform-url") || "https://omniweb.ai";
-  var position = scriptTag.dataset.position || "right";
-  var color = scriptTag.dataset.color || "#6366f1";
 
-  if (!embedCode) {
-    console.error("[Omniweb] Missing data-embed-code attribute");
+  if (!publicWidgetId) {
+    console.error("[Omniweb] Missing data-tenant-id attribute");
     return;
   }
 
-  // Validate the embed code with the engine
-  fetch(engineUrl + "/api/embed/validate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      embed_code: embedCode,
-      domain: window.location.hostname,
-    }),
-  })
-    .then(function (res) {
-      if (!res.ok) {
-        return res.json().then(function (err) {
-          throw new Error(err.detail || "Embed code validation failed");
-        });
-      }
-      return res.json();
-    })
-    .then(function (data) {
-      if (!data.valid) {
-        console.error("[Omniweb] Invalid embed code");
-        return;
-      }
-
-      // Use the agent_id from validation response if not provided
-      var resolvedAgentId = agentId || data.agent_id;
-      if (!resolvedAgentId) {
-        console.error("[Omniweb] No agent ID configured");
-        return;
-      }
-
-      // Inject the widget iframe
-      var iframe = document.createElement("iframe");
-      iframe.src =
-        platformUrl +
-        "/widget/" +
-        resolvedAgentId +
-        "?embed=" +
-        encodeURIComponent(embedCode) +
-        "&color=" +
-        encodeURIComponent(color);
-      iframe.style.cssText =
-        "position:fixed;bottom:0;z-index:2147483647;border:none;background:transparent;" +
-        (position === "left" ? "left:0;" : "right:0;") +
-        "width:420px;height:700px;max-height:100dvh;max-width:100vw;" +
-        "pointer-events:none;";
-      iframe.allow = "microphone";
-      iframe.title = "Omniweb AI Assistant";
-      iframe.id = "omniweb-widget-frame";
-
-      // Listen for messages from the iframe to manage pointer-events
-      window.addEventListener("message", function (e) {
-        if (e.data && e.data.type === "omniweb:widget-expanded") {
-          iframe.style.pointerEvents = "auto";
-        } else if (e.data && e.data.type === "omniweb:widget-collapsed") {
-          iframe.style.pointerEvents = "none";
-          // Keep the orb button clickable
-          iframe.style.width = "100px";
-          iframe.style.height = "100px";
-          iframe.style.pointerEvents = "auto";
-        } else if (e.data && e.data.type === "omniweb:widget-ready") {
-          // Widget loaded — set to collapsed size
-          iframe.style.width = "100px";
-          iframe.style.height = "100px";
-          iframe.style.pointerEvents = "auto";
-        }
-      });
-
-      document.body.appendChild(iframe);
-    })
-    .catch(function (err) {
-      console.error("[Omniweb] Widget load failed:", err.message);
-    });
+  injectBackendWidget(scriptTag, publicWidgetId, engineUrl);
 })();
