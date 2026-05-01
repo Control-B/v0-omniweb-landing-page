@@ -1,8 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Bot, CheckCircle2, Loader2, ShieldAlert, TestTube2 } from "lucide-react"
+import { Bot, CheckCircle2, Loader2, Mic2, ShieldAlert, TestTube2, UploadCloud, Volume2 } from "lucide-react"
 import { SiteAiWidget } from "@/components/site-ai-widget"
 import { Button } from "@/components/ui/button"
 import { WidgetInstallCard } from "@/components/saas/widget-install-card"
@@ -56,6 +55,21 @@ const textareaClassName = "dashboard-textarea mt-2"
 const localDraftKey = (tenantId: string) => `omniweb-agent-page-draft:${tenantId}`
 const stepClassName = "rounded-[22px] border p-5 transition"
 
+const VOICE_OPTIONS = [
+  {
+    id: "female",
+    label: "Female voice",
+    provider: "ElevenLabs",
+    description: "Warmer assistant voice for website conversations.",
+  },
+  {
+    id: "male",
+    label: "Male voice",
+    provider: "Deepgram",
+    description: "Default low-latency voice for fast live previews.",
+  },
+] as const
+
 type LegacyAgentSettingsPanelProps = {
   initialConfig: AgentConfigRecord
   websiteDomain: string | null
@@ -85,6 +99,10 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [responseLength, setResponseLength] = useState("Moderate – balanced detail")
   const [selectedGoals, setSelectedGoals] = useState<string[]>(initialConfig.goals?.length ? initialConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(getInitialSelectedLanguages(initialConfig))
+  const [voiceVariant, setVoiceVariant] = useState<(typeof VOICE_OPTIONS)[number]["id"]>("female")
+  const [voiceCloneEnabled, setVoiceCloneEnabled] = useState(false)
+  const [voiceCloneName, setVoiceCloneName] = useState("")
+  const [voiceCloneSampleName, setVoiceCloneSampleName] = useState("")
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
@@ -95,10 +113,22 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     try {
       const raw = window.localStorage.getItem(localDraftKey(initialConfig.tenantId))
       if (!raw) return
-      const draft = JSON.parse(raw) as { workspaceName?: string; systemInstructions?: string; responseLength?: string }
+      const draft = JSON.parse(raw) as {
+        workspaceName?: string
+        systemInstructions?: string
+        responseLength?: string
+        voiceVariant?: (typeof VOICE_OPTIONS)[number]["id"]
+        voiceCloneEnabled?: boolean
+        voiceCloneName?: string
+        voiceCloneSampleName?: string
+      }
       if (draft.workspaceName) setWorkspaceName(draft.workspaceName)
       if (draft.systemInstructions) setSystemInstructions(draft.systemInstructions)
       if (draft.responseLength) setResponseLength(draft.responseLength)
+      if (draft.voiceVariant) setVoiceVariant(draft.voiceVariant)
+      if (typeof draft.voiceCloneEnabled === "boolean") setVoiceCloneEnabled(draft.voiceCloneEnabled)
+      if (draft.voiceCloneName) setVoiceCloneName(draft.voiceCloneName)
+      if (draft.voiceCloneSampleName) setVoiceCloneSampleName(draft.voiceCloneSampleName)
     } catch {
       return
     }
@@ -106,8 +136,8 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    window.localStorage.setItem(localDraftKey(initialConfig.tenantId), JSON.stringify({ workspaceName, systemInstructions, responseLength }))
-  }, [initialConfig.tenantId, responseLength, systemInstructions, workspaceName])
+    window.localStorage.setItem(localDraftKey(initialConfig.tenantId), JSON.stringify({ workspaceName, systemInstructions, responseLength, voiceVariant, voiceCloneEnabled, voiceCloneName, voiceCloneSampleName }))
+  }, [initialConfig.tenantId, responseLength, systemInstructions, voiceCloneEnabled, voiceCloneName, voiceCloneSampleName, voiceVariant, workspaceName])
 
   const knowledgePreview = useMemo(() => {
     if (websiteDomain) {
@@ -117,6 +147,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   }, [websiteDomain])
 
   const autoSelected = selectedLanguages.includes("auto")
+  const selectedVoice = VOICE_OPTIONS.find((voice) => voice.id === voiceVariant) ?? VOICE_OPTIONS[0]
 
   const scrollTo = (target: "configure" | "test" | "install") => {
     setActiveStep(target)
@@ -184,45 +215,77 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     <div className="space-y-6">
       <SiteAiWidget agentId={initialConfig.tenantId} />
 
-      <section className="dashboard-card-highlight rounded-[28px] p-6 lg:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+      <section className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
+        <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200"><Bot className="h-5 w-5" /></span>
+                <div>
+                  <p className="text-sm font-semibold text-cyan-200">AI Agent Builder</p>
+                  <p className="text-xs text-slate-400">Last saved settings sync to your website widget</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {["Conversation", "Models & Voice", "Actions", "Advanced"].map((tab, index) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => scrollTo(index === 1 ? "configure" : index === 0 ? "configure" : index === 2 ? "install" : "test")}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
+                >
+                  {tab}
+                </button>
+              ))}
+              <Button className="dashboard-primary-button rounded-full px-5 text-white" onClick={handleSave} disabled={saving}>
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Deploy agent
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 lg:p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
             <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
             <p className="dashboard-body mt-3">
-              Start here, save your agent, test the live widget, then copy the install script. No separate pages needed.
+              Configure the agent, choose a voice, test it live, then copy the install script. Everything stays on one page.
             </p>
           </div>
           <Button className="dashboard-primary-button rounded-2xl px-5 text-white" onClick={() => scrollTo("configure")}>
-            Start setup
+            Start configuring
           </Button>
-        </div>
+          </div>
 
-        <div className="mt-7 grid gap-4 md:grid-cols-3">
-          <LaunchStep
-            active={activeStep === "configure"}
-            complete={activeStep !== "configure"}
-            number="1"
-            title="Configure"
-            body="Set the greeting, goals, languages, and operating rules."
-            onClick={() => scrollTo("configure")}
-          />
-          <LaunchStep
-            active={activeStep === "test"}
-            complete={activeStep === "install"}
-            number="2"
-            title="Test"
-            body="Save opens the live Ask AI widget so you can verify the experience."
-            onClick={() => scrollTo("test")}
-          />
-          <LaunchStep
-            active={activeStep === "install"}
-            complete={false}
-            number="3"
-            title="Install"
-            body="Copy one script, paste it before your website closing body tag, and verify."
-            onClick={() => scrollTo("install")}
-          />
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            <LaunchStep
+              active={activeStep === "configure"}
+              complete={activeStep !== "configure"}
+              number="1"
+              title="Configure"
+              body="Set instructions, goals, languages, and voice."
+              onClick={() => scrollTo("configure")}
+            />
+            <LaunchStep
+              active={activeStep === "test"}
+              complete={activeStep === "install"}
+              number="2"
+              title="Test"
+              body="Use the live preview to talk to your agent."
+              onClick={() => scrollTo("test")}
+            />
+            <LaunchStep
+              active={activeStep === "install"}
+              complete={false}
+              number="3"
+              title="Install"
+              body="Deploy with one embed script and verify."
+              onClick={() => scrollTo("install")}
+            />
+          </div>
         </div>
       </section>
 
@@ -245,9 +308,22 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_360px]">
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="space-y-6">
         <div className={cardClassName}>
           <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
+          <div className="mt-5 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
+            {["Instructions", "Voice", "Goals", "Languages"].map((tab, index) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => index === 0 ? scrollTo("configure") : undefined}
+                className={`rounded-full px-4 py-2 text-sm font-semibold ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
           <div className="grid gap-4 pt-5 md:grid-cols-2">
             <Field label="Agent name" helper="The name shoppers will see in the chat widget">
               <input value={agentName} onChange={(event) => setAgentName(event.target.value)} className={inputClassName} />
@@ -271,16 +347,101 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           </div>
         </div>
 
-        <div className="space-y-6">
-          <InfoCard title="Engine sync" body="Settings sync to the Omniweb AI engine on save. The widget uses the saved config for voice, text, multilingual replies, and navigation." />
-          <InfoCard title="Knowledge base context" actionLabel="Edit KB" actionHref="/dashboard/knowledge" body="These sources and subscriber details are included when the agent syncs.">
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">{knowledgePreview}</div>
-          </InfoCard>
-          <InfoCard title="Test your agent" body="Save first, then this page opens your live widget so you can test voice, language switching, and greeting before shoppers see it.">
-            <div className="mt-4 border-t border-slate-200 pt-4">
-              <Button variant="outline" className="rounded-xl border-slate-200 bg-white" onClick={() => scrollTo("test")}>Jump to test</Button>
+        <section className={cardClassName}>
+          <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
+          <div className="pt-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-lg font-semibold text-slate-900">Models &amp; Voice</p>
+                <p className="mt-1 text-sm text-slate-500">Choose the voice visitors hear when they test or use the widget.</p>
+              </div>
+              <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">Live preview ready</span>
             </div>
-          </InfoCard>
+
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {VOICE_OPTIONS.map((voice) => {
+                const active = voiceVariant === voice.id
+                return (
+                  <button
+                    key={voice.id}
+                    type="button"
+                    onClick={() => setVoiceVariant(voice.id)}
+                    className={`rounded-2xl border p-4 text-left transition ${active ? "border-cyan-400 bg-[#0f1b35] text-white shadow-[0_14px_30px_rgba(15,27,53,0.2)]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${active ? "bg-white/15 text-cyan-100" : "bg-slate-100 text-slate-600"}`}>
+                          <Volume2 className="h-5 w-5" />
+                        </span>
+                        <div>
+                          <p className="font-semibold">{voice.label}</p>
+                          <p className={`mt-1 text-xs ${active ? "text-cyan-100" : "text-slate-500"}`}>{voice.provider}</p>
+                        </div>
+                      </div>
+                      <span className={`h-3 w-3 rounded-full ${active ? "bg-cyan-300" : "bg-slate-300"}`} />
+                    </div>
+                    <p className={`mt-3 text-sm leading-6 ${active ? "text-slate-200" : "text-slate-500"}`}>{voice.description}</p>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
+                    <UploadCloud className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Voice cloning</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">Upload a sample later to create a brand voice. For now, this stores the preferred cloned voice name for setup.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setVoiceCloneEnabled((current) => !current)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${voiceCloneEnabled ? "bg-slate-950 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
+                >
+                  {voiceCloneEnabled ? "Cloning on" : "Enable cloning"}
+                </button>
+              </div>
+              {voiceCloneEnabled ? (
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700">Cloned voice name</label>
+                    <input value={voiceCloneName} onChange={(event) => setVoiceCloneName(event.target.value)} placeholder="Example: Founder voice, Support voice" className={inputClassName} />
+                  </div>
+                  <label className="block rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">
+                    <span className="font-semibold text-slate-900">Upload voice sample</span>
+                    <span className="mt-1 block text-xs leading-5 text-slate-500">MP3, WAV, or M4A sample for cloning setup.</span>
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      className="mt-3 block w-full text-xs text-slate-500 file:mr-3 file:rounded-full file:border-0 file:bg-slate-950 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white"
+                      onChange={(event) => setVoiceCloneSampleName(event.target.files?.[0]?.name ?? "")}
+                    />
+                    {voiceCloneSampleName ? <span className="mt-2 block text-xs font-semibold text-cyan-700">{voiceCloneSampleName}</span> : null}
+                  </label>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
+
+        </div>
+
+        <div className="xl:sticky xl:top-6 xl:self-start">
+          <LivePreviewPanel
+            agentName={agentName}
+            businessName={workspaceName || businessName || "Omniweb"}
+            knowledgePreview={knowledgePreview}
+            selectedVoice={selectedVoice}
+            voiceCloneEnabled={voiceCloneEnabled}
+            onSave={handleSave}
+            onAsk={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
+            onInstall={() => scrollTo("install")}
+            saving={saving}
+          />
         </div>
       </section>
 
@@ -426,6 +587,80 @@ function Field({
   )
 }
 
+function LivePreviewPanel({
+  agentName,
+  businessName,
+  knowledgePreview,
+  selectedVoice,
+  voiceCloneEnabled,
+  onSave,
+  onAsk,
+  onInstall,
+  saving,
+}: {
+  agentName: string
+  businessName: string
+  knowledgePreview: string
+  selectedVoice: (typeof VOICE_OPTIONS)[number]
+  voiceCloneEnabled: boolean
+  onSave: () => void
+  onAsk: () => void
+  onInstall: () => void
+  saving: boolean
+}) {
+  return (
+    <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
+      <div className="grid grid-cols-2 border-b border-white/10 text-center text-sm font-semibold">
+        <button type="button" className="border-b-2 border-cyan-400 bg-cyan-400/10 px-4 py-3 text-cyan-200">Live preview</button>
+        <button type="button" className="px-4 py-3 text-slate-400">Install</button>
+      </div>
+
+      <div className="flex min-h-[420px] flex-col items-center justify-center px-6 py-10 text-center">
+        <div className="relative flex h-36 w-36 items-center justify-center">
+          <div className="absolute inset-0 rounded-full border border-cyan-300/30" />
+          <div className="absolute inset-3 rounded-full border border-violet-400/40" />
+          <div className="absolute inset-7 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.35),rgba(99,102,241,0.1),transparent_70%)]" />
+          <Mic2 className="relative h-12 w-12 text-cyan-100" />
+        </div>
+
+        <h3 className="mt-7 text-xl font-semibold">{agentName || "Omniweb AI"}</h3>
+        <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">
+          Preview the {selectedVoice.label.toLowerCase()} powered by {selectedVoice.provider} for {businessName}.
+        </p>
+
+        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left text-sm text-slate-300">
+          <div className="flex items-center justify-between gap-3">
+            <span>Voice</span>
+            <span className="font-semibold text-white">{selectedVoice.provider}</span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span>Cloning</span>
+            <span className={voiceCloneEnabled ? "font-semibold text-cyan-200" : "font-semibold text-slate-500"}>{voiceCloneEnabled ? "Enabled" : "Off"}</span>
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <span>Knowledge</span>
+            <span className="max-w-[190px] text-right font-semibold text-white">{knowledgePreview}</span>
+          </div>
+        </div>
+
+        <div className="mt-7 flex w-full flex-col gap-3">
+          <Button type="button" className="dashboard-primary-button h-12 rounded-2xl text-white" onClick={onAsk}>
+            <Mic2 className="h-4 w-4" />
+            Talk to your agent
+          </Button>
+          <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onSave} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Save and deploy
+          </Button>
+          <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/10 bg-transparent text-slate-300 hover:bg-white/5 hover:text-white" onClick={onInstall}>
+            Finish and get widget
+          </Button>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
 function LaunchStep({
   active,
   complete,
@@ -466,33 +701,3 @@ function LaunchStep({
   )
 }
 
-function InfoCard({
-  title,
-  body,
-  children,
-  actionLabel,
-  actionHref,
-}: {
-  title: string
-  body: string
-  children?: React.ReactNode
-  actionLabel?: string
-  actionHref?: string
-}) {
-  return (
-    <div className={cardClassName}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-lg font-semibold text-slate-900">{title}</p>
-          <p className="mt-3 text-sm leading-6 text-slate-600">{body}</p>
-        </div>
-        {actionLabel && actionHref ? (
-          <Link href={actionHref}>
-            <Button variant="outline" size="sm" className="rounded-xl border-slate-200 bg-white">{actionLabel}</Button>
-          </Link>
-        ) : null}
-      </div>
-      {children}
-    </div>
-  )
-}
