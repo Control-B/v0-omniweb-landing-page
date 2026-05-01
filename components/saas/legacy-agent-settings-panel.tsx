@@ -277,7 +277,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </div>
       </section>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end lg:pr-72">
         <Link href="/dashboard/test-console">
           <Button variant="outline" className="dashboard-secondary-button rounded-xl">Test in console</Button>
         </Link>

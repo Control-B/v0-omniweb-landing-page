@@ -1,4 +1,4 @@
-import { Building2, Globe2, UserRound } from "lucide-react"
+import { Building2, Fingerprint, Globe2, UserRound } from "lucide-react"
 import { DashboardCard } from "@/components/saas/dashboard-card"
 import { ProfileSettingsForm } from "@/components/saas/profile-settings-form"
 import { requireDashboardAccess } from "@/lib/saas/guards"
@@ -43,6 +43,16 @@ export default async function DashboardProfilePage() {
           <div className="dashboard-card-muted rounded-[20px] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Trial days remaining</p>
             <p className="mt-3 text-lg font-semibold text-slate-950">{snapshot.status.subscriptionStatus === "trialing" ? snapshot.status.daysLeft ?? 0 : "—"}</p>
+          </div>
+          <div className="dashboard-card-muted rounded-[20px] p-4 md:col-span-2">
+            <div className="flex items-center gap-2">
+              <Fingerprint className="h-4 w-4 text-cyan-500" />
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Client ID / Tenant ID</p>
+            </div>
+            <p className="mt-3 break-all rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 font-mono text-[13px] font-semibold text-slate-950">
+              {snapshot.status.tenantId}
+            </p>
+            <p className="dashboard-meta mt-2">This is created automatically when your workspace is created and is used to connect the dashboard, widget, and AI engine.</p>
           </div>
         </div>
 
