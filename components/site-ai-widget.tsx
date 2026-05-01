@@ -258,6 +258,7 @@ export function SiteAiWidget({
 }: SiteAiWidgetProps) {
   const [panelOpen, setPanelOpen] = useState(defaultOpen)
   const [mode, setMode] = useState<UiMode>("voice")
+  const [clientIdOverride, setClientIdOverride] = useState<string | null>(null)
   const [connecting, setConnecting] = useState(false)
   const [sessionOn, setSessionOn] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
@@ -302,7 +303,8 @@ export function SiteAiWidget({
       language: selectedLang?.code || "en",
     }
     const landingClientId = process.env.NEXT_PUBLIC_LANDING_PAGE_CLIENT_ID?.trim()
-    if (agentId?.trim()) body.client_id = agentId.trim()
+    if (clientIdOverride?.trim()) body.client_id = clientIdOverride.trim()
+    else if (agentId?.trim()) body.client_id = agentId.trim()
     else if (landingClientId) body.client_id = landingClientId
 
     const response = await fetch(`${ENGINE_BASE_URL}/api/chat/voice-agent/bootstrap`, {
@@ -324,7 +326,7 @@ export function SiteAiWidget({
       access_token: string
       settings: Record<string, unknown>
     }
-  }, [agentId, selectedLang?.code])
+  }, [agentId, clientIdOverride, selectedLang?.code])
 
   const startSession = useCallback(async (withMic: boolean) => {
     setPanelOpen(true)
@@ -369,7 +371,8 @@ export function SiteAiWidget({
 
   useEffect(() => {
     const handler = (event: Event) => {
-      const detail = (event as CustomEvent<{ mode?: string }>).detail
+      const detail = (event as CustomEvent<{ mode?: string; clientId?: string | null }>).detail
+      setClientIdOverride(detail?.clientId?.trim() || null)
       if (detail?.mode === "select") {
         setMode("text")
         setPanelOpen(true)

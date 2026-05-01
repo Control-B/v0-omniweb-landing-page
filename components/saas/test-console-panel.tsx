@@ -8,6 +8,7 @@ import { dispatchAssistantOpen } from "@/lib/assistant-events"
 type TestConsolePanelProps = {
   welcomeMessage: string
   agentReady: boolean
+  tenantId: string | null
 }
 
 const checklistItems = [
@@ -18,7 +19,7 @@ const checklistItems = [
   ["Voice quality", "Is the voice clear and natural at the chosen gender?"],
 ] as const
 
-export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePanelProps) {
+export function TestConsolePanel({ welcomeMessage, agentReady, tenantId }: TestConsolePanelProps) {
   const [voiceVariant, setVoiceVariant] = useState<"Female" | "Male">("Female")
 
   return (
@@ -56,7 +57,7 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
           <div className="flex items-center gap-3 self-end lg:self-auto">
             <button
               type="button"
-              onClick={() => dispatchAssistantOpen("select")}
+              onClick={() => dispatchAssistantOpen("select", { clientId: tenantId })}
               className="dashboard-primary-button inline-flex h-12 items-center gap-3 rounded-full px-5 text-[15px] font-semibold text-white shadow-[0_14px_30px_rgba(79,70,229,0.3)] transition hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 shadow-inner">

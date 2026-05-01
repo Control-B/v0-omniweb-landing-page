@@ -22,6 +22,7 @@ export default async function DashboardTestConsolePage() {
     <TestConsolePanel
       welcomeMessage={agentConfig?.welcomeMessage || DEFAULT_WELCOME_MESSAGE}
       agentReady={agentReady}
+      tenantId={snapshot.status.tenantId}
     />
   )
 }
