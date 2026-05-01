@@ -453,13 +453,13 @@ export default function CompanyPage() {
                       <div className="font-medium transition-colors group-hover:text-cyan-400">support@omniweb.ai</div>
                     </div>
                   </a>
-                  <a href="tel:+18664159494" className="kling-panel group flex items-center gap-4 rounded-xl p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
+                  <a href="tel:+18666233331" className="kling-panel group flex items-center gap-4 rounded-xl p-4 transition-all hover:border-cyan-500/30 hover:bg-cyan-500/5">
                     <div className="site-icon-chip flex h-10 w-10 rounded-lg">
                       <Phone className="h-5 w-5" />
                     </div>
                     <div>
                       <div className="text-xs text-white/40">Phone</div>
-                      <div className="font-medium transition-colors group-hover:text-cyan-400">(866) 415-9494</div>
+                      <div className="font-medium transition-colors group-hover:text-cyan-400">(866) 623-3331</div>
                     </div>
                   </a>
                   <div className="kling-panel flex items-center gap-4 rounded-xl p-4">

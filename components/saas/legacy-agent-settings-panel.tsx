@@ -6,13 +6,12 @@ import { SiteAiWidget } from "@/components/site-ai-widget"
 import { Button } from "@/components/ui/button"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import { saveAgentConfig } from "@/lib/saas/agentConfigService"
+import { fetchWidgetSettings } from "@/lib/saas/widgetService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
 import {
-  buildWidgetEmbedScriptTag,
   knowledgeSourcesStorageKey,
   readPrimaryKnowledgeOriginFromLocalStorage,
   readPrimaryKnowledgePageUrlFromLocalStorage,
-  resolveWidgetScriptOrigin,
 } from "@/lib/saas/widgetEmbed"
 
 const GOALS = [
@@ -113,6 +112,8 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [lsKnowledgeOrigin, setLsKnowledgeOrigin] = useState<string | null>(() =>
     typeof window !== "undefined" ? readPrimaryKnowledgeOriginFromLocalStorage(initialConfig.tenantId) : null,
   )
+  const [widgetEmbedSnippet, setWidgetEmbedSnippet] = useState("")
+  const [widgetEmbedError, setWidgetEmbedError] = useState("")
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -139,6 +140,30 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       return
     }
   }, [initialConfig.tenantId])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadWidgetEmbedCode() {
+      try {
+        setWidgetEmbedError("")
+        const settings = await fetchWidgetSettings()
+        if (!cancelled) {
+          setWidgetEmbedSnippet(settings.embedCode)
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setWidgetEmbedSnippet("")
+          setWidgetEmbedError(loadError instanceof Error ? loadError.message : "Unable to load widget install script.")
+        }
+      }
+    }
+
+    void loadWidgetEmbedCode()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -179,15 +204,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     }
     return "No indexed sources yet"
   }, [websiteDomain, initialConfig.tenantId, lsKnowledgeOrigin])
-
-  const widgetEmbedSnippet = useMemo(() => {
-    const origin = resolveWidgetScriptOrigin({
-      publicAppUrl: process.env.NEXT_PUBLIC_APP_URL,
-      knowledgeOrigin: lsKnowledgeOrigin,
-      websiteDomain,
-    })
-    return buildWidgetEmbedScriptTag(initialConfig.tenantId, origin)
-  }, [initialConfig.tenantId, lsKnowledgeOrigin, websiteDomain])
 
   const autoSelected = selectedLanguages.includes("auto")
   const selectedVoice = VOICE_OPTIONS.find((voice) => voice.id === voiceVariant) ?? VOICE_OPTIONS[0]
@@ -469,6 +485,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             voiceLabel={voiceLabel}
             voiceCloneEnabled={voiceCloneEnabled}
             widgetEmbedCode={widgetEmbedSnippet}
+            widgetEmbedError={widgetEmbedError}
             onSave={handleSave}
             onAsk={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
             saving={saving}
@@ -669,6 +686,7 @@ function LivePreviewPanel({
   voiceLabel,
   voiceCloneEnabled,
   widgetEmbedCode,
+  widgetEmbedError,
   onSave,
   onAsk,
   saving,
@@ -679,6 +697,7 @@ function LivePreviewPanel({
   voiceLabel: string
   voiceCloneEnabled: boolean
   widgetEmbedCode: string
+  widgetEmbedError: string
   onSave: () => void
   onAsk: () => void
   saving: boolean
@@ -686,8 +705,11 @@ function LivePreviewPanel({
   const [activeTab, setActiveTab] = useState<"preview" | "install">("preview")
   const [copied, setCopied] = useState(false)
   const script = widgetEmbedCode
+  const scriptDisplay = widgetEmbedError || script || "Loading widget install script..."
+  const canCopyScript = Boolean(script)
 
   const copyScript = async () => {
+    if (!canCopyScript) return
     await navigator.clipboard.writeText(script)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1500)
@@ -759,16 +781,16 @@ function LivePreviewPanel({
             <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-3">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <span className="text-sm font-semibold text-white">Script</span>
-                <button type="button" onClick={copyScript} className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-cyan-300">
+                <button type="button" onClick={copyScript} disabled={!canCopyScript} className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60">
                   {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                   {copied ? "Copied" : "Copy"}
                 </button>
               </div>
-              <pre className="max-h-40 overflow-auto whitespace-pre-wrap break-all text-xs leading-5 text-cyan-100">{script}</pre>
+              <pre className={`max-h-40 overflow-auto whitespace-pre-wrap break-all text-xs leading-5 ${widgetEmbedError ? "text-red-200" : "text-cyan-100"}`}>{scriptDisplay}</pre>
             </div>
           </div>
 
-          <Button type="button" className="dashboard-primary-button mt-6 h-12 w-full rounded-2xl text-white" onClick={copyScript}>
+          <Button type="button" className="dashboard-primary-button mt-6 h-12 w-full rounded-2xl text-white" onClick={copyScript} disabled={!canCopyScript}>
             <Copy className="h-4 w-4" />
             {copied ? "Script copied" : "Copy script and deploy"}
           </Button>

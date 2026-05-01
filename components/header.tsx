@@ -374,7 +374,7 @@ export function Header() {
             asChild
             className="gap-2 rounded-full text-foreground/75 hover:bg-white/10 hover:text-foreground"
           >
-            <a href="tel:+18664159494">
+            <a href="tel:+18666233331">
               Call Us
             </a>
           </Button>
@@ -454,7 +454,7 @@ export function Header() {
                 asChild
                 className="justify-start gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10"
               >
-                <a href="tel:+18664159494">
+                <a href="tel:+18666233331">
                   Call Us
                 </a>
               </Button>

@@ -4,7 +4,6 @@ import Link from "next/link"
 import { Bot, Briefcase, MessageSquare, PhoneCall, ShoppingCart, Wrench } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { AIWidget } from "@/components/ai-widget"
 import { FeatureCard } from "@/components/feature-card"
 import { GlobeShowcaseSection } from "@/components/marketing/globe-showcase-section"
 import { ScrollingMarqueeSection } from "@/components/marketing/scrolling-marquee-section"
@@ -169,12 +168,6 @@ export default function Home() {
             />
           ))}
         </div>
-
-        <section className="site-section-shell">
-          <div className="site-shell">
-            <AIWidget />
-          </div>
-        </section>
 
         <section className="site-section-shell border-t border-white/15">
           <div className="site-shell-narrow text-center">
