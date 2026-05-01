@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Bot, CheckCircle2, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { WidgetInstallCard } from "@/components/saas/widget-install-card"
 import { saveAgentConfig } from "@/lib/saas/agentConfigService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
 import {
@@ -504,6 +505,8 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </Button>
       </div>
 
+      <WidgetInstallCard />
+
       <section className="overflow-hidden rounded-[24px] border border-amber-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="border-b border-amber-200 bg-amber-400/95 px-4 py-3 text-sm font-semibold text-amber-950"><ShieldAlert className="mr-2 inline h-4 w-4" />Payments &amp; commerce — acknowledgment</div>
         <div className="p-6 text-[15px] leading-7 text-slate-700">
@@ -679,7 +682,7 @@ function LivePreviewPanel({
           Configure {voiceLabel.toLowerCase()} for {businessName}. Test from the installed site widget or AI Telephony test call.
         </p>
 
-        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left text-sm text-slate-300">
+        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/3 p-4 text-left text-sm text-slate-300">
           <PreviewDetail label="Knowledge" value={knowledgePreview} />
           <PreviewDetail label="Voice" value={voiceLabel} />
           <PreviewDetail label="Cloning" value={voiceCloneEnabled ? "Saved" : "Off"} muted={!voiceCloneEnabled} />

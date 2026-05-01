@@ -2,6 +2,7 @@ import "server-only"
 
 import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
+import { getEngineToken } from "@/lib/auth/engine"
 import { getServerEngineUrl } from "@/lib/engine-url"
 
 const WIDGET_PROXY_TIMEOUT_MS = 10000
@@ -13,7 +14,11 @@ export async function proxyWidgetRequest(request: NextRequest, path: string) {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 })
   }
 
-  const token = await getToken()
+  let token = await getEngineToken()
+  if (!token) {
+    token = await getToken()
+  }
+
   if (!token) {
     return NextResponse.json({ error: "Unable to acquire session token" }, { status: 401 })
   }
