@@ -1,10 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Bot, CheckCircle2, Loader2, Mic2, ShieldAlert, TestTube2, UploadCloud, Volume2 } from "lucide-react"
+import { Bot, Loader2, Mic2, ShieldAlert, UploadCloud, Volume2 } from "lucide-react"
 import { SiteAiWidget } from "@/components/site-ai-widget"
 import { Button } from "@/components/ui/button"
-import { WidgetInstallCard } from "@/components/saas/widget-install-card"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import { saveAgentConfig } from "@/lib/saas/agentConfigService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
@@ -53,7 +52,6 @@ const cardClassName = "dashboard-card-surface rounded-[24px] p-6 lg:p-7"
 const inputClassName = "dashboard-input mt-2"
 const textareaClassName = "dashboard-textarea mt-2"
 const localDraftKey = (tenantId: string) => `omniweb-agent-page-draft:${tenantId}`
-const stepClassName = "rounded-[22px] border p-5 transition"
 
 const VOICE_OPTIONS = [
   {
@@ -90,8 +88,6 @@ function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
 
 export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName }: LegacyAgentSettingsPanelProps) {
   const configureRef = useRef<HTMLElement | null>(null)
-  const testRef = useRef<HTMLElement | null>(null)
-  const installRef = useRef<HTMLElement | null>(null)
   const [agentName, setAgentName] = useState(initialConfig.agentName || "Omniweb AI")
   const [workspaceName, setWorkspaceName] = useState(initialConfig.businessName || businessName || "")
   const [welcomeMessage, setWelcomeMessage] = useState(initialConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
@@ -106,7 +102,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
-  const [activeStep, setActiveStep] = useState<"configure" | "test" | "install">("configure")
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -149,11 +144,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const autoSelected = selectedLanguages.includes("auto")
   const selectedVoice = VOICE_OPTIONS.find((voice) => voice.id === voiceVariant) ?? VOICE_OPTIONS[0]
 
-  const scrollTo = (target: "configure" | "test" | "install") => {
-    setActiveStep(target)
-    const ref = target === "configure" ? configureRef : target === "test" ? testRef : installRef
+  const scrollToConfiguration = () => {
     window.setTimeout(() => {
-      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+      configureRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
     }, 80)
   }
 
@@ -200,7 +193,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         active: true,
       })
       setMessage("AI agent saved and synced.")
-      scrollTo("test")
       window.setTimeout(() => {
         dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })
       }, 500)
@@ -232,7 +224,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                 <button
                   key={tab}
                   type="button"
-                  onClick={() => scrollTo(index === 1 ? "configure" : index === 0 ? "configure" : index === 2 ? "install" : "test")}
+                  onClick={scrollToConfiguration}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
                 >
                   {tab}
@@ -252,39 +244,12 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
             <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
             <p className="dashboard-body mt-3">
-              Configure the agent, choose a voice, test it live, then copy the install script. Everything stays on one page.
+              Configure the agent, choose a voice, and test it live from the preview panel. Everything stays focused on one page.
             </p>
           </div>
-          <Button className="dashboard-primary-button rounded-2xl px-5 text-white" onClick={() => scrollTo("configure")}>
+          <Button className="dashboard-primary-button rounded-2xl px-5 text-white" onClick={scrollToConfiguration}>
             Start configuring
           </Button>
-          </div>
-
-          <div className="mt-7 grid gap-4 md:grid-cols-3">
-            <LaunchStep
-              active={activeStep === "configure"}
-              complete={activeStep !== "configure"}
-              number="1"
-              title="Configure"
-              body="Set instructions, goals, languages, and voice."
-              onClick={() => scrollTo("configure")}
-            />
-            <LaunchStep
-              active={activeStep === "test"}
-              complete={activeStep === "install"}
-              number="2"
-              title="Test"
-              body="Use the live preview to talk to your agent."
-              onClick={() => scrollTo("test")}
-            />
-            <LaunchStep
-              active={activeStep === "install"}
-              complete={false}
-              number="3"
-              title="Install"
-              body="Deploy with one embed script and verify."
-              onClick={() => scrollTo("install")}
-            />
           </div>
         </div>
       </section>
@@ -295,20 +260,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </div>
       ) : null}
 
-      <section id="configure-agent" ref={configureRef} className="dashboard-card-highlight scroll-mt-6 rounded-[28px] p-6 lg:p-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="dashboard-page-title">1. Configure your AI agent</p>
-            <p className="dashboard-body mt-3 max-w-3xl">Shape how your AI agent sells and supports. Set the welcome message, goals, languages, and operating rules that sync to your storefront widget.</p>
-          </div>
-          <Button className="dashboard-primary-button rounded-xl text-white hover:opacity-95" onClick={handleSave} disabled={saving}>
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Save and test
-          </Button>
-        </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <section id="configure-agent" ref={configureRef} className="grid scroll-mt-6 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-6">
         <div className={cardClassName}>
           <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
@@ -317,7 +269,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
               <button
                 key={tab}
                 type="button"
-                onClick={() => index === 0 ? scrollTo("configure") : undefined}
+                onClick={scrollToConfiguration}
                 className={`rounded-full px-4 py-2 text-sm font-semibold ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
               >
                 {tab}
@@ -439,7 +391,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             voiceCloneEnabled={voiceCloneEnabled}
             onSave={handleSave}
             onAsk={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
-            onInstall={() => scrollTo("install")}
             saving={saving}
           />
         </div>
@@ -486,6 +437,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </div>
       </section>
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <Button className="dashboard-primary-button rounded-xl text-white hover:opacity-95" onClick={handleSave} disabled={saving}>
+          {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save and test
+        </Button>
+      </div>
+
       <section className="overflow-hidden rounded-[24px] border border-amber-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="border-b border-amber-200 bg-amber-400/95 px-4 py-3 text-sm font-semibold text-amber-950"><ShieldAlert className="mr-2 inline h-4 w-4" />Financial Transaction Policy — Required</div>
         <div className="p-6 text-[15px] leading-7 text-slate-700">
@@ -499,69 +457,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           </ul>
           <p className="mt-3 text-slate-500">Any financial request from a shopper will be immediately escalated to a human representative.</p>
         </div>
-      </section>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end lg:pr-72">
-        <Button className="dashboard-primary-button rounded-xl text-white hover:opacity-95" onClick={handleSave} disabled={saving}>
-          {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save and test
-        </Button>
-      </div>
-
-      <section id="test-agent" ref={testRef} className="dashboard-card-surface scroll-mt-6 rounded-[28px] p-6 lg:p-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-              <TestTube2 className="h-4 w-4 text-violet-500" />
-              Step 2
-            </div>
-            <h2 className="dashboard-section-title mt-3">Test your AI agent</h2>
-            <p className="dashboard-body mt-2">
-              Click Ask AI, test the greeting, ask a real customer question, try a language, and check that the answer feels right.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              type="button"
-              onClick={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
-              className="dashboard-primary-button rounded-2xl px-5 text-white"
-            >
-              <Bot className="h-4 w-4" />
-              Ask AI
-            </Button>
-            <Button type="button" variant="outline" className="dashboard-secondary-button rounded-2xl" onClick={() => scrollTo("install")}>
-              Finish testing and install
-            </Button>
-          </div>
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {[
-            ["Greeting", "Does it open with your saved welcome message?"],
-            ["Real answer", "Ask about your products, services, pricing, or policies."],
-            ["Next step", "Confirm it guides visitors toward booking, buying, or contacting you."],
-          ].map(([title, body]) => (
-            <div key={title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <p className="text-sm font-semibold text-slate-900">{title}</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="install-widget" ref={installRef} className="scroll-mt-6 space-y-4">
-        <div className="dashboard-card-highlight rounded-[28px] p-6 lg:p-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Step 3</p>
-              <h2 className="dashboard-section-title mt-3">Install your website widget</h2>
-              <p className="dashboard-body mt-2 max-w-3xl">
-                Copy the script below and paste it before your website&apos;s closing body tag. After it is installed, use Verify install to confirm Omniweb can see it.
-              </p>
-            </div>
-          </div>
-        </div>
-        <WidgetInstallCard />
       </section>
     </div>
   )
@@ -595,7 +490,6 @@ function LivePreviewPanel({
   voiceCloneEnabled,
   onSave,
   onAsk,
-  onInstall,
   saving,
 }: {
   agentName: string
@@ -605,7 +499,6 @@ function LivePreviewPanel({
   voiceCloneEnabled: boolean
   onSave: () => void
   onAsk: () => void
-  onInstall: () => void
   saving: boolean
 }) {
   return (
@@ -652,52 +545,9 @@ function LivePreviewPanel({
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Save and deploy
           </Button>
-          <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/10 bg-transparent text-slate-300 hover:bg-white/5 hover:text-white" onClick={onInstall}>
-            Finish and get widget
-          </Button>
         </div>
       </div>
     </aside>
-  )
-}
-
-function LaunchStep({
-  active,
-  complete,
-  number,
-  title,
-  body,
-  onClick,
-}: {
-  active: boolean
-  complete: boolean
-  number: string
-  title: string
-  body: string
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`${stepClassName} text-left ${
-        active
-          ? "border-cyan-300 bg-white shadow-[0_18px_40px_rgba(14,165,233,0.14)]"
-          : complete
-            ? "border-emerald-200 bg-emerald-50/80"
-            : "border-slate-200 bg-white/70 hover:border-slate-300"
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${
-          complete ? "bg-emerald-600 text-white" : active ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"
-        }`}>
-          {complete ? <CheckCircle2 className="h-5 w-5" /> : number}
-        </span>
-        <span className="text-base font-semibold text-slate-950">{title}</span>
-      </div>
-      <p className="mt-3 text-sm leading-6 text-slate-600">{body}</p>
-    </button>
   )
 }
 
