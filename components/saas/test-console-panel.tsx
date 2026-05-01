@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { AlertTriangle, TestTube2 } from "lucide-react"
+import { AlertTriangle, Bot, TestTube2 } from "lucide-react"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 
 type TestConsolePanelProps = {
@@ -56,10 +56,12 @@ export function TestConsolePanel({ welcomeMessage, agentReady }: TestConsolePane
           <div className="flex items-center gap-3 self-end lg:self-auto">
             <button
               type="button"
-              onClick={() => dispatchAssistantOpen("text")}
-              className="inline-flex items-center gap-3 rounded-full bg-[radial-gradient(circle_at_30%_30%,#7dd3fc,#4f46e5_55%,#4338ca)] px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(79,70,229,0.3)]"
+              onClick={() => dispatchAssistantOpen("select")}
+              className="dashboard-primary-button inline-flex h-12 items-center gap-3 rounded-full px-5 text-[15px] font-semibold text-white shadow-[0_14px_30px_rgba(79,70,229,0.3)] transition hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
             >
-              <span className="h-6 w-6 rounded-full bg-white/20 shadow-inner" />
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 shadow-inner">
+                <Bot className="h-4 w-4" />
+              </span>
               Ask AI
             </button>
             <span className="text-sm text-slate-500">Opens your storefront widget</span>

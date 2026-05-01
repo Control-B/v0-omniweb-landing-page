@@ -12,7 +12,7 @@ const STORE_PATH = path.join(STORE_DIR, "saas-state.json")
 
 const DEFAULT_WELCOME_MESSAGE = "Welcome! I’m here to answer questions, recommend the right solution, and help you get the most value from our services. How can I help you today?"
 const DEFAULT_GOALS = ["lead_qualification", "customer_support", "sales_assistance"]
-const DEFAULT_SUPPORTED_LANGUAGES = ["en"]
+const DEFAULT_SUPPORTED_LANGUAGES = ["auto"]
 const DEFAULT_TELEPHONY_CONFIG = {
   omniwebPhoneAgentId: "agent_xxxxxxxxxx",
   aiPhoneNumber: "+15551234567",

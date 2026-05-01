@@ -163,28 +163,6 @@ function MetricCard({ title, value, description, trend }: { title: string; value
   )
 }
 
-function LoadingState() {
-  return (
-    <div className="space-y-5">
-      <section className="rounded-[1.75rem] border border-white/70 bg-white/80 p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="mt-4 h-10 w-80" />
-        <Skeleton className="mt-3 h-5 w-full max-w-2xl" />
-      </section>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} className="rounded-[1.75rem] border border-white/70 bg-white/80 p-5 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
-            <Skeleton className="h-1 w-full" />
-            <Skeleton className="mt-4 h-5 w-32" />
-            <Skeleton className="mt-4 h-10 w-24" />
-            <Skeleton className="mt-3 h-5 w-full" />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export function AnalyticsCommandCenter() {
   const [filters, setFilters] = useState<FiltersState>({ ...DEFAULT_FILTERS })
   const [summary, setSummary] = useState<AnalyticsSummaryMetrics | null>(null)
@@ -363,10 +341,6 @@ export function AnalyticsCommandCenter() {
     }
   }
 
-  if (loading) {
-    return <LoadingState />
-  }
-
   const metrics = summary ?? {
     totalConversations: 0,
     qualifiedLeads: 0,
@@ -383,7 +357,8 @@ export function AnalyticsCommandCenter() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">
-                <Sparkles className="h-3.5 w-3.5" />Live data
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                {loading ? "Refreshing" : "Live data"}
               </div>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">AI Engagement Intelligence</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">Review conversations, captured leads, summaries, intent, and follow-up opportunities.</p>

@@ -76,14 +76,15 @@ export async function ensureSaasSchema() {
           welcome_message text not null default 'Welcome! I’m here to answer questions, recommend the right solution, and help you get the most value from our services. How can I help you today?',
           tone text not null default 'professional' check (tone in ('professional')),
           goals jsonb not null default '["lead_qualification","customer_support","sales_assistance"]'::jsonb,
-          supported_languages jsonb not null default '["en"]'::jsonb,
+          supported_languages jsonb not null default '["auto"]'::jsonb,
           active boolean not null default true,
           created_at timestamptz not null default now(),
           updated_at timestamptz not null default now()
         );
 
         alter table public.omniweb_agent_configs
-        add column if not exists supported_languages jsonb not null default '["en"]'::jsonb;
+        add column if not exists supported_languages jsonb not null default '["auto"]'::jsonb;
+        alter table public.omniweb_agent_configs alter column supported_languages set default '["auto"]'::jsonb;
 
         create table if not exists public.omniweb_telephony_configs (
           tenant_id uuid primary key references public.omniweb_tenants(id) on delete cascade,

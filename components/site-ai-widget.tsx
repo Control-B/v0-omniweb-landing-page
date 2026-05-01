@@ -370,6 +370,12 @@ export function SiteAiWidget({
   useEffect(() => {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent<{ mode?: string }>).detail
+      if (detail?.mode === "select") {
+        setMode("text")
+        setPanelOpen(true)
+        return
+      }
+
       openMode(detail?.mode === "text" ? "text" : "voice")
     }
     window.addEventListener("omniweb:assistant-open", handler)

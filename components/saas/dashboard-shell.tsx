@@ -179,7 +179,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 ${active ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]" : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"}`}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 ${active ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]" : "text-slate-600 hover:bg-[#0f1b35] hover:text-white"}`}
                 >
                   <item.icon className={`h-[18px] w-[18px] ${active ? "text-cyan-300" : "text-slate-500"}`} />
                   <span className="whitespace-nowrap">{item.label}</span>
