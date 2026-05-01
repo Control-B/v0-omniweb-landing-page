@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { AlertTriangle, Bot, TestTube2 } from "lucide-react"
-import { SiteAiWidget } from "@/components/site-ai-widget"
-import { dispatchAssistantOpen } from "@/lib/assistant-events"
+import { AlertTriangle, TestTube2 } from "lucide-react"
 
 type TestConsolePanelProps = {
   welcomeMessage: string
@@ -25,8 +23,6 @@ export function TestConsolePanel({ welcomeMessage, agentReady, tenantId }: TestC
 
   return (
     <div className="space-y-6">
-      <SiteAiWidget agentId={tenantId ?? undefined} />
-
       <section className="dashboard-card-highlight rounded-[24px] p-6 lg:p-8">
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500"><TestTube2 className="h-4 w-4 text-violet-500" />Test Console</div>
         <h2 className="dashboard-page-title mt-4">Agent Test Console</h2>
@@ -57,18 +53,8 @@ export function TestConsolePanel({ welcomeMessage, agentReady, tenantId }: TestC
             </div>
           </div>
 
-          <div className="flex items-center gap-3 self-end lg:self-auto">
-            <button
-              type="button"
-              onClick={() => dispatchAssistantOpen("select", { clientId: tenantId })}
-              className="dashboard-primary-button inline-flex h-12 items-center gap-3 rounded-full px-5 text-[15px] font-semibold text-white shadow-[0_14px_30px_rgba(79,70,229,0.3)] transition hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
-            >
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 shadow-inner">
-                <Bot className="h-4 w-4" />
-              </span>
-              Ask AI
-            </button>
-            <span className="text-sm text-slate-500">Opens your storefront widget</span>
+          <div className="self-end rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 lg:self-auto">
+            Test live calls and chats from the installed website widget, not inside the dashboard.
           </div>
         </div>
         </div>

@@ -1,12 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Bot, CheckCircle2, Copy, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
-import { SiteAiWidget } from "@/components/site-ai-widget"
+import { Bot, CheckCircle2, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import { saveAgentConfig } from "@/lib/saas/agentConfigService"
-import { fetchWidgetSettings } from "@/lib/saas/widgetService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
 import {
   knowledgeSourcesStorageKey,
@@ -112,8 +109,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [lsKnowledgeOrigin, setLsKnowledgeOrigin] = useState<string | null>(() =>
     typeof window !== "undefined" ? readPrimaryKnowledgeOriginFromLocalStorage(initialConfig.tenantId) : null,
   )
-  const [widgetEmbedSnippet, setWidgetEmbedSnippet] = useState("")
-  const [widgetEmbedError, setWidgetEmbedError] = useState("")
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -140,30 +135,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       return
     }
   }, [initialConfig.tenantId])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function loadWidgetEmbedCode() {
-      try {
-        setWidgetEmbedError("")
-        const settings = await fetchWidgetSettings()
-        if (!cancelled) {
-          setWidgetEmbedSnippet(settings.embedCode)
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setWidgetEmbedSnippet("")
-          setWidgetEmbedError(loadError instanceof Error ? loadError.message : "Unable to load widget install script.")
-        }
-      }
-    }
-
-    void loadWidgetEmbedCode()
-    return () => {
-      cancelled = true
-    }
-  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -260,9 +231,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         active: true,
       })
       setMessage("AI agent saved and synced.")
-      window.setTimeout(() => {
-        dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })
-      }, 500)
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save AI agent settings.")
     } finally {
@@ -288,8 +256,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   return (
     <div className="space-y-6">
-      <SiteAiWidget agentId={initialConfig.tenantId} />
-
       <section className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
         <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -484,10 +450,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             knowledgePreview={knowledgePreview}
             voiceLabel={voiceLabel}
             voiceCloneEnabled={voiceCloneEnabled}
-            widgetEmbedCode={widgetEmbedSnippet}
-            widgetEmbedError={widgetEmbedError}
             onSave={handleSave}
-            onAsk={() => dispatchAssistantOpen("select", { clientId: initialConfig.tenantId })}
             saving={saving}
           />
         </div>
@@ -685,10 +648,7 @@ function LivePreviewPanel({
   knowledgePreview,
   voiceLabel,
   voiceCloneEnabled,
-  widgetEmbedCode,
-  widgetEmbedError,
   onSave,
-  onAsk,
   saving,
 }: {
   agentName: string
@@ -696,106 +656,43 @@ function LivePreviewPanel({
   knowledgePreview: string
   voiceLabel: string
   voiceCloneEnabled: boolean
-  widgetEmbedCode: string
-  widgetEmbedError: string
   onSave: () => void
-  onAsk: () => void
   saving: boolean
 }) {
-  const [activeTab, setActiveTab] = useState<"preview" | "install">("preview")
-  const [copied, setCopied] = useState(false)
-  const script = widgetEmbedCode
-  const scriptDisplay = widgetEmbedError || script || "Loading widget install script..."
-  const canCopyScript = Boolean(script)
-
-  const copyScript = async () => {
-    if (!canCopyScript) return
-    await navigator.clipboard.writeText(script)
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 1500)
-  }
-
   return (
     <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
-      <div className="grid grid-cols-2 border-b border-white/10 text-center text-sm font-semibold">
-        <button
-          type="button"
-          onClick={() => setActiveTab("preview")}
-          className={`px-4 py-3 transition ${activeTab === "preview" ? "border-b-2 border-cyan-400 bg-cyan-400/10 text-cyan-200" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
-        >
-          Live preview
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("install")}
-          className={`px-4 py-3 transition ${activeTab === "install" ? "border-b-2 border-cyan-400 bg-cyan-400/10 text-cyan-200" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
-        >
-          Install
-        </button>
+      <div className="border-b border-white/10 px-6 py-4">
+        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-200">Agent configuration</p>
+        <p className="mt-1 text-sm text-slate-400">Dashboard setup only. The customer-facing widget lives on the installed website.</p>
       </div>
 
-      {activeTab === "preview" ? (
-        <div className="flex min-h-[420px] flex-col items-center justify-center px-6 py-10 text-center">
-          <div className="relative flex h-36 w-36 items-center justify-center">
-            <div className="absolute inset-0 rounded-full border border-cyan-300/30" />
-            <div className="absolute inset-3 rounded-full border border-violet-400/40" />
-            <div className="absolute inset-7 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.35),rgba(99,102,241,0.1),transparent_70%)]" />
-            <Mic2 className="relative h-12 w-12 text-cyan-100" />
-          </div>
-
-          <h3 className="mt-7 text-xl font-semibold">{agentName || "Omniweb AI"}</h3>
-          <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">
-            Preview {voiceLabel.toLowerCase()} for {businessName}.
-          </p>
-
-          <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left text-sm text-slate-300">
-            <PreviewDetail label="Knowledge" value={knowledgePreview} />
-            <PreviewDetail label="Voice" value={voiceLabel} />
-            <PreviewDetail label="Cloning" value={voiceCloneEnabled ? "Saved" : "Off"} muted={!voiceCloneEnabled} />
-          </div>
-
-          <div className="mt-7 flex w-full flex-col gap-3">
-            <Button type="button" className="dashboard-primary-button h-12 rounded-2xl text-white" onClick={onAsk}>
-              <Mic2 className="h-4 w-4" />
-              Talk to your agent
-            </Button>
-            <Button type="button" variant="outline" className="h-12 rounded-2xl border-white/10 bg-white/5 text-white hover:bg-white/10" onClick={onSave} disabled={saving}>
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Save and deploy
-            </Button>
-          </div>
+      <div className="flex min-h-[420px] flex-col items-center justify-center px-6 py-10 text-center">
+        <div className="relative flex h-36 w-36 items-center justify-center">
+          <div className="absolute inset-0 rounded-full border border-cyan-300/30" />
+          <div className="absolute inset-3 rounded-full border border-violet-400/40" />
+          <div className="absolute inset-7 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.35),rgba(99,102,241,0.1),transparent_70%)]" />
+          <Mic2 className="relative h-12 w-12 text-cyan-100" />
         </div>
-      ) : (
-        <div className="min-h-[420px] px-6 py-7">
-          <h3 className="text-xl font-semibold">Install your widget</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-400">
-            Copy this script and paste it before your website&apos;s closing body tag. The hostname prefers your Omniweb app URL when it is configured; otherwise it follows your primary Knowledge URL or connected domain so you are not left with a generic placeholder.
-          </p>
-          <p className="mt-3 text-sm leading-6 text-slate-400">
-            Before going live, add your real site pages under Dashboard → Knowledge (services, offerings, FAQs, policies, and any notes that are not on the page). The assistant pulls context from those sources so it can accurately help customers once the snippet is installed. This embed text updates automatically when Knowledge changes.
-          </p>
 
-          <div className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-300">
-            <PreviewDetail label="Knowledge" value={knowledgePreview} />
-            <PreviewDetail label="Voice" value={voiceLabel} />
-            <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-3">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold text-white">Script</span>
-                <button type="button" onClick={copyScript} disabled={!canCopyScript} className="inline-flex items-center gap-1.5 rounded-full bg-cyan-400 px-3 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60">
-                  {copied ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copied ? "Copied" : "Copy"}
-                </button>
-              </div>
-              <pre className={`max-h-40 overflow-auto whitespace-pre-wrap break-all text-xs leading-5 ${widgetEmbedError ? "text-red-200" : "text-cyan-100"}`}>{scriptDisplay}</pre>
-            </div>
-          </div>
+        <h3 className="mt-7 text-xl font-semibold">{agentName || "Omniweb AI"}</h3>
+        <p className="mt-2 max-w-xs text-sm leading-6 text-slate-400">
+          Configure {voiceLabel.toLowerCase()} for {businessName}. Test from the installed site widget or AI Telephony test call.
+        </p>
 
-          <Button type="button" className="dashboard-primary-button mt-6 h-12 w-full rounded-2xl text-white" onClick={copyScript} disabled={!canCopyScript}>
-            <Copy className="h-4 w-4" />
-            {copied ? "Script copied" : "Copy script and deploy"}
+        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left text-sm text-slate-300">
+          <PreviewDetail label="Knowledge" value={knowledgePreview} />
+          <PreviewDetail label="Voice" value={voiceLabel} />
+          <PreviewDetail label="Cloning" value={voiceCloneEnabled ? "Saved" : "Off"} muted={!voiceCloneEnabled} />
+        </div>
+
+        <div className="mt-7 flex w-full flex-col gap-3">
+          <Button type="button" className="dashboard-primary-button h-12 rounded-2xl text-white" onClick={onSave} disabled={saving}>
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Save agent configuration
           </Button>
+          <p className="text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
         </div>
-      )}
+      </div>
     </aside>
   )
 }
