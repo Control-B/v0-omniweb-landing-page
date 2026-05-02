@@ -338,40 +338,84 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   return (
     <div className="space-y-6">
       <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
-          <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200"><Bot className="h-5 w-5" /></span>
-                  <div>
-                    <p className="text-sm font-semibold text-cyan-200">AI Agent Builder</p>
-                    <p className="text-xs text-slate-400">Last saved settings sync to your website widget</p>
+        <div className="space-y-6">
+          <div className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
+            <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200"><Bot className="h-5 w-5" /></span>
+                    <div>
+                      <p className="text-sm font-semibold text-cyan-200">AI Agent Builder</p>
+                      <p className="text-xs text-slate-400">Last saved settings sync to your website widget</p>
+                    </div>
                   </div>
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  {["Conversation", "Models & Voice", "Actions", "Advanced"].map((tab, index) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={scrollToConfiguration}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {["Conversation", "Models & Voice", "Actions", "Advanced"].map((tab, index) => (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={scrollToConfiguration}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+            </div>
+
+            <div className="p-6 lg:p-8">
+              <div className="max-w-3xl">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
+                <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
+                <p className="dashboard-body mt-3">
+                  Configure the agent, choose a voice, and test it live from the preview panel. Everything stays focused on one page.
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="p-6 lg:p-8">
-            <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
-              <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
-              <p className="dashboard-body mt-3">
-                Configure the agent, choose a voice, and test it live from the preview panel. Everything stays focused on one page.
-              </p>
+          <div className={cardClassName}>
+            <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
+            <div className="mt-5 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
+              {["Instructions", "Voice", "Goals", "Languages"].map((tab, index) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={scrollToConfiguration}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+            <div className="grid gap-4 pt-5 md:grid-cols-2">
+              <Field label="Agent name" helper="The name visitors will see in the chat widget">
+                <input value={agentName} onChange={(event) => setAgentName(event.target.value)} className={inputClassName} />
+              </Field>
+              <Field label="Business name" helper="Used throughout the agent experience and system context">
+                <input value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} className={inputClassName} />
+              </Field>
+              <Field label="Welcome message" helper="The first message visitors see when they open the chat" className="md:col-span-2">
+                <input value={welcomeMessage} onChange={(event) => setWelcomeMessage(event.target.value)} className={inputClassName} />
+              </Field>
+              <Field label="System instructions" helper="Describe your business, products, policies, and how the agent should behave" className="md:col-span-2">
+                <textarea value={systemInstructions} onChange={(event) => setSystemInstructions(event.target.value)} rows={5} className={textareaClassName} />
+              </Field>
+              <Field label="Response length">
+                <select value={responseLength} onChange={(event) => setResponseLength(event.target.value)} className={`${inputClassName} dashboard-select`}>
+                  <option>Short – concise replies</option>
+                  <option>Moderate – balanced detail</option>
+                  <option>Detailed – high context</option>
+                </select>
+              </Field>
+              <Field label="Role" helper="Default role for this agent profile">
+                <select value={role} onChange={(event) => setRole(event.target.value)} className={`${inputClassName} dashboard-select`}>
+                  <option>All</option>
+                </select>
+              </Field>
             </div>
           </div>
         </div>
@@ -401,48 +445,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
       <section id="configure-agent" ref={configureRef} className="scroll-mt-6 space-y-6">
         <div className="space-y-6">
-        <div className={cardClassName}>
-          <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
-          <div className="mt-5 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
-            {["Instructions", "Voice", "Goals", "Languages"].map((tab, index) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={scrollToConfiguration}
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <div className="grid gap-4 pt-5 md:grid-cols-2">
-            <Field label="Agent name" helper="The name visitors will see in the chat widget">
-              <input value={agentName} onChange={(event) => setAgentName(event.target.value)} className={inputClassName} />
-            </Field>
-            <Field label="Business name" helper="Used throughout the agent experience and system context">
-              <input value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} className={inputClassName} />
-            </Field>
-            <Field label="Welcome message" helper="The first message visitors see when they open the chat" className="md:col-span-2">
-              <input value={welcomeMessage} onChange={(event) => setWelcomeMessage(event.target.value)} className={inputClassName} />
-            </Field>
-            <Field label="System instructions" helper="Describe your business, products, policies, and how the agent should behave" className="md:col-span-2">
-              <textarea value={systemInstructions} onChange={(event) => setSystemInstructions(event.target.value)} rows={5} className={textareaClassName} />
-            </Field>
-            <Field label="Response length">
-              <select value={responseLength} onChange={(event) => setResponseLength(event.target.value)} className={`${inputClassName} dashboard-select`}>
-                <option>Short – concise replies</option>
-                <option>Moderate – balanced detail</option>
-                <option>Detailed – high context</option>
-              </select>
-            </Field>
-            <Field label="Role" helper="Default role for this agent profile">
-              <select value={role} onChange={(event) => setRole(event.target.value)} className={`${inputClassName} dashboard-select`}>
-                <option>All</option>
-              </select>
-            </Field>
-          </div>
-        </div>
-
         <section className={cardClassName}>
           <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
           <div className="pt-5">
