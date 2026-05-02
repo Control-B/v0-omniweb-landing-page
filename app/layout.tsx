@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
 import Script from 'next/script'
 import { ThemeProvider } from '@/components/theme-provider'
+import { SiteAiWidget } from '@/components/site-ai-widget'
 import './globals.css'
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
@@ -11,6 +12,7 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono"
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald", weight: ["400", "500", "600", "700"] })
 const robotoCondensed = Roboto_Condensed({ subsets: ["latin"], variable: "--font-roboto-condensed", weight: ["400", "500", "600", "700"] })
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID?.trim() || null
+const LANDING_WIDGET_TENANT_ID = "dlPBhYBUzIpAeeA8FImeGXYz"
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://omniweb.ai'),
@@ -87,13 +89,6 @@ export default function RootLayout({
           as="video"
           type="video/mp4"
         />
-        <Script
-          id="omniweb-widget"
-          src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
-          strategy="afterInteractive"
-          async
-          data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
-        />
         {GTM_ID ? (
           <Script
             id="google-tag-manager"
@@ -129,6 +124,7 @@ export default function RootLayout({
             afterSignOutUrl="/"
           >
             {children}
+            <SiteAiWidget agentId={LANDING_WIDGET_TENANT_ID} />
           </ClerkProvider>
         </ThemeProvider>
       </body>
