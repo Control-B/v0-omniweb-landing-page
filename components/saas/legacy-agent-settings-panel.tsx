@@ -833,8 +833,6 @@ function LivePreviewPanel({
             />
           </label>
 
-          <p className="mt-1 text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
-
           <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -872,22 +870,22 @@ function LivePreviewPanel({
             </div>
 
             <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/60 p-3">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-300/15 text-violet-200">
                     <Mic2 className="h-4.5 w-4.5" />
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-white">Voice cloning</p>
-                    <p className="mt-1 text-xs leading-5 text-slate-400">Record a short sample, listen back, and save it as the cloned voice for testing.</p>
+                    <p className="mt-1 text-xs text-slate-400">Record a short sample and save it as your cloned voice.</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={onToggleVoiceClone}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold transition ${voiceCloneEnabled ? "bg-cyan-400 text-slate-950" : "bg-white/10 text-slate-200 ring-1 ring-white/15"}`}
+                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${voiceCloneEnabled ? "bg-violet-400 text-white" : "bg-white/10 text-slate-200 ring-1 ring-white/15"}`}
                 >
-                  {voiceCloneEnabled ? "Cloning on" : "Enable cloning"}
+                  {voiceCloneEnabled ? "Enabled" : "Enable"}
                 </button>
               </div>
 
@@ -933,12 +931,6 @@ function LivePreviewPanel({
               </span>
             </div>
             <h4 className="mt-3 text-lg font-semibold text-white">Verify the installed website widget</h4>
-            <p className="mt-2 text-xs leading-6 text-slate-300">
-              After the script is installed on your site, open the live site, launch the widget, and send a test message.
-            </p>
-            <p className="mt-2 text-[11px] text-slate-400">
-              Last seen: {widgetLastSeenAt ? new Date(widgetLastSeenAt).toLocaleString() : "Never"}
-            </p>
             {liveWidgetPreviewUrl ? (
               <Button type="button" variant="outline" className="mt-3 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
                 <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">One-click live widget preview</a>
