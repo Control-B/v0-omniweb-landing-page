@@ -89,10 +89,10 @@ export default function RootLayout({
         />
         <Script
           id="omniweb-widget"
+          src="https://omniweb.ai/widget.js"
           strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var s=document.createElement('script');s.src='https://omniweb.ai/widget.js';s.async=true;s.dataset.tenantId='24c78778-c185-4b6a-a255-02d5ed44004a';document.head.appendChild(s);})();`,
-          }}
+          async
+          data-tenant-id="24c78778-c185-4b6a-a255-02d5ed44004a"
         />
         {GTM_ID ? (
           <Script
