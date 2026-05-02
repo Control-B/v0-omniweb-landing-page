@@ -15,7 +15,6 @@ import {
 } from "@/lib/saas/widgetEmbed"
 
 const GOALS = [
-  "All goals",
   "Product Recommendations",
   "Customer Support & FAQs",
   "Cart Management & Reminders",
@@ -71,12 +70,6 @@ const VOICE_OPTIONS = [
   },
 ] as const
 
-const MODEL_OPTIONS = [
-  "GPT-5.3 Mini",
-  "GPT-5.3 Standard",
-  "GPT-5.3 High Accuracy",
-]
-
 type VoiceVariant = (typeof VOICE_OPTIONS)[number]["id"] | "clone"
 
 type LegacyAgentSettingsPanelProps = {
@@ -113,7 +106,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [role, setRole] = useState("All")
   const [selectedGoals, setSelectedGoals] = useState<string[]>(initialConfig.goals?.length ? initialConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(getInitialSelectedLanguages(initialConfig))
-  const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0])
   const [voiceVariant, setVoiceVariant] = useState<VoiceVariant>("female")
   const [voiceCloneEnabled, setVoiceCloneEnabled] = useState(false)
   const [voiceCloneName, setVoiceCloneName] = useState("")
@@ -238,29 +230,15 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     ? (voiceCloneName ? `Clone: ${voiceCloneName}` : "Cloned voice")
     : selectedVoice.label
   const instructionsComplete = systemInstructions.trim().length > 0
-  const modelAndVoiceComplete = Boolean(selectedModel && voiceVariant)
+  const voiceComplete = Boolean(voiceVariant)
   const roleComplete = role.trim().toLowerCase() === "all"
   const languagesComplete = selectedLanguages.length > 0
-  const mandatoryComplete = instructionsComplete && modelAndVoiceComplete && roleComplete && languagesComplete
+  const mandatoryComplete = instructionsComplete && voiceComplete && roleComplete && languagesComplete
 
   const scrollToConfiguration = () => {
     window.setTimeout(() => {
       configureRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
     }, 80)
-  }
-
-  const toggleGoal = (goal: string) => {
-    if (goal === "All goals") {
-      setSelectedGoals((current) => current.includes("All goals") ? [] : GOALS)
-      return
-    }
-
-    setSelectedGoals((current) => {
-      const next = current.includes(goal)
-        ? current.filter((item) => item !== goal && item !== "All goals")
-        : [...current.filter((item) => item !== "All goals"), goal]
-      return next.length === GOALS.length - 1 ? GOALS : next
-    })
   }
 
   const toggleLanguage = (code: string) => {
@@ -279,7 +257,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   const handleSave = async () => {
     if (!mandatoryComplete) {
-      setError("Complete all mandatory sections (Instructions, Models & Voice, Role = All, Languages) before saving.")
+      setError("Complete all mandatory sections (Instructions, Voice, Role = All, Languages) before saving.")
       setMessage("")
       return
     }
@@ -293,7 +271,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         businessName: workspaceName,
         welcomeMessage,
         customInstructions: systemInstructions,
-        goals: selectedGoals.includes("All goals") ? GOALS.filter((goal) => goal !== "All goals") : selectedGoals,
+        goals: selectedGoals,
         supportedLanguages: selectedLanguages.includes("auto") ? ["auto"] : selectedLanguages.filter((code) => MANUAL_LANGUAGE_CODES.includes(code)),
         active: true,
       })
@@ -352,7 +330,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {["Conversation", "Models & Voice", "Actions", "Advanced"].map((tab, index) => (
+                  {["Conversation", "Voice", "Actions", "Advanced"].map((tab, index) => (
                     <button
                       key={tab}
                       type="button"
@@ -380,7 +358,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           <div className={cardClassName}>
             <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
             <div className="mt-5 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
-              {["Instructions", "Voice", "Goals", "Languages"].map((tab, index) => (
+              {["Instructions", "Voice", "Roles", "Languages"].map((tab, index) => (
                 <button
                   key={tab}
                   type="button"
@@ -411,11 +389,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                   <option>Detailed – high context</option>
                 </select>
               </Field>
-              <Field label="Role" helper="Default role for this agent profile">
-                <select value={role} onChange={(event) => setRole(event.target.value)} className={`${inputClassName} dashboard-select`}>
-                  <option>All</option>
-                </select>
-              </Field>
             </div>
           </div>
         </div>
@@ -444,132 +417,119 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       ) : null}
 
       <section id="configure-agent" ref={configureRef} className="scroll-mt-6 space-y-6">
-        <div className="space-y-6">
-        <section className={cardClassName}>
-          <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
-          <div className="pt-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-lg font-semibold text-slate-900">Models &amp; Voice</p>
-                <p className="mt-1 text-sm text-slate-500">Choose the voice visitors hear when they test or use the widget.</p>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <section className={cardClassName}>
+            <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
+            <div className="pt-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-lg font-semibold text-slate-900">Voice</p>
+                  <p className="mt-1 text-sm text-slate-500">Choose the voice visitors hear when they test or use the widget.</p>
+                </div>
+                <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">Live preview ready</span>
               </div>
-              <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-700">Live preview ready</span>
-            </div>
 
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div className="md:col-span-2">
-                <label className="text-sm font-medium text-slate-700">Model</label>
-                <select value={selectedModel} onChange={(event) => setSelectedModel(event.target.value)} className={`${inputClassName} dashboard-select`}>
-                  {MODEL_OPTIONS.map((model) => (
-                    <option key={model} value={model}>{model}</option>
-                  ))}
-                </select>
-              </div>
-              {VOICE_OPTIONS.map((voice) => {
-                const active = voiceVariant === voice.id
-                return (
-                  <button
-                    key={voice.id}
-                    type="button"
-                    onClick={() => setVoiceVariant(voice.id)}
-                    className={`rounded-2xl border p-4 text-left transition ${active ? "border-cyan-400 bg-[#0f1b35] text-white shadow-[0_14px_30px_rgba(15,27,53,0.2)]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${active ? "bg-white/15 text-cyan-100" : "bg-slate-100 text-slate-600"}`}>
-                          <Volume2 className="h-5 w-5" />
-                        </span>
-                        <div>
-                          <p className="font-semibold">{voice.label}</p>
-                          <p className={`mt-1 text-xs ${active ? "text-cyan-100" : "text-slate-500"}`}>Ready for live preview</p>
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                {VOICE_OPTIONS.map((voice) => {
+                  const active = voiceVariant === voice.id
+                  return (
+                    <button
+                      key={voice.id}
+                      type="button"
+                      onClick={() => setVoiceVariant(voice.id)}
+                      className={`rounded-2xl border p-4 text-left transition ${active ? "border-cyan-400 bg-[#0f1b35] text-white shadow-[0_14px_30px_rgba(15,27,53,0.2)]" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300"}`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${active ? "bg-white/15 text-cyan-100" : "bg-slate-100 text-slate-600"}`}>
+                            <Volume2 className="h-5 w-5" />
+                          </span>
+                          <div>
+                            <p className="font-semibold">{voice.label}</p>
+                            <p className={`mt-1 text-xs ${active ? "text-cyan-100" : "text-slate-500"}`}>Ready for live preview</p>
+                          </div>
                         </div>
+                        <span className={`h-3 w-3 rounded-full ${active ? "bg-cyan-300" : "bg-slate-300"}`} />
                       </div>
-                      <span className={`h-3 w-3 rounded-full ${active ? "bg-cyan-300" : "bg-slate-300"}`} />
-                    </div>
-                    <p className={`mt-3 text-sm leading-6 ${active ? "text-slate-200" : "text-slate-500"}`}>{voice.description}</p>
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-start gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
-                    <Mic2 className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Voice cloning</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-600">Record a short sample, listen back, and save it as the cloned voice for testing.</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setVoiceCloneEnabled((current) => !current)}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${voiceCloneEnabled ? "bg-slate-950 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
-                >
-                  {voiceCloneEnabled ? "Cloning on" : "Enable cloning"}
-                </button>
+                      <p className={`mt-3 text-sm leading-6 ${active ? "text-slate-200" : "text-slate-500"}`}>{voice.description}</p>
+                    </button>
+                  )
+                })}
               </div>
-              {voiceCloneEnabled ? (
-                <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-                  <div>
-                    <label className="text-sm font-medium text-slate-700">Cloned voice name</label>
-                    <input value={voiceCloneName} onChange={(event) => setVoiceCloneName(event.target.value)} placeholder="Example: Founder voice, Support voice" className={inputClassName} />
-                  </div>
-                  <VoiceCloneRecorder
-                    audioUrl={voiceCloneAudioUrl}
-                    sampleName={voiceCloneSampleName}
-                    onRecorded={(url) => {
-                      setVoiceCloneAudioUrl(url)
-                      setVoiceCloneSampleName("Recorded voice sample")
-                    }}
-                    onSave={() => {
-                      setVoiceCloneEnabled(true)
-                      setVoiceVariant("clone")
-                      setVoiceCloneName((current) => current || "Saved clone voice")
-                      setMessage("Cloned voice saved for testing.")
-                    }}
-                  />
-                  {canDeleteClonedVoice ? (
-                    <div className="flex justify-end pt-1 md:col-span-2">
-                      <button
-                        type="button"
-                        onClick={handleDeleteClonedVoice}
-                        className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete saved voice
-                      </button>
+
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600">
+                      <Mic2 className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Voice cloning</p>
+                      <p className="mt-1 text-sm leading-6 text-slate-600">Record a short sample, listen back, and save it as the cloned voice for testing.</p>
                     </div>
-                  ) : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceCloneEnabled((current) => !current)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${voiceCloneEnabled ? "bg-slate-950 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
+                  >
+                    {voiceCloneEnabled ? "Cloning on" : "Enable cloning"}
+                  </button>
                 </div>
-              ) : null}
+                {voiceCloneEnabled ? (
+                  <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700">Cloned voice name</label>
+                      <input value={voiceCloneName} onChange={(event) => setVoiceCloneName(event.target.value)} placeholder="Example: Founder voice, Support voice" className={inputClassName} />
+                    </div>
+                    <VoiceCloneRecorder
+                      audioUrl={voiceCloneAudioUrl}
+                      sampleName={voiceCloneSampleName}
+                      onRecorded={(url) => {
+                        setVoiceCloneAudioUrl(url)
+                        setVoiceCloneSampleName("Recorded voice sample")
+                      }}
+                      onSave={() => {
+                        setVoiceCloneEnabled(true)
+                        setVoiceVariant("clone")
+                        setVoiceCloneName((current) => current || "Saved clone voice")
+                        setMessage("Cloned voice saved for testing.")
+                      }}
+                    />
+                    {canDeleteClonedVoice ? (
+                      <div className="flex justify-end pt-1 md:col-span-2">
+                        <button
+                          type="button"
+                          onClick={handleDeleteClonedVoice}
+                          className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete saved voice
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
+          <section className={cardClassName}>
+            <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
+            <div className="pt-5">
+              <p className="text-lg font-semibold text-slate-900">Primary Roles</p>
+              <p className="mt-1 text-sm text-slate-500">Choose the role profile for this agent. Default is All.</p>
+              <div className="mt-5">
+                <Field label="Role" helper="Default role for this agent profile">
+                  <select value={role} onChange={(event) => setRole(event.target.value)} className={`${inputClassName} dashboard-select`}>
+                    <option>All</option>
+                  </select>
+                </Field>
+              </div>
+            </div>
+          </section>
         </div>
 
-      </section>
-
-      <section className={cardClassName}>
-        <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
-        <div className="pt-5">
-          <p className="text-lg font-semibold text-slate-900">Primary Goals</p>
-          <p className="mt-1 text-sm text-slate-500">Select what your AI agent should help visitors accomplish across your industry</p>
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {GOALS.map((goal) => {
-              const active = selectedGoals.includes(goal)
-              return (
-                <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
-                  <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
-                  {goal}
-                </label>
-              )
-            })}
-          </div>
-        </div>
       </section>
 
       <section className={cardClassName}>
@@ -826,7 +786,7 @@ function LivePreviewPanel({
           </Button>
 
           {!mandatoryComplete ? (
-            <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Models &amp; Voice, Role (All), and Languages.</p>
+            <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Voice, Role (All), and Languages.</p>
           ) : (
             <p className="text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
           )}
