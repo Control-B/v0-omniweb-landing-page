@@ -12,7 +12,6 @@ const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono"
 const oswald = Oswald({ subsets: ["latin"], variable: "--font-oswald", weight: ["400", "500", "600", "700"] })
 const robotoCondensed = Roboto_Condensed({ subsets: ["latin"], variable: "--font-roboto-condensed", weight: ["400", "500", "600", "700"] })
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID?.trim() || null
-const LANDING_WIDGET_TENANT_ID = "dlPBhYBUzIpAeeA8FImeGXYz"
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://omniweb.ai'),
@@ -124,7 +123,7 @@ export default function RootLayout({
             afterSignOutUrl="/"
           >
             {children}
-            <SiteAiWidget agentId={LANDING_WIDGET_TENANT_ID} />
+            <SiteAiWidget />
           </ClerkProvider>
         </ThemeProvider>
       </body>

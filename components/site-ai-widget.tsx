@@ -23,6 +23,7 @@ const LANG_FLAGS: Record<string, string> = {
   en: "🇺🇸", es: "🇪🇸", fr: "🇫🇷", de: "🇩🇪", it: "🇮🇹",
   pt: "🇧🇷", ja: "🇯🇵", ko: "🇰🇷", zh: "🇨🇳", hi: "🇮🇳", multi: "🌐",
 }
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function flagEmoji(lang?: LangOption | null) {
   return lang?.flag || LANG_FLAGS[lang?.code || ""] || "🌐"
@@ -36,6 +37,11 @@ function normalizeAssistantCopy(text: string) {
     return DEFAULT_WELCOME_MESSAGE
   }
   return value
+}
+
+function asClientUuid(value?: string | null) {
+  const trimmed = value?.trim()
+  return trimmed && UUID_PATTERN.test(trimmed) ? trimmed : null
 }
 
 function audioContextClass(): typeof AudioContext | null {
@@ -302,10 +308,11 @@ export function SiteAiWidget({
     const body: { client_id?: string; language: string } = {
       language: selectedLang?.code || "en",
     }
-    const landingClientId = process.env.NEXT_PUBLIC_LANDING_PAGE_CLIENT_ID?.trim()
-    if (clientIdOverride?.trim()) body.client_id = clientIdOverride.trim()
-    else if (agentId?.trim()) body.client_id = agentId.trim()
-    else if (landingClientId) body.client_id = landingClientId
+    const clientId =
+      asClientUuid(clientIdOverride) ||
+      asClientUuid(agentId) ||
+      asClientUuid(process.env.NEXT_PUBLIC_LANDING_PAGE_CLIENT_ID)
+    if (clientId) body.client_id = clientId
 
     const response = await fetch(`${ENGINE_BASE_URL}/api/chat/voice-agent/bootstrap`, {
       method: "POST",
@@ -314,12 +321,14 @@ export function SiteAiWidget({
     })
     if (!response.ok) {
       const raw = await response.text()
+      let parsedMessage = ""
       try {
         const parsed = JSON.parse(raw) as { detail?: string }
-        throw new Error(parsed.detail || `Widget bootstrap failed (${response.status})`)
+        parsedMessage = parsed.detail || ""
       } catch {
-        throw new Error(raw || `Widget bootstrap failed (${response.status})`)
+        parsedMessage = ""
       }
+      throw new Error(parsedMessage || raw || `Widget bootstrap failed (${response.status})`)
     }
     return await response.json() as {
       websocket_url: string
