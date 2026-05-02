@@ -1,7 +1,8 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
 
-import { ensureDefaultAgentConfig, getTenantByClerkUserId, updateAgentConfig } from "@/lib/saas/store"
+import { getOrRestoreTenantByClerkUserId } from "@/lib/saas/server/tenant"
+import { ensureDefaultAgentConfig, updateAgentConfig } from "@/lib/saas/store"
 import type { KnowledgeSourceRecord } from "@/lib/saas/types"
 
 function normalizeSources(value: unknown): KnowledgeSourceRecord[] {
@@ -27,7 +28,7 @@ async function getTenantForRequest() {
     return { error: NextResponse.json({ error: "Authentication required" }, { status: 401 }) }
   }
 
-  const tenant = await getTenantByClerkUserId(userId)
+  const tenant = await getOrRestoreTenantByClerkUserId(userId)
   if (!tenant) {
     return { error: NextResponse.json({ error: "Workspace not found" }, { status: 404 }) }
   }

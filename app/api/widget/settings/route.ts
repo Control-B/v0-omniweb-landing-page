@@ -2,7 +2,8 @@ import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
 import { getEngineToken } from "@/lib/auth/engine"
 import { fetchEngineWidgetSettings, patchEngineWidgetSettings } from "@/lib/saas/server/engineWidgetSnippet"
-import { ensureDefaultAgentConfig, getTenantByClerkUserId, updateAgentConfig } from "@/lib/saas/store"
+import { getOrRestoreTenantByClerkUserId } from "@/lib/saas/server/tenant"
+import { ensureDefaultAgentConfig, updateAgentConfig } from "@/lib/saas/store"
 import { buildWidgetEmbedScriptTag, resolveWidgetScriptOrigin } from "@/lib/saas/widgetEmbed"
 import type { WidgetSettingsRecord, WidgetSettingsUpdatePayload } from "@/lib/saas/types"
 
@@ -16,7 +17,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: false, error: { message: "Authentication required" } }, { status: 401 })
   }
 
-  const tenant = await getTenantByClerkUserId(userId)
+  const tenant = await getOrRestoreTenantByClerkUserId(userId)
   if (!tenant) {
     return NextResponse.json({ success: false, error: { message: "Workspace not found" } }, { status: 404 })
   }
