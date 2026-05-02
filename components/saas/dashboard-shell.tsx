@@ -8,6 +8,7 @@ import {
   BarChart3,
   Bot,
   Brain,
+  Code2,
   ChevronUp,
   CircleHelp,
   CreditCard,
@@ -27,6 +28,7 @@ const DESKTOP_SIDEBAR_WIDTH = 240
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, aliases: [] },
   { href: "/dashboard/ai-agent", label: "AI Agent", icon: Bot, aliases: [] },
+  { href: "/dashboard/widget-install", label: "Widget Install", icon: Code2, aliases: [] },
   { href: "/dashboard/ai-telephony", label: "AI Telephony", icon: Phone, aliases: [] },
   { href: "/dashboard/knowledge", label: "Knowledge", icon: Brain, aliases: [] },
   { href: "/dashboard/billing", label: "Billing", icon: Wallet, aliases: ["/dashboard/pricing"] },
@@ -79,6 +81,7 @@ function isPathActive(pathname: string, href: string, aliases: readonly string[]
 function getPageDescription(pathname: string) {
   if (pathname === "/dashboard") return "See launch readiness, workspace health, and the next highest-impact actions in one place."
   if (pathname.startsWith("/dashboard/ai-agent")) return "Configure, test, and install your AI widget from one guided setup flow."
+  if (pathname.startsWith("/dashboard/widget-install")) return "Copy your tenant script, verify allowed domains, and validate live install status for omniweb.ai."
   if (pathname.startsWith("/dashboard/ai-telephony")) return "Manage voice routing, escalation paths, and call experience settings for AI telephony."
   if (pathname.startsWith("/dashboard/knowledge")) return "Control website sources, widget readiness, and the content the assistant can use."
   if (pathname.startsWith("/dashboard/billing") || pathname.startsWith("/dashboard/pricing")) return "Track plan status, trial timing, and subscription controls for the workspace."
