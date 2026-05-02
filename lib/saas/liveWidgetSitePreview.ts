@@ -51,14 +51,14 @@ export function buildLiveWidgetSitePreviewUrl(options: { siteUrl: string; widget
   if (!site) {
     return null
   }
-  let origin: string
+  let pageUrl: string
   try {
     const withProtocol = /^https?:\/\//i.test(site) ? site : `https://${site}`
     const u = new URL(withProtocol)
     if (u.protocol !== "http:" && u.protocol !== "https:") {
       return null
     }
-    origin = u.origin
+    pageUrl = u.toString()
   } catch {
     return null
   }
@@ -71,7 +71,7 @@ export function buildLiveWidgetSitePreviewUrl(options: { siteUrl: string; widget
     return null
   }
 
-  const base = `/dashboard/widget-site-preview?site=${encodeURIComponent(origin)}`
+  const base = `/widget-site-preview?page=${encodeURIComponent(pageUrl)}`
   return `${base}#${HASH_PREFIX}${widgetPath}`
 }
 
