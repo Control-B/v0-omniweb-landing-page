@@ -15,6 +15,7 @@ import {
 } from "@/lib/saas/widgetEmbed"
 
 const GOALS = [
+  "All goals",
   "Product Recommendations",
   "Customer Support & FAQs",
   "Cart Management & Reminders",
@@ -96,6 +97,20 @@ function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
   return ["auto"]
 }
 
+function normalizeSelectedGoals(goals?: string[]) {
+  if (!goals?.length) {
+    return GOALS
+  }
+
+  if (goals.includes("All goals")) {
+    return GOALS
+  }
+
+  const concreteGoals = GOALS.filter((goal) => goal !== "All goals")
+  const hasAllConcreteGoals = concreteGoals.every((goal) => goals.includes(goal))
+  return hasAllConcreteGoals ? GOALS : goals
+}
+
 export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, businessName }: LegacyAgentSettingsPanelProps) {
   const configureRef = useRef<HTMLElement | null>(null)
   const [agentName, setAgentName] = useState(initialConfig.agentName || "Omniweb AI")
@@ -104,7 +119,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [systemInstructions, setSystemInstructions] = useState(initialConfig.customInstructions || "Talk about what is on the website, answer common questions, and guide high-intent visitors toward the next best step.")
   const [responseLength, setResponseLength] = useState("Moderate – balanced detail")
   const [role, setRole] = useState("All")
-  const [selectedGoals, setSelectedGoals] = useState<string[]>(initialConfig.goals?.length ? initialConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
+  const [selectedGoals, setSelectedGoals] = useState<string[]>(normalizeSelectedGoals(initialConfig.goals))
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(getInitialSelectedLanguages(initialConfig))
   const [voiceVariant, setVoiceVariant] = useState<VoiceVariant>("female")
   const [voiceCloneEnabled, setVoiceCloneEnabled] = useState(false)
@@ -136,7 +151,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         setWorkspaceName(latestConfig.businessName || businessName || "")
         setWelcomeMessage(latestConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
         setSystemInstructions(latestConfig.customInstructions || "Talk about what is on the website, answer common questions, and guide high-intent visitors toward the next best step.")
-        setSelectedGoals(latestConfig.goals?.length ? latestConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
+        setSelectedGoals(normalizeSelectedGoals(latestConfig.goals))
         setSelectedLanguages(getInitialSelectedLanguages(latestConfig))
         setAccountKnowledgeSources(latestConfig.knowledgeSources ?? [])
       } catch {
@@ -241,6 +256,20 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     }, 80)
   }
 
+  const toggleGoal = (goal: string) => {
+    if (goal === "All goals") {
+      setSelectedGoals((current) => current.includes("All goals") ? [] : GOALS)
+      return
+    }
+
+    setSelectedGoals((current) => {
+      const next = current.includes(goal)
+        ? current.filter((item) => item !== goal && item !== "All goals")
+        : [...current.filter((item) => item !== "All goals"), goal]
+      return next.length === GOALS.length - 1 ? GOALS : next
+    })
+  }
+
   const toggleLanguage = (code: string) => {
     setSelectedLanguages((current) => {
       if (code === "auto") {
@@ -271,7 +300,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         businessName: workspaceName,
         welcomeMessage,
         customInstructions: systemInstructions,
-        goals: selectedGoals,
+        goals: selectedGoals.includes("All goals") ? GOALS.filter((goal) => goal !== "All goals") : selectedGoals,
         supportedLanguages: selectedLanguages.includes("auto") ? ["auto"] : selectedLanguages.filter((code) => MANUAL_LANGUAGE_CODES.includes(code)),
         active: true,
       })
@@ -518,13 +547,24 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
             <div className="pt-5">
               <p className="text-lg font-semibold text-slate-900">Primary Roles</p>
-              <p className="mt-1 text-sm text-slate-500">Choose the role profile for this agent. Default is All.</p>
+              <p className="mt-1 text-sm text-slate-500">Choose goals that match your industry and company. Default is All goals.</p>
               <div className="mt-5">
                 <Field label="Role" helper="Default role for this agent profile">
                   <select value={role} onChange={(event) => setRole(event.target.value)} className={`${inputClassName} dashboard-select`}>
                     <option>All</option>
                   </select>
                 </Field>
+              </div>
+              <div className="mt-5 grid gap-3 md:grid-cols-1">
+                {GOALS.map((goal) => {
+                  const active = selectedGoals.includes(goal)
+                  return (
+                    <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
+                      <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
+                      {goal}
+                    </label>
+                  )
+                })}
               </div>
             </div>
           </section>
