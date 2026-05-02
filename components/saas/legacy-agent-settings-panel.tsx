@@ -337,35 +337,35 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   return (
     <div className="space-y-6">
-      <section className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
-        <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200"><Bot className="h-5 w-5" /></span>
-                <div>
-                  <p className="text-sm font-semibold text-cyan-200">AI Agent Builder</p>
-                  <p className="text-xs text-slate-400">Last saved settings sync to your website widget</p>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
+          <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200"><Bot className="h-5 w-5" /></span>
+                  <div>
+                    <p className="text-sm font-semibold text-cyan-200">AI Agent Builder</p>
+                    <p className="text-xs text-slate-400">Last saved settings sync to your website widget</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {["Conversation", "Models & Voice", "Actions", "Advanced"].map((tab, index) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={scrollToConfiguration}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
-                >
-                  {tab}
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-2">
+                {["Conversation", "Models & Voice", "Actions", "Advanced"].map((tab, index) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={scrollToConfiguration}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="p-6 lg:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="p-6 lg:p-8">
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
               <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
@@ -373,62 +373,65 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                 Configure the agent, choose a voice, and test it live from the preview panel. Everything stays focused on one page.
               </p>
             </div>
-
-            <aside className="w-full max-w-xl rounded-[24px] border border-cyan-300/20 bg-[linear-gradient(180deg,rgba(2,8,30,0.95),rgba(2,10,38,0.9))] p-5 text-white shadow-[0_18px_45px_rgba(2,8,30,0.45)] lg:max-w-sm">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget controls</p>
-                  <p className="mt-1 text-xs text-slate-300">Live launch settings</p>
-                </div>
-                <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${mandatoryComplete ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : "border-amber-300/30 bg-amber-300/10 text-amber-200"}`}>
-                  {mandatoryComplete ? "Ready" : "Incomplete"}
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
-                  <span>Widget enabled</span>
-                  <Switch
-                    checked={widgetControls.widgetEnabled}
-                    onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, widgetEnabled: checked }))}
-                    disabled={widgetLoading || saving}
-                  />
-                </label>
-                <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
-                  <span>Voice enabled</span>
-                  <Switch
-                    checked={widgetControls.voiceEnabled}
-                    onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, voiceEnabled: checked }))}
-                    disabled={widgetLoading || saving}
-                  />
-                </label>
-                <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
-                  <span>Text enabled</span>
-                  <Switch
-                    checked={widgetControls.textEnabled}
-                    onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, textEnabled: checked }))}
-                    disabled={widgetLoading || saving}
-                  />
-                </label>
-              </div>
-
-              <Button
-                className="mt-4 h-12 w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
-                onClick={handleSave}
-                disabled={saving || widgetLoading || !mandatoryComplete}
-              >
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Save configuration
-              </Button>
-
-              {!mandatoryComplete ? (
-                <p className="mt-3 text-xs text-amber-200">Complete mandatory sections: Instructions, Models &amp; Voice, Role (All), and Languages.</p>
-              ) : (
-                <p className="mt-3 text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
-              )}
-            </aside>
           </div>
         </div>
+
+        <aside className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
+          <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget controls</p>
+            <p className="mt-1 text-xs text-slate-300">Live launch settings</p>
+          </div>
+
+          <div className="bg-[linear-gradient(180deg,rgba(2,8,30,0.95),rgba(2,10,38,0.9))] p-5 text-white shadow-[0_18px_45px_rgba(2,8,30,0.45)]">
+            <div className="mb-4 flex items-center justify-end gap-3">
+              <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${mandatoryComplete ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : "border-amber-300/30 bg-amber-300/10 text-amber-200"}`}>
+                {mandatoryComplete ? "Ready" : "Incomplete"}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+                <span>Widget enabled</span>
+                <Switch
+                  checked={widgetControls.widgetEnabled}
+                  onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, widgetEnabled: checked }))}
+                  disabled={widgetLoading || saving}
+                />
+              </label>
+              <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+                <span>Voice enabled</span>
+                <Switch
+                  checked={widgetControls.voiceEnabled}
+                  onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, voiceEnabled: checked }))}
+                  disabled={widgetLoading || saving}
+                />
+              </label>
+              <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+                <span>Text enabled</span>
+                <Switch
+                  checked={widgetControls.textEnabled}
+                  onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, textEnabled: checked }))}
+                  disabled={widgetLoading || saving}
+                />
+              </label>
+            </div>
+
+            <Button
+              className="mt-4 h-12 w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+              onClick={handleSave}
+              disabled={saving || widgetLoading || !mandatoryComplete}
+            >
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Save configuration
+            </Button>
+
+            {!mandatoryComplete ? (
+              <p className="mt-3 text-xs text-amber-200">Complete mandatory sections: Instructions, Models &amp; Voice, Role (All), and Languages.</p>
+            ) : (
+              <p className="mt-3 text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
+            )}
+          </div>
+        </aside>
       </section>
 
       {(message || error) ? (
