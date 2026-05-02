@@ -6,8 +6,10 @@ import { CheckCircle2, Copy, Loader2, RefreshCw, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { fetchAgentConfig } from "@/lib/saas/agentConfigService"
+import { buildLiveWidgetSitePreviewUrl, resolvePrimaryKnowledgeSiteUrl } from "@/lib/saas/liveWidgetSitePreview"
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
-import type { WidgetSettingsRecord } from "@/lib/saas/types"
+import type { KnowledgeSourceRecord, WidgetSettingsRecord } from "@/lib/saas/types"
 
 const sectionClassName = "rounded-[1.75rem] border border-slate-200 bg-white/80 p-5 shadow-[0_10px_25px_rgba(148,163,184,0.08)]"
 const inputClassName = "mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
@@ -49,7 +51,19 @@ function formatLastSeen(value: string | null) {
   return `Installed · Last seen ${date.toLocaleString()}`
 }
 
-export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {}) {
+type WidgetInstallCardProps = {
+  compact?: boolean
+  tenantId?: string | null
+  websiteDomain?: string | null
+  initialKnowledgeSources?: KnowledgeSourceRecord[]
+}
+
+export function WidgetInstallCard({
+  compact = false,
+  tenantId,
+  websiteDomain,
+  initialKnowledgeSources = [],
+}: WidgetInstallCardProps) {
   const [settings, setSettings] = useState<WidgetSettingsRecord | null>(null)
   const [form, setForm] = useState<WidgetFormState | null>(null)
   const [loading, setLoading] = useState(true)
@@ -59,6 +73,28 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState<"test" | "install">("test")
+  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSourceRecord[]>(initialKnowledgeSources)
+
+  useEffect(() => {
+    setKnowledgeSources(initialKnowledgeSources)
+  }, [initialKnowledgeSources])
+
+  useEffect(() => {
+    if (!tenantId) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const latest = await fetchAgentConfig()
+        if (cancelled || !latest?.knowledgeSources) return
+        setKnowledgeSources(latest.knowledgeSources)
+      } catch {
+        return
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [tenantId])
 
   useEffect(() => {
     let cancelled = false
@@ -104,8 +140,23 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
     if (settings.widgetPrimaryColor) {
       params.set("color", settings.widgetPrimaryColor)
     }
-    return `/widget/${encodeURIComponent(settings.publicWidgetId)}?${params.toString()}`
-  }, [settings?.publicWidgetId, settings?.widgetPrimaryColor])
+    const widgetPath = `/widget/${encodeURIComponent(settings.publicWidgetId)}?${params.toString()}`
+    if (!tenantId) {
+      return widgetPath
+    }
+    const siteUrl = resolvePrimaryKnowledgeSiteUrl({
+      knowledgeSources,
+      tenantId,
+      websiteDomain: websiteDomain ?? null,
+    })
+    if (siteUrl) {
+      const onSite = buildLiveWidgetSitePreviewUrl({ siteUrl, widgetPath })
+      if (onSite) {
+        return onSite
+      }
+    }
+    return widgetPath
+  }, [settings?.publicWidgetId, settings?.widgetPrimaryColor, tenantId, knowledgeSources, websiteDomain])
 
   const updateField = <K extends keyof WidgetFormState>(key: K, value: WidgetFormState[K]) => {
     setForm((current) => current ? { ...current, [key]: value } : current)

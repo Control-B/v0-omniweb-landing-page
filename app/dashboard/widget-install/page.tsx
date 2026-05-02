@@ -2,9 +2,11 @@ import { ExternalLink } from "lucide-react"
 import { WidgetInstallCard } from "@/components/saas/widget-install-card"
 import { DashboardCard } from "@/components/saas/dashboard-card"
 import { requireDashboardAccess } from "@/lib/saas/guards"
+import { getDashboardSnapshot } from "@/lib/saas/status"
 
 export default async function DashboardWidgetInstallPage() {
   await requireDashboardAccess()
+  const snapshot = await getDashboardSnapshot()
 
   return (
     <div className="space-y-6">
@@ -34,7 +36,11 @@ export default async function DashboardWidgetInstallPage() {
         </div>
       </DashboardCard>
 
-      <WidgetInstallCard />
+      <WidgetInstallCard
+        tenantId={snapshot.agentConfig?.tenantId ?? null}
+        websiteDomain={snapshot.status.websiteDomain}
+        initialKnowledgeSources={snapshot.agentConfig?.knowledgeSources ?? []}
+      />
     </div>
   )
 }

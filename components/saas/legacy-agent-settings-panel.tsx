@@ -7,11 +7,10 @@ import { fetchAgentConfig, saveAgentConfig } from "@/lib/saas/agentConfigService
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
 import { Switch } from "@/components/ui/switch"
+import { buildLiveWidgetSitePreviewUrl, resolvePrimaryKnowledgeSiteUrl } from "@/lib/saas/liveWidgetSitePreview"
 import {
   knowledgeSourcesStorageKey,
-  primaryKnowledgePageUrlFromSources,
   readPrimaryKnowledgeOriginFromLocalStorage,
-  readPrimaryKnowledgePageUrlFromLocalStorage,
 } from "@/lib/saas/widgetEmbed"
 
 const GOALS = [
@@ -238,8 +237,26 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     if (widgetStatus.widgetPrimaryColor) {
       params.set("color", widgetStatus.widgetPrimaryColor)
     }
-    return `/widget/${encodeURIComponent(widgetStatus.publicWidgetId)}?${params.toString()}`
-  }, [widgetStatus.publicWidgetId, widgetStatus.widgetPrimaryColor])
+    const widgetPath = `/widget/${encodeURIComponent(widgetStatus.publicWidgetId)}?${params.toString()}`
+    const siteUrl = resolvePrimaryKnowledgeSiteUrl({
+      knowledgeSources: accountKnowledgeSources,
+      tenantId: initialConfig.tenantId,
+      websiteDomain,
+    })
+    if (siteUrl) {
+      const onSite = buildLiveWidgetSitePreviewUrl({ siteUrl, widgetPath })
+      if (onSite) {
+        return onSite
+      }
+    }
+    return widgetPath
+  }, [
+    widgetStatus.publicWidgetId,
+    widgetStatus.widgetPrimaryColor,
+    accountKnowledgeSources,
+    initialConfig.tenantId,
+    websiteDomain,
+  ])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -264,18 +281,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   }, [initialConfig.tenantId])
 
   const knowledgePreview = useMemo(() => {
-    const accountKnowledgePageUrl = primaryKnowledgePageUrlFromSources(accountKnowledgeSources)
-    if (accountKnowledgePageUrl) {
-      return accountKnowledgePageUrl
-    }
-    if (typeof window !== "undefined") {
-      const pageUrl = readPrimaryKnowledgePageUrlFromLocalStorage(initialConfig.tenantId)
-      if (pageUrl) {
-        return pageUrl
-      }
-    }
-    if (websiteDomain) {
-      return websiteDomain.startsWith("http") ? websiteDomain : `https://${websiteDomain}`
+    const resolved = resolvePrimaryKnowledgeSiteUrl({
+      knowledgeSources: accountKnowledgeSources,
+      tenantId: initialConfig.tenantId,
+      websiteDomain,
+    })
+    if (resolved) {
+      return resolved
     }
     return "No indexed sources yet"
   }, [accountKnowledgeSources, websiteDomain, initialConfig.tenantId, lsKnowledgeOrigin])
