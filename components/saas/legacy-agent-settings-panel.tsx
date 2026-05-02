@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Bot, CheckCircle2, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
+import { Bot, CheckCircle2, Loader2, Mic2, Pause, Play, RefreshCw, ShieldAlert, Trash2, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchAgentConfig, saveAgentConfig } from "@/lib/saas/agentConfigService"
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
@@ -85,6 +85,14 @@ type WidgetControlState = {
   voiceEnabled: boolean
 }
 
+type WidgetStatusState = {
+  publicWidgetId: string
+  widgetInstalled: boolean
+  widgetLastSeenAt: string | null
+  widgetPrimaryColor: string
+  previewDomain: string | null
+}
+
 function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
   if (initialConfig.supportedLanguages?.length) {
     if (initialConfig.supportedLanguages.length === 1 && initialConfig.supportedLanguages[0] === "en") {
@@ -134,6 +142,14 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     textEnabled: true,
     voiceEnabled: true,
   })
+  const [widgetStatus, setWidgetStatus] = useState<WidgetStatusState>({
+    publicWidgetId: "",
+    widgetInstalled: false,
+    widgetLastSeenAt: null,
+    widgetPrimaryColor: "#22d3ee",
+    previewDomain: websiteDomain,
+  })
+  const [widgetChecking, setWidgetChecking] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [lsKnowledgeOrigin, setLsKnowledgeOrigin] = useState<string | null>(() =>
@@ -178,6 +194,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           textEnabled: settings.textEnabled,
           voiceEnabled: settings.voiceEnabled,
         })
+        setWidgetStatus({
+          publicWidgetId: settings.publicWidgetId,
+          widgetInstalled: settings.widgetInstalled,
+          widgetLastSeenAt: settings.widgetLastSeenAt,
+          widgetPrimaryColor: settings.widgetPrimaryColor,
+          previewDomain: settings.allowedDomains[0] || websiteDomain,
+        })
       } catch {
         if (!cancelled) {
           setWidgetControls((current) => ({
@@ -199,6 +222,21 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       cancelled = true
     }
   }, [])
+
+  const previewUrl = useMemo(() => {
+    const domain = widgetStatus.previewDomain || websiteDomain
+    if (!domain) return null
+    return domain.startsWith("http") ? domain : `https://${domain}`
+  }, [widgetStatus.previewDomain, websiteDomain])
+
+  const liveWidgetPreviewUrl = useMemo(() => {
+    if (!widgetStatus.publicWidgetId) return null
+    const params = new URLSearchParams({ open: "1" })
+    if (widgetStatus.widgetPrimaryColor) {
+      params.set("color", widgetStatus.widgetPrimaryColor)
+    }
+    return `/widget/${encodeURIComponent(widgetStatus.publicWidgetId)}?${params.toString()}`
+  }, [widgetStatus.publicWidgetId, widgetStatus.widgetPrimaryColor])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -311,6 +349,14 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         widgetWelcomeMessage: welcomeMessage,
         allowedDomains: websiteDomain ? [websiteDomain] : undefined,
       })
+      const latestWidgetStatus = await fetchWidgetSettings()
+      setWidgetStatus({
+        publicWidgetId: latestWidgetStatus.publicWidgetId,
+        widgetInstalled: latestWidgetStatus.widgetInstalled,
+        widgetLastSeenAt: latestWidgetStatus.widgetLastSeenAt,
+        widgetPrimaryColor: latestWidgetStatus.widgetPrimaryColor,
+        previewDomain: latestWidgetStatus.allowedDomains[0] || websiteDomain,
+      })
       setAgentName(nextConfig.agentName || "Omniweb AI")
       setWorkspaceName(nextConfig.businessName || businessName || "")
       setWelcomeMessage(nextConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
@@ -323,6 +369,32 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       setError(saveError instanceof Error ? saveError.message : "Could not save configuration.")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleVerifyInstall = async () => {
+    try {
+      setWidgetChecking(true)
+      setError("")
+      const latest = await fetchWidgetSettings()
+      setWidgetControls({
+        widgetEnabled: latest.widgetEnabled,
+        textEnabled: latest.textEnabled,
+        voiceEnabled: latest.voiceEnabled,
+      })
+      setWidgetStatus({
+        publicWidgetId: latest.publicWidgetId,
+        widgetInstalled: latest.widgetInstalled,
+        widgetLastSeenAt: latest.widgetLastSeenAt,
+        widgetPrimaryColor: latest.widgetPrimaryColor,
+        previewDomain: latest.allowedDomains[0] || websiteDomain,
+      })
+      setMessage(latest.widgetInstalled ? "Install verified from the latest widget activity." : "No install ping detected yet.")
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Unable to verify install status.")
+      setMessage("")
+    } finally {
+      setWidgetChecking(false)
     }
   }
 
@@ -435,6 +507,12 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             mandatoryComplete={mandatoryComplete}
             onSave={handleSave}
             saving={saving}
+            widgetChecking={widgetChecking}
+            widgetInstalled={widgetStatus.widgetInstalled}
+            widgetLastSeenAt={widgetStatus.widgetLastSeenAt}
+            previewUrl={previewUrl}
+            liveWidgetPreviewUrl={liveWidgetPreviewUrl}
+            onVerifyInstall={handleVerifyInstall}
           />
         </div>
       </section>
@@ -737,6 +815,12 @@ function LivePreviewPanel({
   mandatoryComplete,
   onSave,
   saving,
+  widgetChecking,
+  widgetInstalled,
+  widgetLastSeenAt,
+  previewUrl,
+  liveWidgetPreviewUrl,
+  onVerifyInstall,
 }: {
   agentName: string
   businessName: string
@@ -749,6 +833,12 @@ function LivePreviewPanel({
   mandatoryComplete: boolean
   onSave: () => void
   saving: boolean
+  widgetChecking: boolean
+  widgetInstalled: boolean
+  widgetLastSeenAt: string | null
+  previewUrl: string | null
+  liveWidgetPreviewUrl: string | null
+  onVerifyInstall: () => void
 }) {
   return (
     <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
@@ -825,6 +915,43 @@ function LivePreviewPanel({
           )}
 
           <p className="mt-1 text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
+
+          <div className="mt-2 rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget test</p>
+              <span className={`rounded-full border border-current/10 px-2.5 py-1 text-[11px] font-semibold ${widgetInstalled ? "text-emerald-300" : "text-amber-300"}`}>
+                {widgetInstalled ? "Installed" : "Not installed"}
+              </span>
+            </div>
+            <h4 className="mt-3 text-lg font-semibold text-white">Verify the installed website widget</h4>
+            <p className="mt-2 text-xs leading-6 text-slate-300">
+              After the script is installed on your site, open the live site, launch the widget, and send a test message.
+            </p>
+            <p className="mt-2 text-[11px] text-slate-400">
+              Last seen: {widgetLastSeenAt ? new Date(widgetLastSeenAt).toLocaleString() : "Never"}
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                className="justify-center rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                onClick={onVerifyInstall}
+                disabled={widgetChecking || widgetLoading || saving}
+              >
+                {widgetChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                Verify install
+              </Button>
+              {previewUrl ? (
+                <Button type="button" variant="outline" className="justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                  <a href={previewUrl} target="_blank" rel="noreferrer">Open website</a>
+                </Button>
+              ) : null}
+            </div>
+            {liveWidgetPreviewUrl ? (
+              <Button type="button" variant="outline" className="mt-3 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">One-click live widget preview</a>
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
     </aside>

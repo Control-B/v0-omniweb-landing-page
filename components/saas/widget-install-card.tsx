@@ -346,30 +346,6 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
         <div className="space-y-5">
           {activeTab === "test" ? (
             <>
-              <div className="rounded-3xl border border-slate-200 bg-slate-950 p-5 text-white">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget test</p>
-                <h4 className="mt-3 text-xl font-semibold">Verify the installed website widget</h4>
-                <p className="mt-2 text-sm leading-6 text-slate-300">
-                  After the script is installed on your site, open the live site, launch the widget, and send a test message. Then come back here and verify the latest widget activity.
-                </p>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <Button type="button" className="justify-center rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300" onClick={reloadStatus} disabled={checking}>
-                    {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                    Verify install
-                  </Button>
-                  {previewUrl ? (
-                    <Button type="button" variant="outline" className="justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
-                      <a href={previewUrl} target="_blank" rel="noreferrer">Open website</a>
-                    </Button>
-                  ) : null}
-                </div>
-                {liveWidgetPreviewUrl ? (
-                  <Button type="button" variant="outline" className="mt-3 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
-                    <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">One-click live widget preview</a>
-                  </Button>
-                ) : null}
-              </div>
-
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-4">
