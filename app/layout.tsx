@@ -89,10 +89,10 @@ export default function RootLayout({
         />
         <Script
           id="omniweb-widget"
-          src="https://omniweb.ai/widget.js"
+          src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
           strategy="afterInteractive"
           async
-          data-tenant-id="24c78778-c185-4b6a-a255-02d5ed44004a"
+          data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
         />
         {GTM_ID ? (
           <Script
