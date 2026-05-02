@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
+import { getEngineToken } from "@/lib/auth/engine"
+import { fetchEngineWidgetSettings } from "@/lib/saas/server/engineWidgetSnippet"
 import { ensureDefaultAgentConfig, getTenantByClerkUserId } from "@/lib/saas/store"
 import { buildWidgetEmbedScriptTag, resolveWidgetScriptOrigin } from "@/lib/saas/widgetEmbed"
 import type { WidgetSettingsRecord } from "@/lib/saas/types"
@@ -13,6 +15,19 @@ export async function GET() {
   const tenant = await getTenantByClerkUserId(userId)
   if (!tenant) {
     return NextResponse.json({ success: false, error: { message: "Workspace not found" } }, { status: 404 })
+  }
+
+  const engineToken = await getEngineToken()
+  if (engineToken) {
+    const fromEngine = await fetchEngineWidgetSettings(engineToken)
+    if (fromEngine) {
+      const config = await ensureDefaultAgentConfig(tenant.id)
+      const textEnabled = Boolean((config.enabledChannels ?? ["website_chat"]).includes("website_chat"))
+      return NextResponse.json({
+        success: true,
+        data: { ...fromEngine, textEnabled },
+      })
+    }
   }
 
   const config = await ensureDefaultAgentConfig(tenant.id)

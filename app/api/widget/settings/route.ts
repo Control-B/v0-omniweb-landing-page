@@ -1,5 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { NextRequest, NextResponse } from "next/server"
+import { getEngineToken } from "@/lib/auth/engine"
+import { fetchEngineWidgetSettings, patchEngineWidgetSettings } from "@/lib/saas/server/engineWidgetSnippet"
 import { ensureDefaultAgentConfig, getTenantByClerkUserId, updateAgentConfig } from "@/lib/saas/store"
 import { buildWidgetEmbedScriptTag, resolveWidgetScriptOrigin } from "@/lib/saas/widgetEmbed"
 import type { WidgetSettingsRecord, WidgetSettingsUpdatePayload } from "@/lib/saas/types"
@@ -20,6 +22,17 @@ export async function PATCH(request: NextRequest) {
   }
 
   const payload = (await request.json().catch(() => ({}))) as WidgetSettingsUpdatePayload
+
+  const engineBody: Record<string, unknown> = {}
+  if (payload.widgetEnabled !== undefined) engineBody.widgetEnabled = payload.widgetEnabled
+  if (payload.allowedDomains !== undefined) engineBody.allowedDomains = payload.allowedDomains
+  if (payload.widgetPrimaryColor !== undefined) engineBody.widgetPrimaryColor = payload.widgetPrimaryColor
+  if (payload.widgetPosition !== undefined) engineBody.widgetPosition = payload.widgetPosition
+  if (payload.widgetWelcomeMessage !== undefined) engineBody.widgetWelcomeMessage = payload.widgetWelcomeMessage
+  if (payload.voiceEnabled !== undefined) engineBody.voiceEnabled = payload.voiceEnabled
+
+  const engineToken = await getEngineToken()
+
   const existing = await ensureDefaultAgentConfig(tenant.id)
   const existingWidgetSettings = existing.widgetSettings ?? {}
   const allowedDomains = payload.allowedDomains === undefined ? existingWidgetSettings.allowedDomains ?? [] : normalizeDomains(payload.allowedDomains)
@@ -63,7 +76,7 @@ export async function PATCH(request: NextRequest) {
   const domain = websiteDomain?.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "")
   const savedWidgetSettings = config.widgetSettings ?? {}
 
-  const data: WidgetSettingsRecord = {
+  let data: WidgetSettingsRecord = {
     publicWidgetId: tenant.id,
     embedCode,
     scriptUrl,
@@ -78,6 +91,41 @@ export async function PATCH(request: NextRequest) {
     voiceEnabled: Boolean((config.enabledChannels ?? ["website_chat", "ai_voice_call"]).includes("ai_voice_call")),
     businessName: config.businessName || tenant.businessName || "Omniweb",
     agentMode: config.agentMode || "general_lead_gen",
+  }
+
+  if (engineToken && Object.keys(engineBody).length > 0) {
+    const fromEngine = await patchEngineWidgetSettings(engineToken, engineBody)
+    if (fromEngine) {
+      data = {
+        ...data,
+        publicWidgetId: fromEngine.publicWidgetId,
+        embedCode: fromEngine.embedCode,
+        scriptUrl: fromEngine.scriptUrl,
+        widgetInstalled: fromEngine.widgetInstalled,
+        widgetLastSeenAt: fromEngine.widgetLastSeenAt,
+        widgetPrimaryColor: fromEngine.widgetPrimaryColor,
+        widgetPosition: fromEngine.widgetPosition,
+        widgetWelcomeMessage: fromEngine.widgetWelcomeMessage,
+        allowedDomains: fromEngine.allowedDomains.length ? fromEngine.allowedDomains : data.allowedDomains,
+        voiceEnabled: fromEngine.voiceEnabled,
+        businessName: fromEngine.businessName,
+        agentMode: fromEngine.agentMode,
+        widgetEnabled: fromEngine.widgetEnabled,
+        textEnabled: data.textEnabled,
+      }
+    } else {
+      const fallbackSnippet = await fetchEngineWidgetSettings(engineToken)
+      if (fallbackSnippet) {
+        data = {
+          ...data,
+          publicWidgetId: fallbackSnippet.publicWidgetId,
+          embedCode: fallbackSnippet.embedCode,
+          scriptUrl: fallbackSnippet.scriptUrl,
+          widgetInstalled: fallbackSnippet.widgetInstalled,
+          widgetLastSeenAt: fallbackSnippet.widgetLastSeenAt,
+        }
+      }
+    }
   }
 
   return NextResponse.json({ success: true, data })

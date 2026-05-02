@@ -357,21 +357,20 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         supportedLanguages: selectedLanguages.includes("auto") ? ["auto"] : selectedLanguages.filter((code) => MANUAL_LANGUAGE_CODES.includes(code)),
         active: true,
       })
-      await saveWidgetSettings({
+      const widgetAfterSave = await saveWidgetSettings({
         widgetEnabled: widgetControls.widgetEnabled,
         textEnabled: widgetControls.textEnabled,
         voiceEnabled: widgetControls.voiceEnabled,
         widgetWelcomeMessage: welcomeMessage,
         allowedDomains: websiteDomain ? [websiteDomain] : undefined,
       })
-      const latestWidgetStatus = await fetchWidgetSettings()
       setWidgetStatus({
-        publicWidgetId: latestWidgetStatus.publicWidgetId,
-        widgetInstalled: latestWidgetStatus.widgetInstalled,
-        widgetLastSeenAt: latestWidgetStatus.widgetLastSeenAt,
-        widgetPrimaryColor: latestWidgetStatus.widgetPrimaryColor,
-        previewDomain: latestWidgetStatus.allowedDomains[0] || websiteDomain,
-        embedCode: latestWidgetStatus.embedCode,
+        publicWidgetId: widgetAfterSave.publicWidgetId,
+        widgetInstalled: widgetAfterSave.widgetInstalled,
+        widgetLastSeenAt: widgetAfterSave.widgetLastSeenAt,
+        widgetPrimaryColor: widgetAfterSave.widgetPrimaryColor,
+        previewDomain: widgetAfterSave.allowedDomains[0] || websiteDomain,
+        embedCode: widgetAfterSave.embedCode,
       })
       setAgentName(nextConfig.agentName || "Omniweb AI")
       setWorkspaceName(nextConfig.businessName || businessName || "")
