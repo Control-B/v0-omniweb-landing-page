@@ -1,0 +1,3 @@
+[submodule "backend/Omniweb-AI-Engine"]
+	path = backend/Omniweb-AI-Engine
+	url = https://github.com/Control-B/Omniweb-AI-Engine.git
