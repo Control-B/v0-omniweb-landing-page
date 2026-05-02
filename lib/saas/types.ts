@@ -215,6 +215,7 @@ export type WidgetSettingsRecord = {
   scriptUrl: string
   allowedDomains: string[]
   widgetEnabled: boolean
+  textEnabled: boolean
   widgetInstalled: boolean
   widgetLastSeenAt: string | null
   widgetPrimaryColor: string
@@ -227,6 +228,7 @@ export type WidgetSettingsRecord = {
 
 export type WidgetSettingsUpdatePayload = Partial<{
   widgetEnabled: boolean
+  textEnabled: boolean
   allowedDomains: string[]
   widgetPrimaryColor: string
   widgetPosition: "bottom-right" | "bottom-left"

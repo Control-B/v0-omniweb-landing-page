@@ -87,6 +87,13 @@ export default function RootLayout({
           as="video"
           type="video/mp4"
         />
+        <Script
+          id="omniweb-widget"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var s=document.createElement('script');s.src='https://omniweb.ai/widget.js';s.async=true;s.dataset.tenantId='24c78778-c185-4b6a-a255-02d5ed44004a';document.head.appendChild(s);})();`,
+          }}
+        />
         {GTM_ID ? (
           <Script
             id="google-tag-manager"

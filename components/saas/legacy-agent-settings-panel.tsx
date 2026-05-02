@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Bot, CheckCircle2, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { WidgetInstallCard } from "@/components/saas/widget-install-card"
 import { fetchAgentConfig, saveAgentConfig } from "@/lib/saas/agentConfigService"
+import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
+import { Switch } from "@/components/ui/switch"
 import {
   knowledgeSourcesStorageKey,
   primaryKnowledgePageUrlFromSources,
@@ -70,12 +71,24 @@ const VOICE_OPTIONS = [
   },
 ] as const
 
+const MODEL_OPTIONS = [
+  "GPT-5.3 Mini",
+  "GPT-5.3 Standard",
+  "GPT-5.3 High Accuracy",
+]
+
 type VoiceVariant = (typeof VOICE_OPTIONS)[number]["id"] | "clone"
 
 type LegacyAgentSettingsPanelProps = {
   initialConfig: AgentConfigRecord
   websiteDomain: string | null
   businessName: string | null
+}
+
+type WidgetControlState = {
+  widgetEnabled: boolean
+  textEnabled: boolean
+  voiceEnabled: boolean
 }
 
 function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
@@ -97,8 +110,10 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [welcomeMessage, setWelcomeMessage] = useState(initialConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
   const [systemInstructions, setSystemInstructions] = useState(initialConfig.customInstructions || "Talk about what is on the website, answer common questions, and guide high-intent visitors toward the next best step.")
   const [responseLength, setResponseLength] = useState("Moderate – balanced detail")
+  const [role, setRole] = useState("All")
   const [selectedGoals, setSelectedGoals] = useState<string[]>(initialConfig.goals?.length ? initialConfig.goals : ["Product Recommendations", "Customer Support & FAQs", "Cart Management & Reminders", "Lead Capture"])
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(getInitialSelectedLanguages(initialConfig))
+  const [selectedModel, setSelectedModel] = useState(MODEL_OPTIONS[0])
   const [voiceVariant, setVoiceVariant] = useState<VoiceVariant>("female")
   const [voiceCloneEnabled, setVoiceCloneEnabled] = useState(false)
   const [voiceCloneName, setVoiceCloneName] = useState("")
@@ -106,6 +121,12 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [voiceCloneAudioUrl, setVoiceCloneAudioUrl] = useState("")
   const [accountKnowledgeSources, setAccountKnowledgeSources] = useState(initialConfig.knowledgeSources ?? [])
   const [saving, setSaving] = useState(false)
+  const [widgetLoading, setWidgetLoading] = useState(true)
+  const [widgetControls, setWidgetControls] = useState<WidgetControlState>({
+    widgetEnabled: true,
+    textEnabled: true,
+    voiceEnabled: true,
+  })
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [lsKnowledgeOrigin, setLsKnowledgeOrigin] = useState<string | null>(() =>
@@ -136,6 +157,41 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       cancelled = true
     }
   }, [businessName, initialConfig.tenantId])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadWidgetSettings() {
+      try {
+        setWidgetLoading(true)
+        const settings = await fetchWidgetSettings()
+        if (cancelled) return
+        setWidgetControls({
+          widgetEnabled: settings.widgetEnabled,
+          textEnabled: settings.textEnabled,
+          voiceEnabled: settings.voiceEnabled,
+        })
+      } catch {
+        if (!cancelled) {
+          setWidgetControls((current) => ({
+            widgetEnabled: current.widgetEnabled,
+            textEnabled: current.textEnabled,
+            voiceEnabled: true,
+          }))
+        }
+      } finally {
+        if (!cancelled) {
+          setWidgetLoading(false)
+        }
+      }
+    }
+
+    void loadWidgetSettings()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -181,6 +237,11 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const voiceLabel = voiceVariant === "clone"
     ? (voiceCloneName ? `Clone: ${voiceCloneName}` : "Cloned voice")
     : selectedVoice.label
+  const instructionsComplete = systemInstructions.trim().length > 0
+  const modelAndVoiceComplete = Boolean(selectedModel && voiceVariant)
+  const roleComplete = role.trim().toLowerCase() === "all"
+  const languagesComplete = selectedLanguages.length > 0
+  const mandatoryComplete = instructionsComplete && modelAndVoiceComplete && roleComplete && languagesComplete
 
   const scrollToConfiguration = () => {
     window.setTimeout(() => {
@@ -217,6 +278,12 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   }
 
   const handleSave = async () => {
+    if (!mandatoryComplete) {
+      setError("Complete all mandatory sections (Instructions, Models & Voice, Role = All, Languages) before saving.")
+      setMessage("")
+      return
+    }
+
     try {
       setSaving(true)
       setError("")
@@ -230,6 +297,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         supportedLanguages: selectedLanguages.includes("auto") ? ["auto"] : selectedLanguages.filter((code) => MANUAL_LANGUAGE_CODES.includes(code)),
         active: true,
       })
+      await saveWidgetSettings({
+        widgetEnabled: widgetControls.widgetEnabled,
+        textEnabled: widgetControls.textEnabled,
+        voiceEnabled: widgetControls.voiceEnabled,
+        widgetWelcomeMessage: welcomeMessage,
+        allowedDomains: websiteDomain ? [websiteDomain] : undefined,
+      })
       setAgentName(nextConfig.agentName || "Omniweb AI")
       setWorkspaceName(nextConfig.businessName || businessName || "")
       setWelcomeMessage(nextConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
@@ -237,9 +311,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
       setSelectedGoals(nextConfig.goals?.length ? nextConfig.goals : selectedGoals)
       setSelectedLanguages(getInitialSelectedLanguages(nextConfig))
       setAccountKnowledgeSources(nextConfig.knowledgeSources ?? [])
-      setMessage("AI agent saved and synced.")
+      setMessage("Configuration saved and widget synced.")
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Could not save AI agent settings.")
+      setError(saveError instanceof Error ? saveError.message : "Could not save configuration.")
     } finally {
       setSaving(false)
     }
@@ -286,23 +360,73 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                   {tab}
                 </button>
               ))}
-              <Button className="dashboard-primary-button rounded-full px-5 text-white" onClick={handleSave} disabled={saving}>
-                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Deploy agent
-              </Button>
             </div>
           </div>
         </div>
 
         <div className="p-6 lg:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
-            <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
-            <p className="dashboard-body mt-3">
-              Configure the agent, choose a voice, and test it live from the preview panel. Everything stays focused on one page.
-            </p>
-          </div>
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
+              <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
+              <p className="dashboard-body mt-3">
+                Configure the agent, choose a voice, and test it live from the preview panel. Everything stays focused on one page.
+              </p>
+            </div>
+
+            <aside className="w-full max-w-xl rounded-[24px] border border-cyan-300/20 bg-[linear-gradient(180deg,rgba(2,8,30,0.95),rgba(2,10,38,0.9))] p-5 text-white shadow-[0_18px_45px_rgba(2,8,30,0.45)] lg:max-w-sm">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget controls</p>
+                  <p className="mt-1 text-xs text-slate-300">Live launch settings</p>
+                </div>
+                <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${mandatoryComplete ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : "border-amber-300/30 bg-amber-300/10 text-amber-200"}`}>
+                  {mandatoryComplete ? "Ready" : "Incomplete"}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+                  <span>Widget enabled</span>
+                  <Switch
+                    checked={widgetControls.widgetEnabled}
+                    onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, widgetEnabled: checked }))}
+                    disabled={widgetLoading || saving}
+                  />
+                </label>
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+                  <span>Voice enabled</span>
+                  <Switch
+                    checked={widgetControls.voiceEnabled}
+                    onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, voiceEnabled: checked }))}
+                    disabled={widgetLoading || saving}
+                  />
+                </label>
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+                  <span>Text enabled</span>
+                  <Switch
+                    checked={widgetControls.textEnabled}
+                    onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, textEnabled: checked }))}
+                    disabled={widgetLoading || saving}
+                  />
+                </label>
+              </div>
+
+              <Button
+                className="mt-4 h-12 w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+                onClick={handleSave}
+                disabled={saving || widgetLoading || !mandatoryComplete}
+              >
+                {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Save configuration
+              </Button>
+
+              {!mandatoryComplete ? (
+                <p className="mt-3 text-xs text-amber-200">Complete mandatory sections: Instructions, Models &amp; Voice, Role (All), and Languages.</p>
+              ) : (
+                <p className="mt-3 text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
+              )}
+            </aside>
           </div>
         </div>
       </section>
@@ -349,6 +473,11 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                 <option>Detailed – high context</option>
               </select>
             </Field>
+            <Field label="Role" helper="Default role for this agent profile">
+              <select value={role} onChange={(event) => setRole(event.target.value)} className={`${inputClassName} dashboard-select`}>
+                <option>All</option>
+              </select>
+            </Field>
           </div>
         </div>
 
@@ -364,6 +493,14 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             </div>
 
             <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium text-slate-700">Model</label>
+                <select value={selectedModel} onChange={(event) => setSelectedModel(event.target.value)} className={`${inputClassName} dashboard-select`}>
+                  {MODEL_OPTIONS.map((model) => (
+                    <option key={model} value={model}>{model}</option>
+                  ))}
+                </select>
+              </div>
               {VOICE_OPTIONS.map((voice) => {
                 const active = voiceVariant === voice.id
                 return (
@@ -457,8 +594,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             knowledgePreview={knowledgePreview}
             voiceLabel={voiceLabel}
             voiceCloneEnabled={voiceCloneEnabled}
-            onSave={handleSave}
-            saving={saving}
           />
         </div>
       </section>
@@ -503,13 +638,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           </div>
         </div>
       </section>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <Button className="dashboard-primary-button rounded-xl text-white hover:opacity-95" onClick={handleSave} disabled={saving}>
-          {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save and test
-        </Button>
-      </div>
 
       <section className="overflow-hidden rounded-[24px] border border-amber-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="border-b border-amber-200 bg-amber-400/95 px-4 py-3 text-sm font-semibold text-amber-950"><ShieldAlert className="mr-2 inline h-4 w-4" />Payments &amp; commerce — acknowledgment</div>
@@ -655,16 +783,12 @@ function LivePreviewPanel({
   knowledgePreview,
   voiceLabel,
   voiceCloneEnabled,
-  onSave,
-  saving,
 }: {
   agentName: string
   businessName: string
   knowledgePreview: string
   voiceLabel: string
   voiceCloneEnabled: boolean
-  onSave: () => void
-  saving: boolean
 }) {
   return (
     <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
@@ -693,14 +817,8 @@ function LivePreviewPanel({
         </div>
 
         <div className="mt-7 flex w-full flex-col gap-3">
-          <Button type="button" className="dashboard-primary-button h-12 rounded-2xl text-white" onClick={onSave} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            Save agent configuration
-          </Button>
           <p className="text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
         </div>
-
-        <WidgetInstallCard compact />
       </div>
     </aside>
   )

@@ -94,7 +94,7 @@ function normalizeKnowledgeSources(value: unknown): KnowledgeSourceRecord[] {
       id: String(item.id ?? randomUUID()),
       url: String(item.url ?? ""),
       details: String(item.details ?? ""),
-      status: item.status === "ready" ? "ready" : "indexing",
+      status: item.status === "ready" ? ("ready" as const) : ("indexing" as const),
       addedAt: item.addedAt ? new Date(String(item.addedAt)).toISOString() : new Date().toISOString(),
     }))
     .filter((item) => item.url.trim().length > 0)
@@ -488,6 +488,8 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
     }
 
     const db = getSaasDbPool()
+    const tenant = await getTenantById(tenantId)
+    const defaultAllowedDomains = tenant?.websiteDomain ? [tenant.websiteDomain] : []
     const result = await db.query(
       `
         insert into public.omniweb_agent_configs (
@@ -497,8 +499,10 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
           tone,
           goals,
           supported_languages,
-          active
-        ) values ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7)
+          active,
+          enabled_channels,
+          widget_settings
+        ) values ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8::jsonb, $9::jsonb)
         on conflict (tenant_id) do update set updated_at = now()
         returning *
       `,
@@ -510,6 +514,11 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
         JSON.stringify(DEFAULT_GOALS),
         JSON.stringify(DEFAULT_SUPPORTED_LANGUAGES),
         true,
+        JSON.stringify(["website_chat", "ai_voice_call"]),
+        JSON.stringify({
+          ...DEFAULT_WIDGET_SETTINGS,
+          allowedDomains: defaultAllowedDomains,
+        }),
       ],
     )
 
@@ -524,6 +533,8 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
   }
 
   const now = new Date().toISOString()
+  const tenant = store.tenants.find((record) => record.id === tenantId)
+  const defaultAllowedDomains = tenant?.websiteDomain ? [tenant.websiteDomain] : []
   const next: AgentConfigRecord = {
     tenantId,
     agentName: "Omniweb AI",
@@ -531,6 +542,11 @@ export async function ensureDefaultAgentConfig(tenantId: string) {
     tone: "professional",
     goals: DEFAULT_GOALS,
     supportedLanguages: DEFAULT_SUPPORTED_LANGUAGES,
+    enabledChannels: ["website_chat", "ai_voice_call"],
+    widgetSettings: {
+      ...DEFAULT_WIDGET_SETTINGS,
+      allowedDomains: defaultAllowedDomains,
+    },
     active: true,
     createdAt: now,
     updatedAt: now,

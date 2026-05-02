@@ -23,14 +23,28 @@ export async function PATCH(request: NextRequest) {
   const existing = await ensureDefaultAgentConfig(tenant.id)
   const existingWidgetSettings = existing.widgetSettings ?? {}
   const allowedDomains = payload.allowedDomains === undefined ? existingWidgetSettings.allowedDomains ?? [] : normalizeDomains(payload.allowedDomains)
+  const nextChannels = new Set(existing.enabledChannels ?? ["website_chat", "ai_voice_call"])
+
+  if (payload.voiceEnabled !== undefined) {
+    if (payload.voiceEnabled) {
+      nextChannels.add("ai_voice_call")
+    } else {
+      nextChannels.delete("ai_voice_call")
+    }
+  }
+
+  if (payload.textEnabled !== undefined) {
+    if (payload.textEnabled) {
+      nextChannels.add("website_chat")
+    } else {
+      nextChannels.delete("website_chat")
+    }
+  }
+
   const config = await updateAgentConfig(tenant.id, {
     active: payload.widgetEnabled ?? existing.active,
     welcomeMessage: payload.widgetWelcomeMessage ?? existing.welcomeMessage,
-    enabledChannels: payload.voiceEnabled === undefined
-      ? existing.enabledChannels
-      : payload.voiceEnabled
-        ? Array.from(new Set([...(existing.enabledChannels ?? ["website_chat"]), "ai_voice_call"]))
-        : (existing.enabledChannels ?? ["website_chat"]).filter((channel) => channel !== "ai_voice_call"),
+    enabledChannels: Array.from(nextChannels),
     widgetSettings: {
       ...existingWidgetSettings,
       allowedDomains,
@@ -55,12 +69,13 @@ export async function PATCH(request: NextRequest) {
     scriptUrl,
     allowedDomains: savedWidgetSettings.allowedDomains?.length ? savedWidgetSettings.allowedDomains : (domain ? [domain] : []),
     widgetEnabled: config.active,
+    textEnabled: Boolean((config.enabledChannels ?? ["website_chat"]).includes("website_chat")),
     widgetInstalled: false,
     widgetLastSeenAt: null,
     widgetPrimaryColor: savedWidgetSettings.widgetPrimaryColor || "#22d3ee",
     widgetPosition: savedWidgetSettings.widgetPosition || "bottom-right",
     widgetWelcomeMessage: config.welcomeMessage,
-    voiceEnabled: Boolean(config.enabledChannels?.includes("ai_voice_call")),
+    voiceEnabled: Boolean((config.enabledChannels ?? ["website_chat", "ai_voice_call"]).includes("ai_voice_call")),
     businessName: config.businessName || tenant.businessName || "Omniweb",
     agentMode: config.agentMode || "general_lead_gen",
   }

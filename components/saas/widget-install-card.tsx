@@ -15,6 +15,7 @@ const textareaClassName = "mt-2 min-h-28 w-full rounded-2xl border border-slate-
 
 type WidgetFormState = {
   widgetEnabled: boolean
+  textEnabled: boolean
   voiceEnabled: boolean
   widgetPosition: "bottom-right" | "bottom-left"
   widgetPrimaryColor: string
@@ -25,6 +26,7 @@ type WidgetFormState = {
 function toFormState(settings: WidgetSettingsRecord): WidgetFormState {
   return {
     widgetEnabled: settings.widgetEnabled,
+    textEnabled: settings.textEnabled,
     voiceEnabled: settings.voiceEnabled,
     widgetPosition: settings.widgetPosition,
     widgetPrimaryColor: settings.widgetPrimaryColor,
@@ -141,6 +143,7 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
       setError("")
       const next = await saveWidgetSettings({
         widgetEnabled: form.widgetEnabled,
+        textEnabled: form.textEnabled,
         voiceEnabled: form.voiceEnabled,
         widgetPosition: form.widgetPosition,
         widgetPrimaryColor: form.widgetPrimaryColor,
@@ -284,6 +287,10 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
           <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
             <span>Widget enabled</span>
             <Switch checked={form.widgetEnabled} onCheckedChange={(checked) => updateField("widgetEnabled", checked)} />
+          </label>
+          <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
+            <span>Text enabled</span>
+            <Switch checked={form.textEnabled} onCheckedChange={(checked) => updateField("textEnabled", checked)} />
           </label>
           <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
             <span>Voice enabled</span>
