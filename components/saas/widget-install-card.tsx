@@ -96,6 +96,15 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
     return domain.startsWith("http") ? domain : `https://${domain}`
   }, [settings?.allowedDomains])
 
+  const liveWidgetPreviewUrl = useMemo(() => {
+    if (!settings?.publicWidgetId) return null
+    const params = new URLSearchParams({ open: "1" })
+    if (settings.widgetPrimaryColor) {
+      params.set("color", settings.widgetPrimaryColor)
+    }
+    return `/widget/${encodeURIComponent(settings.publicWidgetId)}?${params.toString()}`
+  }, [settings?.publicWidgetId, settings?.widgetPrimaryColor])
+
   const updateField = <K extends keyof WidgetFormState>(key: K, value: WidgetFormState[K]) => {
     setForm((current) => current ? { ...current, [key]: value } : current)
     setMessage("")
@@ -252,6 +261,11 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
                 </Button>
               ) : null}
             </div>
+            {liveWidgetPreviewUrl ? (
+              <Button type="button" size="sm" variant="outline" className="w-full justify-center rounded-xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">Open live widget preview</a>
+              </Button>
+            ) : null}
           </div>
         ) : (
           <div className="mt-4">
@@ -342,6 +356,11 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
                     </Button>
                   ) : null}
                 </div>
+                {liveWidgetPreviewUrl ? (
+                  <Button type="button" variant="outline" className="mt-3 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                    <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">One-click live widget preview</a>
+                  </Button>
+                ) : null}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
