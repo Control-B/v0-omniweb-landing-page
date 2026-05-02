@@ -411,9 +411,9 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
-      <span className="text-slate-500">{label}</span>
-      <span className="max-w-[220px] text-right font-medium text-slate-100">{value}</span>
+    <div className="flex min-w-0 items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
+      <span className="shrink-0 text-slate-500">{label}</span>
+      <span className="min-w-0 flex-1 break-all text-right font-medium text-slate-100">{value}</span>
     </div>
   )
 }
