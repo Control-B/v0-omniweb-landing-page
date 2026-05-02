@@ -337,7 +337,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
           <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -376,62 +376,21 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           </div>
         </div>
 
-        <aside className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
-          <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget controls</p>
-            <p className="mt-1 text-xs text-slate-300">Live launch settings</p>
-          </div>
-
-          <div className="bg-[linear-gradient(180deg,rgba(2,8,30,0.95),rgba(2,10,38,0.9))] p-5 text-white shadow-[0_18px_45px_rgba(2,8,30,0.45)]">
-            <div className="mb-4 flex items-center justify-end gap-3">
-              <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${mandatoryComplete ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : "border-amber-300/30 bg-amber-300/10 text-amber-200"}`}>
-                {mandatoryComplete ? "Ready" : "Incomplete"}
-              </span>
-            </div>
-
-            <div className="space-y-2">
-              <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
-                <span>Widget enabled</span>
-                <Switch
-                  checked={widgetControls.widgetEnabled}
-                  onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, widgetEnabled: checked }))}
-                  disabled={widgetLoading || saving}
-                />
-              </label>
-              <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
-                <span>Voice enabled</span>
-                <Switch
-                  checked={widgetControls.voiceEnabled}
-                  onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, voiceEnabled: checked }))}
-                  disabled={widgetLoading || saving}
-                />
-              </label>
-              <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
-                <span>Text enabled</span>
-                <Switch
-                  checked={widgetControls.textEnabled}
-                  onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, textEnabled: checked }))}
-                  disabled={widgetLoading || saving}
-                />
-              </label>
-            </div>
-
-            <Button
-              className="mt-4 h-12 w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
-              onClick={handleSave}
-              disabled={saving || widgetLoading || !mandatoryComplete}
-            >
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Save configuration
-            </Button>
-
-            {!mandatoryComplete ? (
-              <p className="mt-3 text-xs text-amber-200">Complete mandatory sections: Instructions, Models &amp; Voice, Role (All), and Languages.</p>
-            ) : (
-              <p className="mt-3 text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
-            )}
-          </div>
-        </aside>
+        <div className="xl:sticky xl:top-6 xl:self-start">
+          <LivePreviewPanel
+            agentName={agentName}
+            businessName={workspaceName || businessName || "Omniweb"}
+            knowledgePreview={knowledgePreview}
+            voiceLabel={voiceLabel}
+            voiceCloneEnabled={voiceCloneEnabled}
+            widgetControls={widgetControls}
+            setWidgetControls={setWidgetControls}
+            widgetLoading={widgetLoading}
+            mandatoryComplete={mandatoryComplete}
+            onSave={handleSave}
+            saving={saving}
+          />
+        </div>
       </section>
 
       {(message || error) ? (
@@ -440,7 +399,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         </div>
       ) : null}
 
-      <section id="configure-agent" ref={configureRef} className="grid scroll-mt-6 gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <section id="configure-agent" ref={configureRef} className="scroll-mt-6 space-y-6">
         <div className="space-y-6">
         <div className={cardClassName}>
           <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
@@ -590,15 +549,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
         </div>
 
-        <div className="xl:sticky xl:top-6 xl:self-start">
-          <LivePreviewPanel
-            agentName={agentName}
-            businessName={workspaceName || businessName || "Omniweb"}
-            knowledgePreview={knowledgePreview}
-            voiceLabel={voiceLabel}
-            voiceCloneEnabled={voiceCloneEnabled}
-          />
-        </div>
       </section>
 
       <section className={cardClassName}>
@@ -786,12 +736,24 @@ function LivePreviewPanel({
   knowledgePreview,
   voiceLabel,
   voiceCloneEnabled,
+  widgetControls,
+  setWidgetControls,
+  widgetLoading,
+  mandatoryComplete,
+  onSave,
+  saving,
 }: {
   agentName: string
   businessName: string
   knowledgePreview: string
   voiceLabel: string
   voiceCloneEnabled: boolean
+  widgetControls: WidgetControlState
+  setWidgetControls: React.Dispatch<React.SetStateAction<WidgetControlState>>
+  widgetLoading: boolean
+  mandatoryComplete: boolean
+  onSave: () => void
+  saving: boolean
 }) {
   return (
     <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
@@ -819,8 +781,55 @@ function LivePreviewPanel({
           <PreviewDetail label="Cloning" value={voiceCloneEnabled ? "Saved" : "Off"} muted={!voiceCloneEnabled} />
         </div>
 
-        <div className="mt-7 flex w-full flex-col gap-3">
-          <p className="text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
+        <div className="mt-7 grid w-full gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">Widget controls</p>
+            <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${mandatoryComplete ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : "border-amber-300/30 bg-amber-300/10 text-amber-200"}`}>
+              {mandatoryComplete ? "Ready" : "Incomplete"}
+            </span>
+          </div>
+
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+            <span>Widget enabled</span>
+            <Switch
+              checked={widgetControls.widgetEnabled}
+              onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, widgetEnabled: checked }))}
+              disabled={widgetLoading || saving}
+            />
+          </label>
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+            <span>Voice enabled</span>
+            <Switch
+              checked={widgetControls.voiceEnabled}
+              onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, voiceEnabled: checked }))}
+              disabled={widgetLoading || saving}
+            />
+          </label>
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+            <span>Text enabled</span>
+            <Switch
+              checked={widgetControls.textEnabled}
+              onCheckedChange={(checked) => setWidgetControls((current) => ({ ...current, textEnabled: checked }))}
+              disabled={widgetLoading || saving}
+            />
+          </label>
+
+          <Button
+            className="mt-2 h-11 w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+            onClick={onSave}
+            disabled={saving || widgetLoading || !mandatoryComplete}
+          >
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Save configuration
+          </Button>
+
+          {!mandatoryComplete ? (
+            <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Models &amp; Voice, Role (All), and Languages.</p>
+          ) : (
+            <p className="text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
+          )}
+
+          <p className="mt-1 text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
         </div>
       </div>
     </aside>
