@@ -118,7 +118,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
   const [welcomeMessage, setWelcomeMessage] = useState(initialConfig.welcomeMessage || "Thank you for visiting our website today... it will be my pleasure to help you")
   const [systemInstructions, setSystemInstructions] = useState(initialConfig.customInstructions || "Talk about what is on the website, answer common questions, and guide high-intent visitors toward the next best step.")
   const [responseLength, setResponseLength] = useState("Moderate – balanced detail")
-  const [role, setRole] = useState("All")
+  const role = "All"
   const [selectedGoals, setSelectedGoals] = useState<string[]>(normalizeSelectedGoals(initialConfig.goals))
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(getInitialSelectedLanguages(initialConfig))
   const [voiceVariant, setVoiceVariant] = useState<VoiceVariant>("female")
@@ -286,7 +286,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   const handleSave = async () => {
     if (!mandatoryComplete) {
-      setError("Complete all mandatory sections (Instructions, Voice, Role = All, Languages) before saving.")
+      setError("Complete all mandatory sections (Instructions, Voice, Languages) before saving.")
       setMessage("")
       return
     }
@@ -447,7 +447,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
       <section id="configure-agent" ref={configureRef} className="scroll-mt-6 space-y-6">
         <div className="grid gap-6 xl:grid-cols-2">
-          <section className={cardClassName}>
+          <section className={`${cardClassName} xl:order-2`}>
             <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
             <div className="pt-5">
               <div className="flex items-start justify-between gap-4">
@@ -543,18 +543,11 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             </div>
           </section>
 
-          <section className={cardClassName}>
+          <section className={`${cardClassName} xl:order-1`}>
             <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
             <div className="pt-5">
               <p className="text-lg font-semibold text-slate-900">Primary Roles</p>
               <p className="mt-1 text-sm text-slate-500">Choose goals that match your industry and company. Default is All goals.</p>
-              <div className="mt-5">
-                <Field label="Role" helper="Default role for this agent profile">
-                  <select value={role} onChange={(event) => setRole(event.target.value)} className={`${inputClassName} dashboard-select`}>
-                    <option>All</option>
-                  </select>
-                </Field>
-              </div>
               <div className="mt-5 grid gap-3 md:grid-cols-1">
                 {GOALS.map((goal) => {
                   const active = selectedGoals.includes(goal)
@@ -826,7 +819,7 @@ function LivePreviewPanel({
           </Button>
 
           {!mandatoryComplete ? (
-            <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Voice, Role (All), and Languages.</p>
+            <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Voice, and Languages.</p>
           ) : (
             <p className="text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
           )}
