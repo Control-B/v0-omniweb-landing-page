@@ -489,6 +489,25 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
               </Field>
             </div>
           </div>
+
+          <section id="configure-agent" ref={configureRef} className={cardClassName}>
+            <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
+            <div className="pt-5">
+              <p className="text-lg font-semibold text-slate-900">Primary Roles</p>
+              <p className="mt-1 text-sm text-slate-500">Choose goals that match your industry and company. Default is All goals.</p>
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                {GOALS.map((goal) => {
+                  const active = selectedGoals.includes(goal)
+                  return (
+                    <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
+                      <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
+                      {goal}
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          </section>
         </div>
 
         <div className="xl:sticky xl:top-6 xl:self-start">
@@ -530,25 +549,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             onCopyInstallSnippet={handleCopyInstallSnippet}
             snippetCopied={snippetCopied}
           />
-        </div>
-      </section>
-
-      <section id="configure-agent" ref={configureRef} className={cardClassName}>
-        <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
-        <div className="pt-5">
-          <p className="text-lg font-semibold text-slate-900">Primary Roles</p>
-          <p className="mt-1 text-sm text-slate-500">Choose goals that match your industry and company. Default is All goals.</p>
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {GOALS.map((goal) => {
-              const active = selectedGoals.includes(goal)
-              return (
-                <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
-                  <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
-                  {goal}
-                </label>
-              )
-            })}
-          </div>
         </div>
       </section>
 
@@ -806,9 +806,6 @@ function LivePreviewPanel({
         <div className="mt-7 grid w-full gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
           <div className="mb-1 flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">Widget controls</p>
-            <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${mandatoryComplete ? "border-emerald-300/30 bg-emerald-300/10 text-emerald-200" : "border-amber-300/30 bg-amber-300/10 text-amber-200"}`}>
-              {mandatoryComplete ? "Ready" : "Incomplete"}
-            </span>
           </div>
 
           <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
@@ -836,12 +833,6 @@ function LivePreviewPanel({
             />
           </label>
 
-          {!mandatoryComplete ? (
-            <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Voice, and Languages.</p>
-          ) : (
-            <p className="text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
-          )}
-
           <p className="mt-1 text-xs leading-5 text-slate-500">No customer-facing widget is mounted inside the dashboard.</p>
 
           <div className="mt-2 rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -850,7 +841,6 @@ function LivePreviewPanel({
                 <p className="text-sm font-semibold text-white">Voice</p>
                 <p className="mt-1 text-xs text-slate-400">Choose the voice visitors hear when they test or use the widget.</p>
               </div>
-              <span className="rounded-full border border-cyan-300/30 bg-cyan-300/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-200">Live preview ready</span>
             </div>
 
             <div className="mt-4 grid gap-3">
@@ -949,13 +939,6 @@ function LivePreviewPanel({
             <p className="mt-2 text-[11px] text-slate-400">
               Last seen: {widgetLastSeenAt ? new Date(widgetLastSeenAt).toLocaleString() : "Never"}
             </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {previewUrl ? (
-                <Button type="button" variant="outline" className="justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
-                  <a href={previewUrl} target="_blank" rel="noreferrer">Open website</a>
-                </Button>
-              ) : null}
-            </div>
             {liveWidgetPreviewUrl ? (
               <Button type="button" variant="outline" className="mt-3 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
                 <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">One-click live widget preview</a>
@@ -982,6 +965,12 @@ function LivePreviewPanel({
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Save configuration
           </Button>
+
+          {!mandatoryComplete ? (
+            <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Voice, and Languages.</p>
+          ) : (
+            <p className="text-xs text-slate-300">All required sections complete. You can save and launch now.</p>
+          )}
         </div>
       </div>
     </aside>
