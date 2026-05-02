@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Bot, CheckCircle2, Loader2, Mic2, Pause, Play, RefreshCw, ShieldAlert, Trash2, Volume2 } from "lucide-react"
+import { Bot, CheckCircle2, Copy, Loader2, Mic2, Pause, Play, ShieldAlert, Trash2, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { fetchAgentConfig, saveAgentConfig } from "@/lib/saas/agentConfigService"
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
@@ -91,6 +91,7 @@ type WidgetStatusState = {
   widgetLastSeenAt: string | null
   widgetPrimaryColor: string
   previewDomain: string | null
+  embedCode: string
 }
 
 function getInitialSelectedLanguages(initialConfig: AgentConfigRecord) {
@@ -148,8 +149,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     widgetLastSeenAt: null,
     widgetPrimaryColor: "#22d3ee",
     previewDomain: websiteDomain,
+    embedCode: "",
   })
-  const [widgetChecking, setWidgetChecking] = useState(false)
+  const [snippetCopied, setSnippetCopied] = useState(false)
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [lsKnowledgeOrigin, setLsKnowledgeOrigin] = useState<string | null>(() =>
@@ -200,6 +202,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           widgetLastSeenAt: settings.widgetLastSeenAt,
           widgetPrimaryColor: settings.widgetPrimaryColor,
           previewDomain: settings.allowedDomains[0] || websiteDomain,
+          embedCode: settings.embedCode,
         })
       } catch {
         if (!cancelled) {
@@ -356,6 +359,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
         widgetLastSeenAt: latestWidgetStatus.widgetLastSeenAt,
         widgetPrimaryColor: latestWidgetStatus.widgetPrimaryColor,
         previewDomain: latestWidgetStatus.allowedDomains[0] || websiteDomain,
+        embedCode: latestWidgetStatus.embedCode,
       })
       setAgentName(nextConfig.agentName || "Omniweb AI")
       setWorkspaceName(nextConfig.businessName || businessName || "")
@@ -372,29 +376,22 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     }
   }
 
-  const handleVerifyInstall = async () => {
-    try {
-      setWidgetChecking(true)
-      setError("")
-      const latest = await fetchWidgetSettings()
-      setWidgetControls({
-        widgetEnabled: latest.widgetEnabled,
-        textEnabled: latest.textEnabled,
-        voiceEnabled: latest.voiceEnabled,
-      })
-      setWidgetStatus({
-        publicWidgetId: latest.publicWidgetId,
-        widgetInstalled: latest.widgetInstalled,
-        widgetLastSeenAt: latest.widgetLastSeenAt,
-        widgetPrimaryColor: latest.widgetPrimaryColor,
-        previewDomain: latest.allowedDomains[0] || websiteDomain,
-      })
-      setMessage(latest.widgetInstalled ? "Install verified from the latest widget activity." : "No install ping detected yet.")
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to verify install status.")
+  const handleCopyInstallSnippet = async () => {
+    if (!widgetStatus.embedCode) {
+      setError("Install snippet is not available yet.")
       setMessage("")
-    } finally {
-      setWidgetChecking(false)
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(widgetStatus.embedCode)
+      setSnippetCopied(true)
+      setError("")
+      setMessage("Install snippet copied.")
+      window.setTimeout(() => setSnippetCopied(false), 1500)
+    } catch {
+      setError("Could not copy install snippet.")
+      setMessage("")
     }
   }
 
@@ -526,13 +523,32 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             mandatoryComplete={mandatoryComplete}
             onSave={handleSave}
             saving={saving}
-            widgetChecking={widgetChecking}
             widgetInstalled={widgetStatus.widgetInstalled}
             widgetLastSeenAt={widgetStatus.widgetLastSeenAt}
             previewUrl={previewUrl}
             liveWidgetPreviewUrl={liveWidgetPreviewUrl}
-            onVerifyInstall={handleVerifyInstall}
+            onCopyInstallSnippet={handleCopyInstallSnippet}
+            snippetCopied={snippetCopied}
           />
+        </div>
+      </section>
+
+      <section id="configure-agent" ref={configureRef} className={cardClassName}>
+        <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
+        <div className="pt-5">
+          <p className="text-lg font-semibold text-slate-900">Primary Roles</p>
+          <p className="mt-1 text-sm text-slate-500">Choose goals that match your industry and company. Default is All goals.</p>
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {GOALS.map((goal) => {
+              const active = selectedGoals.includes(goal)
+              return (
+                <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
+                  <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
+                  {goal}
+                </label>
+              )
+            })}
+          </div>
         </div>
       </section>
 
@@ -541,30 +557,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           {error || message}
         </div>
       ) : null}
-
-      <section id="configure-agent" ref={configureRef} className="scroll-mt-6 space-y-6">
-        <div className="space-y-6">
-          <section className={cardClassName}>
-            <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
-            <div className="pt-5">
-              <p className="text-lg font-semibold text-slate-900">Primary Roles</p>
-              <p className="mt-1 text-sm text-slate-500">Choose goals that match your industry and company. Default is All goals.</p>
-              <div className="mt-5 grid gap-3 md:grid-cols-1">
-                {GOALS.map((goal) => {
-                  const active = selectedGoals.includes(goal)
-                  return (
-                    <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
-                      <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
-                      {goal}
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-          </section>
-        </div>
-
-      </section>
 
       <section className={cardClassName}>
         <div className="h-1 rounded-full bg-[linear-gradient(90deg,#1d4ed8,#14b8a6)]" />
@@ -749,12 +741,12 @@ function LivePreviewPanel({
   mandatoryComplete,
   onSave,
   saving,
-  widgetChecking,
   widgetInstalled,
   widgetLastSeenAt,
   previewUrl,
   liveWidgetPreviewUrl,
-  onVerifyInstall,
+  onCopyInstallSnippet,
+  snippetCopied,
 }: {
   agentName: string
   businessName: string
@@ -778,12 +770,12 @@ function LivePreviewPanel({
   mandatoryComplete: boolean
   onSave: () => void
   saving: boolean
-  widgetChecking: boolean
   widgetInstalled: boolean
   widgetLastSeenAt: string | null
   previewUrl: string | null
   liveWidgetPreviewUrl: string | null
-  onVerifyInstall: () => void
+  onCopyInstallSnippet: () => void
+  snippetCopied: boolean
 }) {
   return (
     <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
@@ -843,15 +835,6 @@ function LivePreviewPanel({
               disabled={widgetLoading || saving}
             />
           </label>
-
-          <Button
-            className="mt-2 h-11 w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
-            onClick={onSave}
-            disabled={saving || widgetLoading || !mandatoryComplete}
-          >
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Save configuration
-          </Button>
 
           {!mandatoryComplete ? (
             <p className="text-xs text-amber-200">Complete mandatory sections: Instructions, Voice, and Languages.</p>
@@ -967,15 +950,6 @@ function LivePreviewPanel({
               Last seen: {widgetLastSeenAt ? new Date(widgetLastSeenAt).toLocaleString() : "Never"}
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <Button
-                type="button"
-                className="justify-center rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                onClick={onVerifyInstall}
-                disabled={widgetChecking || widgetLoading || saving}
-              >
-                {widgetChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                Verify install
-              </Button>
               {previewUrl ? (
                 <Button type="button" variant="outline" className="justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
                   <a href={previewUrl} target="_blank" rel="noreferrer">Open website</a>
@@ -988,6 +962,26 @@ function LivePreviewPanel({
               </Button>
             ) : null}
           </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2 h-11 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={onCopyInstallSnippet}
+            disabled={saving || widgetLoading}
+          >
+            <Copy className="h-4 w-4" />
+            {snippetCopied ? "Snippet copied" : "Install snippet"}
+          </Button>
+
+          <Button
+            className="h-11 w-full rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+            onClick={onSave}
+            disabled={saving || widgetLoading || !mandatoryComplete}
+          >
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Save configuration
+          </Button>
         </div>
       </div>
     </aside>

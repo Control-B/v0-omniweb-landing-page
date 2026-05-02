@@ -422,10 +422,6 @@ export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {
               <li className="flex items-center justify-between gap-3"><span>Install state</span><span className={settings.widgetInstalled ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{settings.widgetInstalled ? "Installed" : "Not installed"}</span></li>
               <li className="flex items-center justify-between gap-3"><span>Last seen</span><span className="text-right text-slate-900">{settings.widgetLastSeenAt ? new Date(settings.widgetLastSeenAt).toLocaleString() : "Never"}</span></li>
             </ul>
-            <Button type="button" variant="outline" className="mt-5 w-full justify-center" onClick={reloadStatus} disabled={checking}>
-              {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              Verify install
-            </Button>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
