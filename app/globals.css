@@ -120,8 +120,19 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+  }
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
   }
 }
 
@@ -250,6 +261,34 @@
     font-size: 0.9375rem;
     line-height: 1.6;
     color: var(--ow-text-secondary);
+  }
+
+  .dashboard-responsive-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.125rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dashboard-responsive-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dashboard-responsive-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-responsive-tabs {
+      flex-wrap: wrap;
+      overflow-x: visible;
+    }
   }
 
   .dashboard-meta {

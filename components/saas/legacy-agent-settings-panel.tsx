@@ -424,27 +424,27 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   return (
     <div className="space-y-6">
-      <section className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <section className="grid min-w-0 items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="space-y-6">
           <div className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
-            <div className="border-b border-white/10 bg-slate-950/95 px-6 py-4 text-white lg:px-8">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
+            <div className="border-b border-white/10 bg-slate-950/95 px-4 py-4 text-white sm:px-6 lg:px-8">
+              <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200"><Bot className="h-5 w-5" /></span>
-                    <div>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200"><Bot className="h-5 w-5" /></span>
+                    <div className="min-w-0">
                       <p className="text-sm font-semibold text-cyan-200">AI Agent Builder</p>
                       <p className="text-xs text-slate-400">Last saved settings sync to your website widget</p>
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="dashboard-responsive-tabs lg:justify-end lg:overflow-visible lg:pb-0">
                   {["Conversation", "Voice", "Actions", "Advanced"].map((tab, index) => (
                     <button
                       key={tab}
                       type="button"
                       onClick={scrollToConfiguration}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
+                      className={`dashboard-responsive-tab rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
                     >
                       {tab}
                     </button>
@@ -466,13 +466,13 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
           <div className={cardClassName}>
             <div className="h-1 rounded-full bg-[linear-gradient(90deg,#2563eb,#14b8a6)]" />
-            <div className="mt-5 flex flex-wrap gap-2 border-b border-slate-200 pb-4">
+            <div className="dashboard-responsive-tabs mt-5 border-b border-slate-200">
               {["Instructions", "Voice", "Roles", "Languages"].map((tab, index) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={scrollToConfiguration}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
+                  className={`dashboard-responsive-tab rounded-full px-4 py-2 text-sm font-semibold ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
                 >
                   {tab}
                 </button>
@@ -521,7 +521,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
           </section>
         </div>
 
-        <div className="xl:sticky xl:top-6 xl:self-start">
+        <div className="min-w-0 2xl:sticky 2xl:top-6 2xl:self-start">
           <LivePreviewPanel
             agentName={agentName}
             businessName={workspaceName || businessName || "Omniweb"}

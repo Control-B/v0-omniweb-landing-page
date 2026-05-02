@@ -375,7 +375,7 @@ export function WidgetInstallCard({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
+      <div className="dashboard-responsive-tabs mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-2">
         {[
           { key: "test", label: "Test widget" },
           { key: "install", label: "Install snippet" },
@@ -384,7 +384,7 @@ export function WidgetInstallCard({
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key as "test" | "install")}
-            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+            className={`dashboard-responsive-tab rounded-xl px-4 py-2 text-sm font-semibold transition ${
               activeTab === tab.key ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:bg-white"
             }`}
           >
@@ -393,7 +393,7 @@ export function WidgetInstallCard({
         ))}
       </div>
 
-      <div className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="mt-6 grid gap-5 2xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
           {activeTab === "test" ? (
             <>
