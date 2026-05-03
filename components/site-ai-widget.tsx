@@ -262,6 +262,13 @@ export function SiteAiWidget({
   defaultOpen = false,
   embed = false,
 }: SiteAiWidgetProps) {
+  const safeAreaInsetBottom = "env(safe-area-inset-bottom, 0px)"
+  const launcherBottom = embed ? `max(12px, calc(${safeAreaInsetBottom} + 8px))` : "24px"
+  const launcherRight = embed ? "12px" : "24px"
+  const panelBottom = embed ? `calc(${launcherBottom} + 64px + 10px)` : "96px"
+  const panelRight = embed ? "12px" : "24px"
+  const panelWidth = embed ? "min(calc(100vw - 24px), 20rem)" : "min(calc(100vw - 2rem), 28rem)"
+  const panelMaxHeight = embed ? "min(calc(100dvh - 24px - 64px - 10px), 28rem)" : "min(85vh, 36rem)"
   const [panelOpen, setPanelOpen] = useState(defaultOpen)
   const [mode, setMode] = useState<UiMode>("voice")
   const [clientIdOverride, setClientIdOverride] = useState<string | null>(null)
@@ -412,8 +419,12 @@ export function SiteAiWidget({
       <button
         type="button"
         onClick={() => setPanelOpen((open) => !open)}
-        className={`fixed ${embed ? "bottom-4 right-4" : "bottom-6 right-6"} z-[9999] flex h-14 items-center gap-3 rounded-full bg-gradient-to-r from-indigo-700 to-violet-600 px-5 text-white shadow-[0_14px_34px_rgba(79,70,229,0.45)] transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300`}
-        style={{ background: `linear-gradient(135deg, ${accentColor}, #6d28d9)` }}
+        className="fixed z-[9999] flex h-14 items-center gap-3 rounded-full bg-gradient-to-r from-indigo-700 to-violet-600 px-5 text-white shadow-[0_14px_34px_rgba(79,70,229,0.45)] transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+        style={{
+          bottom: launcherBottom,
+          right: launcherRight,
+          background: `linear-gradient(135deg, ${accentColor}, #6d28d9)`,
+        }}
         aria-label={panelOpen ? "Close Omniweb AI" : "Ask Omniweb AI"}
       >
         <span
@@ -427,7 +438,15 @@ export function SiteAiWidget({
       </button>
 
       {panelOpen ? (
-        <div className={`fixed ${embed ? "bottom-20 right-4" : "bottom-24 right-6"} z-[9998] flex max-h-[min(85vh,36rem)] w-[min(100vw-2rem,28rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0b1220] text-slate-100 shadow-2xl`}>
+        <div
+          className="fixed z-[9998] flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0b1220] text-slate-100 shadow-2xl"
+          style={{
+            bottom: panelBottom,
+            right: panelRight,
+            width: panelWidth,
+            maxHeight: panelMaxHeight,
+          }}
+        >
           <header className="flex items-start gap-3 border-b border-white/10 px-4 py-4">
             <div
               className="h-12 w-12 shrink-0 rounded-full"
@@ -459,7 +478,7 @@ export function SiteAiWidget({
             </div>
           ) : null}
 
-          <div className="min-h-[17rem] flex-1 space-y-3 overflow-y-auto px-4 py-4 text-sm">
+          <div className={`${embed ? "min-h-0" : "min-h-[17rem]"} flex-1 space-y-3 overflow-y-auto px-4 py-4 text-sm`}>
             {lines.length === 0 && !errorMsg ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <p className="max-w-xs text-base font-semibold text-white">{DEFAULT_WELCOME_MESSAGE}</p>
