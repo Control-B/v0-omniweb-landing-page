@@ -411,7 +411,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                     </div>
                   </div>
                 </div>
-                <div className="dashboard-responsive-tabs lg:justify-end lg:overflow-visible lg:pb-0">
+                <div className="dashboard-responsive-tabs !flex-nowrap !overflow-x-auto !justify-start lg:ml-[-0.5rem] lg:pb-0">
                   {["Conversation", "Voice", "Actions", "Advanced"].map((tab, index) => (
                     <button
                       key={tab}
