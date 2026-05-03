@@ -10,7 +10,7 @@ import { fetchAgentConfig } from "@/lib/saas/agentConfigService"
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
 import type { KnowledgeSourceRecord, WidgetSettingsRecord } from "@/lib/saas/types"
 
-const sectionClassName = "rounded-[1.75rem] border border-slate-200 bg-white/80 p-5 shadow-[0_10px_25px_rgba(148,163,184,0.08)]"
+const sectionClassName = "rounded-[1.75rem] border border-slate-200 bg-white/80 p-4 shadow-[0_10px_25px_rgba(148,163,184,0.08)] sm:p-5"
 const inputClassName = "mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
 const textareaClassName = "mt-2 min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
 
@@ -356,7 +356,7 @@ export function WidgetInstallCard({
         ))}
       </div>
 
-      <div className="mt-6 grid gap-5 2xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="mt-6 grid min-w-0 gap-4 sm:gap-5 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="space-y-5">
           {activeTab === "test" ? (
             <>

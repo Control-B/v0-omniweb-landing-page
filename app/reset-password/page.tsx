@@ -187,7 +187,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="relative flex min-h-dvh overflow-hidden bg-[#050a12] text-white">
+    <div className="relative flex min-h-dvh overflow-x-hidden bg-[#050a12] text-white">
       <div className="pointer-events-none absolute inset-0 kling-canvas" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.28] kling-grid-overlay" />
       <div className="relative flex flex-1 items-center justify-center px-4 py-12">

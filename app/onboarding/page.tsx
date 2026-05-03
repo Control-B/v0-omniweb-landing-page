@@ -9,7 +9,7 @@ export default async function OnboardingPage() {
   const initialBusinessName = typeof metadata.companyName === "string" ? metadata.companyName : ""
 
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-[#050a12] text-white">
+    <div className="relative min-h-dvh overflow-x-hidden bg-[#050a12] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(6,182,212,0.18),transparent_35%),radial-gradient(ellipse_at_bottom_right,rgba(139,92,246,0.16),transparent_35%)]" />
       <div className="relative mx-auto flex min-h-dvh max-w-6xl items-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid w-full gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">

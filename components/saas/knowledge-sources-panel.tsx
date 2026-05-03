@@ -158,7 +158,7 @@ export function KnowledgeSourcesPanel({ tenantId, websiteDomain, initialSources 
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_360px]">
+    <div className="grid min-w-0 gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,360px)]">
       <div className="space-y-5">
         <section className="rounded-[1.75rem] border border-white/70 bg-[linear-gradient(90deg,rgba(99,102,241,0.10),rgba(34,211,238,0.08),rgba(99,102,241,0.08))] p-6 shadow-[0_16px_35px_rgba(148,163,184,0.12)]">
           <h2 className="text-2xl font-semibold tracking-tight text-slate-950">Knowledge Sources</h2>

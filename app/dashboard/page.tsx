@@ -32,7 +32,7 @@ function statusBadgeClassName(tone: "default" | "success" | "warning") {
 }
 
 function actionLinkClassName() {
-  return "mt-auto inline-flex items-center gap-1.5 pt-5 text-[14px] font-semibold text-blue-600 transition hover:text-blue-500"
+  return "mt-auto inline-flex min-w-0 items-center gap-1.5 pt-5 text-sm font-semibold text-blue-600 transition hover:text-blue-500"
 }
 
 export default async function DashboardPage() {
@@ -143,8 +143,8 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.95fr)]">
-        <DashboardCard tone="highlight" className="flex min-h-[280px] flex-col gap-7">
+      <section className="grid gap-4 md:gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,0.95fr)]">
+        <DashboardCard tone="highlight" className="flex min-h-0 flex-col gap-6 sm:min-h-[280px] sm:gap-7">
           <div>
             <p className="dashboard-eyebrow">Workspace launch posture</p>
             <h2 className="dashboard-page-title mt-3">Your workspace launch posture</h2>
@@ -167,7 +167,7 @@ export default async function DashboardPage() {
           </div>
         </DashboardCard>
 
-        <DashboardCard className="flex min-h-[280px] flex-col gap-5">
+        <DashboardCard className="flex min-h-0 flex-col gap-5 sm:min-h-[280px]">
           <div className="flex items-center justify-between gap-3">
             <p className="dashboard-section-title">Setup checklist</p>
             <span className="text-[15px] font-semibold text-slate-900">{setupProgress}%</span>
@@ -176,28 +176,28 @@ export default async function DashboardPage() {
             <div className="h-full rounded-full bg-[linear-gradient(90deg,#0ea5e9,#4f46e5,#8b5cf6)]" style={{ width: `${setupProgress}%` }} />
           </div>
           <ul className="space-y-2.5 text-[15px] text-slate-600">
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
-              <span>AI agent configured</span>
+            <li className="dashboard-card-muted flex flex-col gap-1 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <span className="min-w-0">AI agent configured</span>
               <span className={aiAgentReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{aiAgentReady ? "Ready" : "Pending"}</span>
             </li>
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
-              <span>Knowledge source connected</span>
+            <li className="dashboard-card-muted flex flex-col gap-1 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <span className="min-w-0">Knowledge source connected</span>
               <span className={knowledgeReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{knowledgeReady ? "Ready" : "Pending"}</span>
             </li>
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
-              <span>Widget snippet available</span>
+            <li className="dashboard-card-muted flex flex-col gap-1 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <span className="min-w-0">Widget snippet available</span>
               <span className={widgetReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{widgetReady ? "Ready" : "Pending"}</span>
             </li>
-            <li className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3">
-              <span>Telephony routing configured</span>
+            <li className="dashboard-card-muted flex flex-col gap-1 rounded-xl px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <span className="min-w-0">Telephony routing configured</span>
               <span className={telephonyReady ? "font-semibold text-emerald-600" : "font-semibold text-slate-400"}>{telephonyReady ? "Ready" : "Optional"}</span>
             </li>
           </ul>
         </DashboardCard>
       </section>
 
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <DashboardCard className="flex min-h-[260px] flex-col">
+      <section className="grid gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
+        <DashboardCard className="flex min-h-0 flex-col sm:min-h-[260px]">
           <div className="flex items-center gap-2 text-[14px] font-medium text-slate-500">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             Next best step
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
           </Link>
         </DashboardCard>
 
-        <DashboardCard className="flex min-h-[260px] flex-col">
+        <DashboardCard className="flex min-h-0 flex-col sm:min-h-[260px]">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-[14px] font-medium text-slate-500">
               <Wallet className="h-4 w-4 text-blue-500" />
@@ -223,15 +223,15 @@ export default async function DashboardPage() {
           <p className="dashboard-stat mt-4">{planLabel}</p>
           <p className="dashboard-body mt-3">Current pricing is framed for {pricingContent.label.toLowerCase()} teams and tracks value using {planDetails.metricLabel.toLowerCase()}.</p>
           <dl className="mt-4 space-y-2.5 text-[14px] text-slate-600">
-            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-xl px-4 py-2.5">
+            <div className="dashboard-card-muted flex flex-col gap-1 rounded-xl px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <dt>Current plan</dt>
               <dd className="font-semibold text-slate-900">{planLabel}</dd>
             </div>
-            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-xl px-4 py-2.5">
+            <div className="dashboard-card-muted flex flex-col gap-1 rounded-xl px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <dt>Billing status</dt>
               <dd className="font-semibold text-slate-900">{subscriptionLabel}</dd>
             </div>
-            <div className="dashboard-card-muted flex items-center justify-between gap-4 rounded-xl px-4 py-2.5">
+            <div className="dashboard-card-muted flex flex-col gap-1 rounded-xl px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <dt>{planDetails.metricLabel}</dt>
               <dd className="font-semibold text-slate-900">{planDetails.conversationsPerMonth.toLocaleString()}</dd>
             </div>
@@ -242,28 +242,28 @@ export default async function DashboardPage() {
           </Link>
         </DashboardCard>
 
-        <DashboardCard className="flex min-h-[260px] flex-col">
+        <DashboardCard className="flex min-h-0 flex-col sm:min-h-[260px]">
           <p className="dashboard-section-title">Quick actions</p>
           <div className="mt-5 space-y-2.5">
-            <Link href="/dashboard/profile" className="dashboard-card-muted flex items-center justify-between rounded-xl px-4 py-3 text-[14px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
-              <span className="inline-flex items-center gap-2"><Building2 className="h-4 w-4 text-slate-500" /> Update workspace details</span>
+            <Link href="/dashboard/profile" className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
+              <span className="inline-flex min-w-0 items-center gap-2"><Building2 className="h-4 w-4 shrink-0 text-slate-500" /> <span>Update workspace details</span></span>
               <ArrowRight className="h-4 w-4 text-slate-400" />
             </Link>
-            <Link href="/dashboard/knowledge" className="dashboard-card-muted flex items-center justify-between rounded-xl px-4 py-3 text-[14px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
-              <span className="inline-flex items-center gap-2"><Globe className="h-4 w-4 text-slate-500" /> Manage knowledge and widget</span>
+            <Link href="/dashboard/knowledge" className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
+              <span className="inline-flex min-w-0 items-center gap-2"><Globe className="h-4 w-4 shrink-0 text-slate-500" /> <span>Manage knowledge and widget</span></span>
               <ArrowRight className="h-4 w-4 text-slate-400" />
             </Link>
-            <Link href="/dashboard/ai-telephony" className="dashboard-card-muted flex items-center justify-between rounded-xl px-4 py-3 text-[14px] font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
-              <span className="inline-flex items-center gap-2"><Phone className="h-4 w-4 text-slate-500" /> Configure AI telephony</span>
+            <Link href="/dashboard/ai-telephony" className="dashboard-card-muted flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
+              <span className="inline-flex min-w-0 items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-slate-500" /> <span>Configure AI telephony</span></span>
               <ArrowRight className="h-4 w-4 text-slate-400" />
             </Link>
           </div>
         </DashboardCard>
       </section>
 
-      <section className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid auto-rows-fr gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
         {featureCards.map((card) => (
-          <DashboardCard key={card.label} className="flex h-full min-h-[220px] flex-col">
+          <DashboardCard key={card.label} className="flex h-full min-h-0 flex-col sm:min-h-[220px]">
             <div className="flex items-center gap-2 text-[14px] font-medium text-slate-500">
               <card.icon className={`h-4 w-4 ${card.iconClass}`} />
               {card.label}

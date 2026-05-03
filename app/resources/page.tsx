@@ -110,7 +110,7 @@ export default function ResourcesPage() {
   }, [])
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#06091A]">
+    <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#06091A]">
       <div className="pointer-events-none absolute inset-0 kling-canvas" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.24] kling-grid-overlay" />
       <Header />

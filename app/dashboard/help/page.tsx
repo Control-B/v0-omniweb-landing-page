@@ -55,9 +55,9 @@ export default async function DashboardHelpPage() {
         </p>
       </DashboardCard>
 
-      <section className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid auto-rows-fr gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
         {sections.map((section) => (
-          <DashboardCard key={section.title} className="flex h-full min-h-[200px] flex-col">
+          <DashboardCard key={section.title} className="flex h-full min-h-0 flex-col sm:min-h-[200px]">
             <div className="h-1 w-12 rounded-full bg-[linear-gradient(90deg,rgba(34,211,238,0.9),rgba(99,102,241,0.85),rgba(139,92,246,0.85))]" />
             <h3 className="dashboard-card-title mt-4">{section.title}</h3>
             <p className="dashboard-body mt-3">{section.body}</p>
@@ -76,7 +76,7 @@ export default async function DashboardHelpPage() {
           </div>
           <Link
             href="mailto:support@omniweb.ai"
-            className="inline-flex h-11 items-center justify-center rounded-full bg-slate-900 px-6 text-[14px] font-semibold text-white transition hover:bg-slate-800"
+            className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 sm:w-auto sm:px-6"
           >
             <Mail className="mr-2 h-4 w-4" />Contact support
           </Link>

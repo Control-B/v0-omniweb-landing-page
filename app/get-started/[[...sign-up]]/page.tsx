@@ -110,7 +110,7 @@ export default function GetStartedPage() {
   const inputClass = "mb-4 h-12 w-full rounded-xl border border-white/[0.08] bg-[#0f1a2e] px-4 text-white placeholder:text-slate-500 transition-all focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/25"
 
   return (
-    <div className="relative flex min-h-dvh overflow-hidden bg-[#050a12] text-white">
+    <div className="relative flex min-h-dvh overflow-x-hidden bg-[#050a12] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(6,182,212,0.08),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(139,92,246,0.08),transparent_50%)]" />
 
       <div className="relative flex flex-1 items-center justify-center px-4 py-12">

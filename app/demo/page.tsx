@@ -27,7 +27,7 @@ export default function DemoPage() {
   }, [])
 
   return (
-    <div className="min-h-dvh bg-[#050a12] text-white relative overflow-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden bg-[#050a12] text-white">
       {/* Background effects */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full bg-gradient-to-b from-cyan-500/8 via-indigo-500/5 to-transparent blur-3xl" />

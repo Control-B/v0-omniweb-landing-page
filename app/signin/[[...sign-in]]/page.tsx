@@ -133,7 +133,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="relative flex min-h-dvh overflow-hidden bg-[#050a12] text-white">
+    <div className="relative flex min-h-dvh overflow-x-hidden bg-[#050a12] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(6,182,212,0.08),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(139,92,246,0.08),transparent_50%)]" />
 
       <div className="relative flex flex-1 items-center justify-center px-4 py-12">

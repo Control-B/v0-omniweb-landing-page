@@ -397,7 +397,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
 
   return (
     <div className="space-y-6">
-      <section className="grid min-w-0 items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_420px]">
+      <section className="grid min-w-0 items-start gap-4 sm:gap-6 2xl:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
         <div className="space-y-6">
           <div className="dashboard-card-highlight overflow-hidden rounded-[28px] p-0">
             <div className="border-b border-white/10 bg-slate-950/95 px-4 py-4 text-white sm:px-6 lg:px-8">
@@ -417,7 +417,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                       key={tab}
                       type="button"
                       onClick={scrollToConfiguration}
-                      className={`dashboard-responsive-tab rounded-full px-4 py-2 text-sm font-semibold transition ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
+                      className={`dashboard-responsive-tab rounded-full px-3 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm ${index === 0 ? "bg-cyan-400 text-slate-950" : "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"}`}
                     >
                       {tab}
                     </button>
@@ -426,7 +426,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
               </div>
             </div>
 
-            <div className="p-6 lg:p-8">
+            <div className="p-4 sm:p-6 lg:p-8">
               <div className="max-w-3xl">
                 <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">AI Agent launch</p>
                 <h1 className="dashboard-page-title mt-3">Configure, test, and install your widget in one place</h1>
@@ -445,7 +445,7 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                   key={tab}
                   type="button"
                   onClick={scrollToConfiguration}
-                  className={`dashboard-responsive-tab rounded-full px-4 py-2 text-sm font-semibold ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
+                  className={`dashboard-responsive-tab rounded-full px-3 py-2 text-xs font-semibold sm:px-4 sm:text-sm ${index === 0 ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-600"}`}
                 >
                   {tab}
                 </button>
@@ -483,9 +483,9 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
                 {GOALS.map((goal) => {
                   const active = selectedGoals.includes(goal)
                   return (
-                    <label key={goal} className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3.5 text-[15px] transition ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
+                    <label key={goal} className={`flex min-w-0 cursor-pointer items-center gap-3 rounded-2xl border px-3 py-3 text-sm transition sm:px-4 sm:py-3.5 sm:text-[15px] ${active ? "border-cyan-400/40 bg-[#0f1b35] text-white shadow-[0_12px_26px_rgba(15,27,53,0.18)]" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}>
                       <input type="checkbox" checked={active} onChange={() => toggleGoal(goal)} className="h-4 w-4 rounded border-slate-300 text-[#4f46e5] focus:ring-[#4f46e5]" />
-                      {goal}
+                      <span className="min-w-0">{goal}</span>
                     </label>
                   )
                 })}
@@ -694,9 +694,9 @@ function PreviewDetail({
   muted?: boolean
 }) {
   return (
-    <div className="flex items-start justify-between gap-3">
+    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
       <span>{label}</span>
-      <span className={`max-w-[210px] text-right font-semibold ${muted ? "text-slate-500" : "text-white"}`}>{value}</span>
+      <span className={`break-words font-semibold sm:max-w-[210px] sm:text-right ${muted ? "text-slate-500" : "text-white"}`}>{value}</span>
     </div>
   )
 }
@@ -759,14 +759,14 @@ function LivePreviewPanel({
   snippetCopied: boolean
 }) {
   return (
-    <aside className="overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
-      <div className="border-b border-white/10 px-6 py-4">
+    <aside className="min-w-0 overflow-hidden rounded-[28px] border border-slate-800 bg-slate-950 text-white shadow-[0_24px_70px_rgba(2,6,23,0.35)]">
+      <div className="border-b border-white/10 px-4 py-4 sm:px-6">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-200">Agent configuration</p>
         <p className="mt-1 text-sm text-slate-400">Dashboard setup only. The customer-facing widget lives on the installed website.</p>
       </div>
 
-      <div className="flex min-h-[420px] flex-col items-center justify-center px-6 py-10 text-center">
-        <div className="relative flex h-36 w-36 items-center justify-center">
+      <div className="flex min-h-0 flex-col items-center justify-center px-4 py-8 text-center sm:min-h-[420px] sm:px-6 sm:py-10">
+        <div className="relative flex h-28 w-28 items-center justify-center sm:h-36 sm:w-36">
           <div className="absolute inset-0 rounded-full border border-cyan-300/30" />
           <div className="absolute inset-3 rounded-full border border-violet-400/40" />
           <div className="absolute inset-7 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.35),rgba(99,102,241,0.1),transparent_70%)]" />
@@ -778,18 +778,18 @@ function LivePreviewPanel({
           Configure {voiceLabel.toLowerCase()} for {businessName}. Test from the installed site widget or AI Telephony test call.
         </p>
 
-        <div className="mt-6 grid w-full gap-3 rounded-2xl border border-white/10 bg-white/3 p-4 text-left text-sm text-slate-300">
+        <div className="mt-6 grid w-full min-w-0 gap-3 rounded-2xl border border-white/10 bg-white/3 p-4 text-left text-sm text-slate-300">
           <PreviewDetail label="Knowledge" value={knowledgePreview} />
           <PreviewDetail label="Voice" value={voiceLabel} />
           <PreviewDetail label="Cloning" value={voiceCloneEnabled ? "Saved" : "Off"} muted={!voiceCloneEnabled} />
         </div>
 
-        <div className="mt-7 grid w-full gap-2 rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
+        <div className="mt-7 grid w-full min-w-0 gap-2 rounded-2xl border border-white/10 bg-white/5 p-3 text-left sm:p-4">
           <div className="mb-1 flex items-center justify-between gap-3">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">Widget controls</p>
           </div>
 
-          <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+          <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
             <span>Widget enabled</span>
             <Switch
               checked={widgetControls.widgetEnabled}
@@ -797,7 +797,7 @@ function LivePreviewPanel({
               disabled={widgetLoading || saving}
             />
           </label>
-          <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+          <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
             <span>Voice enabled</span>
             <Switch
               checked={widgetControls.voiceEnabled}
@@ -805,7 +805,7 @@ function LivePreviewPanel({
               disabled={widgetLoading || saving}
             />
           </label>
-          <label className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
+          <label className="flex min-w-0 items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100">
             <span>Text enabled</span>
             <Switch
               checked={widgetControls.textEnabled}

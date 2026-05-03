@@ -48,9 +48,9 @@ export default async function DashboardSettingsPage() {
         </p>
       </DashboardCard>
 
-      <section className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid auto-rows-fr gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-3">
         {cards.map((card) => (
-          <DashboardCard key={card.title} className="flex h-full min-h-[200px] flex-col">
+          <DashboardCard key={card.title} className="flex h-full min-h-0 flex-col sm:min-h-[200px]">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100">
               <card.icon className={`h-5 w-5 ${card.color}`} />
             </div>

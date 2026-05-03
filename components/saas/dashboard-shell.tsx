@@ -151,7 +151,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
   }
 
   return (
-    <div className="dashboard-theme min-h-dvh lg:h-screen lg:overflow-hidden">
+    <div className="dashboard-theme min-h-dvh overflow-x-clip">
       <aside
         className="dashboard-sidebar-surface border-b backdrop-blur lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r"
         style={{ width: `min(100vw, ${DESKTOP_SIDEBAR_WIDTH}px)` }}
@@ -170,7 +170,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
             </div>
           </Link>
 
-          <nav className="mt-7 flex flex-1 gap-1.5 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible" aria-label="Dashboard navigation">
+          <nav className="mt-5 flex flex-1 gap-1.5 overflow-x-auto pb-2 sm:mt-7 lg:flex-col lg:overflow-visible" aria-label="Dashboard navigation">
             {navItems.map((item) => {
               const active = isPathActive(pathname, item.href, item.aliases)
 
@@ -179,7 +179,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                   key={item.href}
                   href={item.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 ${active ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]" : "text-slate-600 hover:bg-[#0f1b35] hover:text-white"}`}
+                  className={`flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 sm:text-[14px] lg:w-full lg:shrink ${active ? "bg-slate-900 text-white shadow-[0_10px_24px_rgba(15,23,42,0.16)]" : "text-slate-600 hover:bg-[#0f1b35] hover:text-white"}`}
                 >
                   <item.icon className={`h-[18px] w-[18px] ${active ? "text-cyan-300" : "text-slate-500"}`} />
                   <span className="whitespace-nowrap">{item.label}</span>
@@ -261,10 +261,10 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
         </div>
       </aside>
 
-      <div className="min-h-dvh lg:ml-[240px] lg:h-screen lg:overflow-y-auto">
+      <div className="min-h-dvh min-w-0 lg:ml-[240px]">
         <div className="w-full min-w-0 px-3 py-5 sm:px-5 md:px-6 lg:px-8 lg:py-8">
           <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
-            <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <header className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <p className="dashboard-eyebrow">{activeNavItem.label}</p>
                 <h1 className="dashboard-page-title mt-3">{status.businessName || "Your Omniweb workspace"}</h1>
@@ -273,7 +273,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
               <div className="flex flex-wrap items-center gap-3 self-start sm:self-end sm:justify-end">
                 <Link
                   href="/dashboard/billing"
-                  className="dashboard-secondary-button inline-flex h-11 items-center justify-center rounded-full px-5 text-[14px] font-semibold transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
+                  className="dashboard-secondary-button inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-semibold transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 sm:h-11 sm:px-5"
                 >
                   Billing
                 </Link>
@@ -288,7 +288,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
                 </div>
                 <Link
                   href="/dashboard/billing"
-                  className="dashboard-primary-button inline-flex h-11 items-center justify-center rounded-full px-6 text-[14px] font-semibold transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
+                  className="dashboard-primary-button inline-flex h-10 w-full items-center justify-center rounded-full px-4 text-sm font-semibold transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 sm:h-11 sm:w-auto sm:px-6"
                 >
                   Upgrade plan
                 </Link>

@@ -139,7 +139,7 @@ export default function CompanyPage() {
   }, [isMuted])
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#050a12]">
+    <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#050a12]">
       <div className="pointer-events-none absolute inset-0 kling-canvas" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.24] kling-grid-overlay" />
       <Header />

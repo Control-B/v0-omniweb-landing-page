@@ -75,7 +75,7 @@ export function ProfileSettingsForm({ initialValues }: ProfileSettingsFormProps)
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-11 w-full items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 sm:h-12 sm:w-auto sm:px-6"
         >
           {loading ? "Saving..." : "Save profile"}
         </button>

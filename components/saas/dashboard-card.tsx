@@ -14,18 +14,18 @@ export function DashboardCard<T extends ElementType = "section">({
   density = "comfortable",
   ...props
 }: DashboardCardProps<T>) {
-  const Component = as || "section"
+  const Component = (as || "section") as ElementType
 
   return (
     <Component
       className={cn(
-        "dashboard-card-surface min-h-[140px] rounded-[20px]",
-        density === "comfortable" ? "p-6 lg:p-7" : "p-5",
+        "dashboard-card-surface min-h-[140px] min-w-0 max-w-full overflow-hidden rounded-[20px] break-words",
+        density === "comfortable" ? "p-4 sm:p-6 lg:p-7" : "p-4 sm:p-5",
         tone === "muted" && "dashboard-card-muted",
         tone === "highlight" && "dashboard-card-highlight",
         className,
       )}
-      {...props}
+      {...(props as Record<string, unknown>)}
     />
   )
 }

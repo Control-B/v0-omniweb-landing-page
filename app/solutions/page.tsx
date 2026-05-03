@@ -524,20 +524,20 @@ export default function SolutionsPage() {
   }, [])
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#06091A]">
+    <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#06091A]">
       <div className="pointer-events-none absolute inset-0 kling-canvas" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.24] kling-grid-overlay" />
       <Header />
       <main className="relative flex-1 pt-16">
 
         {/* ── Hero (Box.com-inspired) ─────────────────────────────── */}
-        <section id="solutions-overview" className="relative min-h-screen overflow-hidden border-b border-white/10">
+        <section id="solutions-overview" className="relative min-h-dvh overflow-hidden border-b border-white/10">
           {/* Soft radial background */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(59,130,246,0.12),transparent_60%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_0%,rgba(168,85,247,0.08),transparent_50%)]" />
 
           {/* ── Top: Heading + Subtitle + CTAs ── */}
-          <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-32 text-center">
+          <div className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-28 text-center sm:px-6 sm:py-32">
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}

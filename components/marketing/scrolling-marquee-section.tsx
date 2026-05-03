@@ -93,7 +93,7 @@ function MarqueeCard({
 }) {
   return (
     <div
-      className={`relative flex-shrink-0 w-[20rem] overflow-hidden rounded-[1.6rem] border ${card.border} bg-white/[0.05] px-6 py-6 backdrop-blur-sm`}
+      className={`relative w-[min(20rem,calc(100vw-2rem))] flex-shrink-0 overflow-hidden rounded-[1.6rem] border ${card.border} bg-white/[0.05] px-5 py-5 backdrop-blur-sm sm:px-6 sm:py-6`}
     >
       <div
         className={`absolute inset-0 rounded-[1.6rem] bg-gradient-to-br ${card.gradient} opacity-80`}

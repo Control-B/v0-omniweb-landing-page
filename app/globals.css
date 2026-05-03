@@ -124,9 +124,11 @@
   body {
     max-width: 100%;
     overflow-x: hidden;
+    min-height: 100%;
   }
   body {
     @apply bg-background text-foreground;
+    min-width: 320px;
   }
   img,
   video,
@@ -166,6 +168,20 @@
     background: var(--ow-bg);
     background-size: auto, auto, auto, 72px 72px, 72px 72px, auto;
     color: var(--ow-text-primary);
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .dashboard-theme :where(main, section, article, header, form, fieldset, div) {
+    min-width: 0;
+  }
+
+  .dashboard-theme :where(p, h1, h2, h3, h4, h5, h6, dt, dd, label) {
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-theme :where(input, textarea, select, button, a) {
+    max-width: 100%;
   }
 
   [data-theme="light"] .dashboard-theme {
@@ -235,7 +251,7 @@
   }
 
   .dashboard-page-title {
-    font-size: clamp(1.75rem, 1.55rem + 0.85vw, 2rem);
+    font-size: clamp(1.45rem, 1.25rem + 1vw, 2rem);
     line-height: 1.15;
     font-weight: 700;
     letter-spacing: -0.025em;
@@ -258,7 +274,7 @@
   }
 
   .dashboard-body {
-    font-size: 0.9375rem;
+    font-size: clamp(0.875rem, 0.84rem + 0.15vw, 0.9375rem);
     line-height: 1.6;
     color: var(--ow-text-secondary);
   }
@@ -282,6 +298,7 @@
   .dashboard-responsive-tab {
     flex: 0 0 auto;
     white-space: nowrap;
+    min-height: 2.5rem;
   }
 
   @media (min-width: 1024px) {
@@ -339,8 +356,8 @@
 
   .dashboard-input,
   .dashboard-select {
-    min-height: 3.25rem;
-    padding-inline: 1rem;
+    min-height: 3rem;
+    padding-inline: 0.875rem;
   }
 
   .dashboard-textarea {
@@ -443,7 +460,7 @@
   }
 
   .site-eyebrow {
-    font-size: 0.875rem;
+    font-size: clamp(0.6875rem, 0.62rem + 0.3vw, 0.875rem);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.24em;
@@ -461,7 +478,7 @@
     background-clip: text;
     color: transparent;
     filter: drop-shadow(0 10px 30px rgba(59, 130, 246, 0.35));
-    font-size: clamp(3.2rem, 2.35rem + 2.9vw, 6.4rem);
+    font-size: clamp(2.2rem, 1.45rem + 7vw, 6.4rem);
   }
 
   .site-h2 {
@@ -524,7 +541,7 @@
     line-height: 0.92;
     text-wrap: balance;
     filter: drop-shadow(0 10px 30px rgba(8, 47, 73, 0.28));
-    font-size: clamp(3.2rem, 2.35rem + 2.9vw, 6.4rem);
+    font-size: clamp(2.2rem, 1.45rem + 7vw, 6.4rem);
   }
 
   .site-subheading {
@@ -543,7 +560,7 @@
 
   .site-section-shell {
     padding-inline: 1rem;
-    padding-block: 5rem;
+    padding-block: 4rem;
   }
 
   .site-section-shell-tight {
@@ -553,22 +570,28 @@
 
   .site-section-shell-wide {
     padding-inline: 1rem;
-    padding-block: 6rem;
+    padding-block: 4.5rem;
   }
 
   .site-shell {
     margin-inline: auto;
     max-width: 72rem;
+    min-width: 0;
+    width: 100%;
   }
 
   .site-shell-narrow {
     margin-inline: auto;
     max-width: 64rem;
+    min-width: 0;
+    width: 100%;
   }
 
   .site-shell-wide {
     margin-inline: auto;
     max-width: 88rem;
+    min-width: 0;
+    width: 100%;
   }
 
   .site-section-copy {
@@ -576,6 +599,7 @@
     font-size: clamp(0.98rem, 0.94rem + 0.18vw, 1.08rem);
     line-height: 1.8;
     text-wrap: pretty;
+    overflow-wrap: anywhere;
   }
 
   @media (min-width: 1024px) {

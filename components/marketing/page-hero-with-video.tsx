@@ -269,7 +269,7 @@ export function PageHeroWithVideo({
           "relative z-10",
           size === "large"
             ? "flex min-h-dvh flex-col px-6 pb-12 pt-24 lg:justify-end lg:px-12 lg:pb-16 lg:pt-32"
-            : "mx-auto grid max-w-7xl gap-12 px-4 py-14 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center lg:px-8 lg:py-20 overflow-hidden"
+            : "mx-auto grid max-w-7xl gap-8 overflow-x-clip px-4 py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:items-center lg:gap-12 lg:px-8 lg:py-20"
         )}
       >
         {size === "large" && !isLargeDesktop && (
@@ -473,7 +473,7 @@ function RotatingStatCard({ messages, intervalMs, compact = false }: { messages:
   return (
     <div className={cn(
       "relative overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.04] shadow-lg shadow-black/30 backdrop-blur-xl",
-      compact ? "h-12 w-[260px]" : "h-12 min-w-[220px]"
+      compact ? "h-12 w-full sm:w-[260px]" : "h-12 w-full sm:min-w-[220px]"
     )}>
       <AnimatePresence mode="popLayout">
         <motion.div

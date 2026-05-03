@@ -21,7 +21,7 @@ export default async function DashboardProfilePage() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+    <div className="grid min-w-0 gap-4 md:gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
       <DashboardCard>
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.22em] text-slate-500"><UserRound className="h-4 w-4 text-cyan-500" />Profile</div>
         <h2 className="dashboard-page-title mt-4">Account &amp; Workspace Profile</h2>
@@ -45,7 +45,7 @@ export default async function DashboardProfilePage() {
             <p className="mt-3 text-lg font-semibold text-slate-950">{snapshot.status.subscriptionStatus === "trialing" ? snapshot.status.daysLeft ?? 0 : "—"}</p>
           </div>
           <div className="dashboard-card-muted rounded-[20px] p-4 md:col-span-2">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Fingerprint className="h-4 w-4 text-cyan-500" />
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Client ID / Tenant ID</p>
             </div>
@@ -71,9 +71,9 @@ export default async function DashboardProfilePage() {
         <DashboardCard>
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900"><Building2 className="h-4 w-4 text-violet-500" />Business snapshot</div>
           <dl className="mt-5 space-y-4 text-[15px] text-slate-600">
-            <div className="flex items-center justify-between gap-3"><dt>Business name</dt><dd className="font-semibold text-slate-900">{snapshot.status.businessName || "Not set"}</dd></div>
-            <div className="flex items-center justify-between gap-3"><dt>Industry</dt><dd className="font-semibold text-slate-900">{snapshot.status.industry || "Not set"}</dd></div>
-            <div className="flex items-center justify-between gap-3"><dt>Website domain</dt><dd className="font-semibold text-slate-900 break-all text-right">{snapshot.status.websiteDomain || "Not set"}</dd></div>
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3"><dt>Business name</dt><dd className="font-semibold text-slate-900">{snapshot.status.businessName || "Not set"}</dd></div>
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3"><dt>Industry</dt><dd className="font-semibold text-slate-900">{snapshot.status.industry || "Not set"}</dd></div>
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3"><dt>Website domain</dt><dd className="break-all font-semibold text-slate-900 sm:text-right">{snapshot.status.websiteDomain || "Not set"}</dd></div>
           </dl>
         </DashboardCard>
 
