@@ -4,7 +4,6 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
 import Script from 'next/script'
 import { ThemeProvider } from '@/components/theme-provider'
-import { SiteAiWidget } from '@/components/site-ai-widget'
 import './globals.css'
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
@@ -123,7 +122,12 @@ export default function RootLayout({
             afterSignOutUrl="/"
           >
             {children}
-            <SiteAiWidget />
+            <Script
+              id="omniweb-widget"
+              src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
+              data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
+              strategy="afterInteractive"
+            />
           </ClerkProvider>
         </ThemeProvider>
       </body>
