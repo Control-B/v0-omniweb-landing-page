@@ -7,7 +7,7 @@ import { fetchAgentConfig, saveAgentConfig } from "@/lib/saas/agentConfigService
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
 import type { AgentConfigRecord } from "@/lib/saas/types"
 import { Switch } from "@/components/ui/switch"
-import { buildLiveWidgetSitePreviewUrl, resolvePrimaryKnowledgeSiteUrl } from "@/lib/saas/liveWidgetSitePreview"
+import { resolvePrimaryKnowledgeSiteUrl } from "@/lib/saas/liveWidgetSitePreview"
 import {
   knowledgeSourcesStorageKey,
   readPrimaryKnowledgeOriginFromLocalStorage,
@@ -230,33 +230,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
     if (!domain) return null
     return domain.startsWith("http") ? domain : `https://${domain}`
   }, [widgetStatus.previewDomain, websiteDomain])
-
-  const liveWidgetPreviewUrl = useMemo(() => {
-    if (!widgetStatus.publicWidgetId) return null
-    const params = new URLSearchParams({ open: "1" })
-    if (widgetStatus.widgetPrimaryColor) {
-      params.set("color", widgetStatus.widgetPrimaryColor)
-    }
-    const widgetPath = `/widget/${encodeURIComponent(widgetStatus.publicWidgetId)}?${params.toString()}`
-    const siteUrl = resolvePrimaryKnowledgeSiteUrl({
-      knowledgeSources: accountKnowledgeSources,
-      tenantId: initialConfig.tenantId,
-      websiteDomain,
-    })
-    if (siteUrl) {
-      const onSite = buildLiveWidgetSitePreviewUrl({ siteUrl, widgetPath })
-      if (onSite) {
-        return onSite
-      }
-    }
-    return widgetPath
-  }, [
-    widgetStatus.publicWidgetId,
-    widgetStatus.widgetPrimaryColor,
-    accountKnowledgeSources,
-    initialConfig.tenantId,
-    websiteDomain,
-  ])
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -556,7 +529,6 @@ export function LegacyAgentSettingsPanel({ initialConfig, websiteDomain, busines
             widgetInstalled={widgetStatus.widgetInstalled}
             widgetLastSeenAt={widgetStatus.widgetLastSeenAt}
             previewUrl={previewUrl}
-            liveWidgetPreviewUrl={liveWidgetPreviewUrl}
             onCopyInstallSnippet={handleCopyInstallSnippet}
             snippetCopied={snippetCopied}
           />
@@ -755,7 +727,6 @@ function LivePreviewPanel({
   widgetInstalled,
   widgetLastSeenAt,
   previewUrl,
-  liveWidgetPreviewUrl,
   onCopyInstallSnippet,
   snippetCopied,
 }: {
@@ -784,7 +755,6 @@ function LivePreviewPanel({
   widgetInstalled: boolean
   widgetLastSeenAt: string | null
   previewUrl: string | null
-  liveWidgetPreviewUrl: string | null
   onCopyInstallSnippet: () => void
   snippetCopied: boolean
 }) {
@@ -942,11 +912,6 @@ function LivePreviewPanel({
               </span>
             </div>
             <h4 className="mt-3 text-lg font-semibold text-white">Verify the installed website widget</h4>
-            {liveWidgetPreviewUrl ? (
-              <Button type="button" variant="outline" className="mt-3 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
-                <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">One-click live widget preview</a>
-              </Button>
-            ) : null}
           </div>
 
           <Button

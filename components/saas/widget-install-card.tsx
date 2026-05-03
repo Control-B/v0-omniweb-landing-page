@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { fetchAgentConfig } from "@/lib/saas/agentConfigService"
-import { buildLiveWidgetSitePreviewUrl, resolvePrimaryKnowledgeSiteUrl } from "@/lib/saas/liveWidgetSitePreview"
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
 import type { KnowledgeSourceRecord, WidgetSettingsRecord } from "@/lib/saas/types"
 
@@ -17,7 +16,6 @@ const textareaClassName = "mt-2 min-h-28 w-full rounded-2xl border border-slate-
 
 type WidgetFormState = {
   widgetEnabled: boolean
-  textEnabled: boolean
   voiceEnabled: boolean
   widgetPosition: "bottom-right" | "bottom-left"
   widgetPrimaryColor: string
@@ -28,7 +26,6 @@ type WidgetFormState = {
 function toFormState(settings: WidgetSettingsRecord): WidgetFormState {
   return {
     widgetEnabled: settings.widgetEnabled,
-    textEnabled: settings.textEnabled,
     voiceEnabled: settings.voiceEnabled,
     widgetPosition: settings.widgetPosition,
     widgetPrimaryColor: settings.widgetPrimaryColor,
@@ -134,30 +131,6 @@ export function WidgetInstallCard({
     return domain.startsWith("http") ? domain : `https://${domain}`
   }, [settings?.allowedDomains])
 
-  const liveWidgetPreviewUrl = useMemo(() => {
-    if (!settings?.publicWidgetId) return null
-    const params = new URLSearchParams({ open: "1" })
-    if (settings.widgetPrimaryColor) {
-      params.set("color", settings.widgetPrimaryColor)
-    }
-    const widgetPath = `/widget/${encodeURIComponent(settings.publicWidgetId)}?${params.toString()}`
-    if (!tenantId) {
-      return widgetPath
-    }
-    const siteUrl = resolvePrimaryKnowledgeSiteUrl({
-      knowledgeSources,
-      tenantId,
-      websiteDomain: websiteDomain ?? null,
-    })
-    if (siteUrl) {
-      const onSite = buildLiveWidgetSitePreviewUrl({ siteUrl, widgetPath })
-      if (onSite) {
-        return onSite
-      }
-    }
-    return widgetPath
-  }, [settings?.publicWidgetId, settings?.widgetPrimaryColor, tenantId, knowledgeSources, websiteDomain])
-
   const updateField = <K extends keyof WidgetFormState>(key: K, value: WidgetFormState[K]) => {
     setForm((current) => current ? { ...current, [key]: value } : current)
     setMessage("")
@@ -194,7 +167,6 @@ export function WidgetInstallCard({
       setError("")
       const next = await saveWidgetSettings({
         widgetEnabled: form.widgetEnabled,
-        textEnabled: form.textEnabled,
         voiceEnabled: form.voiceEnabled,
         widgetPosition: form.widgetPosition,
         widgetPrimaryColor: form.widgetPrimaryColor,
@@ -315,11 +287,6 @@ export function WidgetInstallCard({
                 </Button>
               ) : null}
             </div>
-            {liveWidgetPreviewUrl ? (
-              <Button type="button" size="sm" variant="outline" className="w-full justify-center rounded-xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
-                <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">Open live widget preview</a>
-              </Button>
-            ) : null}
           </div>
         ) : (
           <div className="mt-4">
@@ -338,10 +305,6 @@ export function WidgetInstallCard({
           <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
             <span>Widget enabled</span>
             <Switch checked={form.widgetEnabled} onCheckedChange={(checked) => updateField("widgetEnabled", checked)} />
-          </label>
-          <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
-            <span>Text enabled</span>
-            <Switch checked={form.textEnabled} onCheckedChange={(checked) => updateField("textEnabled", checked)} />
           </label>
           <label className="flex items-center justify-between gap-3 text-xs text-slate-300">
             <span>Voice enabled</span>
@@ -397,6 +360,25 @@ export function WidgetInstallCard({
         <div className="space-y-5">
           {activeTab === "test" ? (
             <>
+              <div className="rounded-3xl border border-slate-200 bg-slate-950 p-5 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Widget test</p>
+                <h4 className="mt-3 text-xl font-semibold">Verify the installed website widget</h4>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  After the script is installed on your site, open the live site, launch the widget, and send a test message. Then come back here and verify the latest widget activity.
+                </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <Button type="button" className="justify-center rounded-2xl bg-cyan-400 text-slate-950 hover:bg-cyan-300" onClick={reloadStatus} disabled={checking}>
+                    {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    Verify install
+                  </Button>
+                  {previewUrl ? (
+                    <Button type="button" variant="outline" className="justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                      <a href={previewUrl} target="_blank" rel="noreferrer">Open website</a>
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-4">
@@ -473,6 +455,10 @@ export function WidgetInstallCard({
               <li className="flex items-center justify-between gap-3"><span>Install state</span><span className={settings.widgetInstalled ? "font-semibold text-emerald-600" : "font-semibold text-amber-600"}>{settings.widgetInstalled ? "Installed" : "Not installed"}</span></li>
               <li className="flex items-center justify-between gap-3"><span>Last seen</span><span className="text-right text-slate-900">{settings.widgetLastSeenAt ? new Date(settings.widgetLastSeenAt).toLocaleString() : "Never"}</span></li>
             </ul>
+            <Button type="button" variant="outline" className="mt-5 w-full justify-center" onClick={reloadStatus} disabled={checking}>
+              {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              Verify install
+            </Button>
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
