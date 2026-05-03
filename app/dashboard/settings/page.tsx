@@ -1,5 +1,6 @@
 import { Bell, Bot, ShieldAlert, SlidersHorizontal, UserCog } from "lucide-react"
 import { DashboardCard } from "@/components/saas/dashboard-card"
+import { SchedulingEmailSettingsForm } from "@/components/saas/scheduling-email-settings-form"
 import { requireDashboardAccess } from "@/lib/saas/guards"
 
 const cards = [
@@ -59,6 +60,8 @@ export default async function DashboardSettingsPage() {
           </DashboardCard>
         ))}
       </section>
+
+      <SchedulingEmailSettingsForm />
     </div>
   )
 }
