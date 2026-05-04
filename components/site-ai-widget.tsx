@@ -8,6 +8,8 @@ type TranscriptLine = { role: "user" | "assistant"; content: string }
 type LangOption = { code: string; label: string; flag?: string }
 type UiMode = "voice" | "text"
 
+const AUTO_LANGUAGE_LABEL = "Auto (detect speaker language)"
+
 const ENGINE_BASE_URL = getPublicEngineUrl()
 const DEFAULT_WELCOME_MESSAGE = "Thank you for visiting today, I am your AI assistant... how can I assist you?"
 const STALE_GENERIC_PATTERNS = [
@@ -35,7 +37,7 @@ function normalizeLanguageOption(option: LangOption): LangOption | null {
   const code = normalizeLanguageCode(option.code)
   if (!code) return null
   if (code === "multi") {
-    return { ...option, code, label: "Auto (detect speaker language)", flag: option.flag || "🌐" }
+    return { ...option, code, label: AUTO_LANGUAGE_LABEL, flag: option.flag || "🌐" }
   }
   return { ...option, code, flag: option.flag || LANG_FLAGS[code] }
 }
@@ -50,7 +52,7 @@ function dedupeLanguageOptions(options: LangOption[]) {
     deduped.push(normalized)
   }
   if (!seen.has("multi")) {
-    deduped.unshift({ code: "multi", label: "Auto (detect speaker language)", flag: "🌐" })
+    deduped.unshift({ code: "multi", label: AUTO_LANGUAGE_LABEL, flag: "🌐" })
   }
   return deduped
 }

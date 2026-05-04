@@ -109,7 +109,7 @@ const GOALS = [
 ]
 
 const LANGUAGE_OPTIONS = [
-  { code: "auto", label: "Auto (detect language)", flag: "🌐" },
+  { code: "auto", label: "Auto (detect speaker language)", flag: "🌐" },
   { code: "en", label: "English", flag: "🇺🇸" },
   { code: "es", label: "Spanish", flag: "🇪🇸" },
   { code: "fr", label: "French", flag: "🇫🇷" },
