@@ -21,12 +21,44 @@ const STALE_GENERIC_PATTERNS = [
 
 const LANG_FLAGS: Record<string, string> = {
   en: "🇺🇸", es: "🇪🇸", fr: "🇫🇷", de: "🇩🇪", it: "🇮🇹",
-  pt: "🇧🇷", ja: "🇯🇵", ko: "🇰🇷", zh: "🇨🇳", hi: "🇮🇳", multi: "🌐",
+  pt: "🇧🇷", ja: "🇯🇵", ko: "🇰🇷", zh: "🇨🇳", hi: "🇮🇳", multi: "🌐", auto: "🌐",
 }
+
+const AUTO_LANGUAGE_CODES = new Set(["auto", "multi", "all", "detect"])
+
+function normalizeLanguageCode(code?: string | null) {
+  const normalized = (code || "multi").trim().toLowerCase().replace("_", "-").split("-", 1)[0]
+  return AUTO_LANGUAGE_CODES.has(normalized) ? "multi" : normalized
+}
+
+function normalizeLanguageOption(option: LangOption): LangOption | null {
+  const code = normalizeLanguageCode(option.code)
+  if (!code) return null
+  if (code === "multi") {
+    return { ...option, code, label: "Auto (detect speaker language)", flag: option.flag || "🌐" }
+  }
+  return { ...option, code, flag: option.flag || LANG_FLAGS[code] }
+}
+
+function dedupeLanguageOptions(options: LangOption[]) {
+  const seen = new Set<string>()
+  const deduped: LangOption[] = []
+  for (const option of options) {
+    const normalized = normalizeLanguageOption(option)
+    if (!normalized || seen.has(normalized.code)) continue
+    seen.add(normalized.code)
+    deduped.push(normalized)
+  }
+  if (!seen.has("multi")) {
+    deduped.unshift({ code: "multi", label: "Auto (detect speaker language)", flag: "🌐" })
+  }
+  return deduped
+}
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function flagEmoji(lang?: LangOption | null) {
-  return lang?.flag || LANG_FLAGS[lang?.code || ""] || "🌐"
+  return lang?.flag || LANG_FLAGS[normalizeLanguageCode(lang?.code)] || "🌐"
 }
 
 function normalizeAssistantCopy(text: string) {
@@ -299,11 +331,18 @@ export function SiteAiWidget({
       try {
         const response = await fetch(`${ENGINE_BASE_URL}/api/chat/languages`)
         if (!response.ok) return
-        const data = await response.json() as { languages?: LangOption[] }
-        const list = data.languages || []
+        const data = await response.json() as { default_language?: string; languages?: LangOption[] }
+        const list = dedupeLanguageOptions(data.languages || [])
+        const requestedDefault = normalizeLanguageCode(data.default_language)
         if (cancelled) return
         setLangs(list)
-        setSelectedLang(list.find((lang) => lang.code === "en") || list[0] || null)
+        setSelectedLang(
+          list.find((lang) => normalizeLanguageCode(lang.code) === requestedDefault) ||
+          list.find((lang) => lang.code === "multi") ||
+          list.find((lang) => lang.code === "en") ||
+          list[0] ||
+          null,
+        )
       } catch {
         /* language list is optional */
       }
@@ -313,7 +352,7 @@ export function SiteAiWidget({
 
   const bootstrap = useCallback(async () => {
     const body: { client_id?: string; language: string } = {
-      language: selectedLang?.code || "en",
+      language: normalizeLanguageCode(selectedLang?.code),
     }
     const clientId =
       asClientUuid(clientIdOverride) ||
