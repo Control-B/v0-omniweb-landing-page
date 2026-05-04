@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ArrowUp, ChevronDown, MessageCircle, Mic, X } from "lucide-react"
 import { getPublicEngineUrl } from "@/lib/engine-url"
 
@@ -312,6 +312,7 @@ export function SiteAiWidget({
   const [lines, setLines] = useState<TranscriptLine[]>([])
   const [textDraft, setTextDraft] = useState("")
   const [langs, setLangs] = useState<LangOption[]>([])
+  const visibleLangs = useMemo(() => (langs.length ? dedupeLanguageOptions(langs) : []), [langs])
   const [langOpen, setLangOpen] = useState(false)
   const [selectedLang, setSelectedLang] = useState<LangOption | null>(null)
   const sessionRef = useRef<DeepgramWidgetSession | null>(null)
@@ -556,9 +557,9 @@ export function SiteAiWidget({
                 </span>
                 <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
               </button>
-              {langOpen && langs.length > 0 ? (
+              {langOpen && visibleLangs.length > 0 ? (
                 <ul className="absolute bottom-full z-10 mb-1 max-h-48 w-full overflow-auto rounded-xl border border-white/10 bg-[#0f172a] py-1 text-sm shadow-xl">
-                  {langs.map((lang) => (
+                  {visibleLangs.map((lang) => (
                     <li key={lang.code}>
                       <button
                         type="button"
