@@ -5,6 +5,7 @@ import { useSignIn } from "@clerk/nextjs/legacy"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { OmniwebLogo } from "@/components/brand-logo"
 
 export default function SignInPage() {
   const { isSignedIn } = useAuth()
@@ -139,14 +140,7 @@ export default function SignInPage() {
       <div className="relative flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <Link href="/" className="mb-10 flex items-center justify-center gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-500">
-              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.5 6L9 18h6.5L14.5 26 23 14h-6.5L17.5 6z" fill="white" stroke="white" strokeWidth="1" strokeLinejoin="round"/>
-              </svg>
-            </span>
-            <span className="text-2xl font-bold tracking-tight">Omniweb</span>
-          </Link>
+          <OmniwebLogo className="mb-10 justify-center" textClassName="text-2xl font-bold tracking-tight text-white" />
 
           {/* Card */}
           <div className="rounded-[2rem] border border-white/[0.08] bg-[#0a1225]/90 p-8 shadow-[0_25px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl">

@@ -8,6 +8,7 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { navItems, isRouteActive, primaryCtas } from "@/lib/site-navigation"
+import { OmniwebLogo } from "@/components/brand-logo"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -38,14 +39,7 @@ export function Header() {
     >
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-200">
-            O
-          </span>
-          <span className="text-xl font-bold tracking-tight text-foreground">
-            Omniweb
-          </span>
-        </Link>
+        <OmniwebLogo />
 
         {/* Desktop Navigation - Centered */}
         <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1.5 lg:flex">

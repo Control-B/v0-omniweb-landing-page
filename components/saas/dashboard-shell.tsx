@@ -21,6 +21,7 @@ import {
   Wallet,
 } from "lucide-react"
 import { DashboardThemeToggle } from "@/components/saas/dashboard-theme-toggle"
+import { OmniwebLogo } from "@/components/brand-logo"
 import type { TenantStatus } from "@/lib/saas/types"
 
 const DESKTOP_SIDEBAR_WIDTH = 240
@@ -157,18 +158,13 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
         style={{ width: `min(100vw, ${DESKTOP_SIDEBAR_WIDTH}px)` }}
       >
         <div className="flex min-h-full flex-col px-4 py-4 lg:px-5 lg:py-6">
-          <Link
+          <OmniwebLogo
             href="/dashboard"
-            className="flex items-center gap-3 rounded-2xl px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#4f46e5] via-[#2563eb] to-[#22d3ee] text-white shadow-[0_10px_24px_rgba(79,70,229,0.28)]">
-              <Sparkles className="h-[18px] w-[18px]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[17px] font-semibold tracking-tight text-slate-950">Omniweb</p>
-              <p className="dashboard-meta mt-0.5 truncate">{status.businessName || email || "Workspace"}</p>
-            </div>
-          </Link>
+            className="rounded-2xl px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
+            textClassName="text-[17px] font-semibold tracking-tight text-slate-950"
+            sublabel={status.businessName || email || "Workspace"}
+            sublabelClassName="dashboard-meta mt-0.5 truncate"
+          />
 
           <nav className="mt-7 flex flex-1 gap-1.5 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible" aria-label="Dashboard navigation">
             {navItems.map((item) => {

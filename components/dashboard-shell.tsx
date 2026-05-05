@@ -9,6 +9,7 @@ import {
   Building2, ArrowRight, Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { OmniwebMark } from "@/components/brand-logo"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import { getPublicEngineUrl } from "@/lib/engine-url"
 
@@ -533,9 +534,7 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
         {/* Sidebar */}
         <aside className="w-full border-b border-white/10 lg:w-64 lg:min-h-dvh lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-indigo-500">
-              <Sparkles className="h-4 w-4" />
-            </span>
+            <OmniwebMark />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold">{config?.business_name || "My Business"}</p>
               <p className="truncate text-xs text-slate-400">{email}</p>

@@ -4,8 +4,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Shield, Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react"
 import { getPublicEngineUrl } from "@/lib/engine-url"
+import { OmniwebLogo } from "@/components/brand-logo"
 
 const ENGINE_URL = getPublicEngineUrl()
 
@@ -83,12 +84,7 @@ export default function AdminAuthPage() {
         <div className="kling-panel-strong w-full max-w-md rounded-[2rem] p-8 sm:p-10">
           {/* Header */}
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500">
-              <Shield className="h-7 w-7 text-white" />
-            </div>
-            <Link href="/" className="inline-block text-2xl font-bold">
-              Omniweb
-            </Link>
+            <OmniwebLogo className="mb-4 justify-center" textClassName="text-2xl font-bold text-white" />
             <p className="mt-2 text-sm text-muted-foreground">
               Admin Portal
             </p>

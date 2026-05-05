@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Facebook, Instagram, Youtube, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { footerGroups } from "@/lib/site-navigation"
+import { OmniwebLogo } from "@/components/brand-logo"
 
 // Custom X icon (formerly Twitter)
 function XIcon({ className }: { className?: string }) {
@@ -28,12 +29,7 @@ export function Footer({ variant = "default" }: FooterProps) {
     return (
       <footer className="border-t border-white/10 bg-[#050a12]">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 text-sm text-white/55 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-xs font-semibold text-cyan-100">
-              O
-            </span>
-            <span className="text-sm font-semibold text-white">Omniweb</span>
-          </div>
+          <OmniwebLogo className="gap-3" textClassName="text-sm font-semibold text-white" />
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <span className="text-white/40">© 2026 Omniweb</span>
@@ -72,12 +68,7 @@ export function Footer({ variant = "default" }: FooterProps) {
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.85fr)]">
           {/* Brand column */}
           <div className="flex flex-col gap-5">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-100">
-                O
-              </span>
-              <span className="text-lg font-semibold text-white">Omniweb</span>
-            </div>
+            <OmniwebLogo textClassName="text-lg font-semibold text-white" />
 
             <p className="max-w-sm text-sm leading-7 text-white/55">
               AI voice agents, chat assistants, lead qualification, and workflow automation — built to help businesses close more revenue with less manual work.
