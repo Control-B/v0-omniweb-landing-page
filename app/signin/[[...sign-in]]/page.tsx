@@ -140,7 +140,7 @@ export default function SignInPage() {
       <div className="relative flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           {/* Logo */}
-          <OmniwebLogo className="mb-10 justify-center" textClassName="text-2xl font-bold tracking-tight text-white" />
+          <OmniwebLogo className="mb-10 justify-center" textClassName="text-2xl font-bold tracking-tight text-cyan-200" />
 
           {/* Card */}
           <div className="rounded-[2rem] border border-white/[0.08] bg-[#0a1225]/90 p-8 shadow-[0_25px_80px_rgba(0,0,0,0.6)] backdrop-blur-2xl">

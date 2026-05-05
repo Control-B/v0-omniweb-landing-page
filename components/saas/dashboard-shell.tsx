@@ -161,7 +161,7 @@ export function DashboardShell({ status, children }: DashboardShellProps) {
           <OmniwebLogo
             href="/dashboard"
             className="rounded-2xl px-2 py-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2"
-            textClassName="text-[17px] font-semibold tracking-tight text-slate-950"
+            textClassName="text-[17px] font-semibold tracking-tight text-cyan-200"
             sublabel={status.businessName || email || "Workspace"}
             sublabelClassName="dashboard-meta mt-0.5 truncate"
           />

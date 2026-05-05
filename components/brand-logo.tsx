@@ -39,7 +39,7 @@ export function OmniwebLogo({
     <Link href={href} className={cn("flex items-center gap-3", className)}>
       <OmniwebMark />
       <span className="min-w-0">
-        <span className={cn("block text-xl font-bold tracking-tight text-foreground", textClassName)}>{label}</span>
+        <span className={cn("block text-xl font-bold tracking-tight text-cyan-200", textClassName)}>{label}</span>
         {sublabel ? <span className={cn("block truncate text-[11px] text-slate-400", sublabelClassName)}>{sublabel}</span> : null}
       </span>
     </Link>

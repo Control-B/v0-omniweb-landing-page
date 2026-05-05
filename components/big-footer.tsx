@@ -37,7 +37,7 @@ export function BigFooter() {
       <div className="mx-auto grid max-w-7xl gap-12 px-6 py-16 lg:grid-cols-[1.4fr_1fr_1fr] lg:px-8">
         <div className="space-y-6">
           <div>
-            <OmniwebLogo textClassName="text-2xl font-semibold tracking-tight text-white" />
+            <OmniwebLogo textClassName="text-2xl font-semibold tracking-tight text-cyan-200" />
             <p className="mt-3 max-w-md text-sm leading-6 text-white/60">
               AI-powered websites, automation, and customer conversations built for modern businesses.
             </p>

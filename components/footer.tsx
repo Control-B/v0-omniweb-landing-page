@@ -29,7 +29,7 @@ export function Footer({ variant = "default" }: FooterProps) {
     return (
       <footer className="border-t border-white/10 bg-[#050a12]">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-5 text-sm text-white/55 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <OmniwebLogo className="gap-3" textClassName="text-sm font-semibold text-white" />
+          <OmniwebLogo className="gap-3" textClassName="text-sm font-semibold text-cyan-200" />
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
             <span className="text-white/40">© 2026 Omniweb</span>
@@ -68,7 +68,7 @@ export function Footer({ variant = "default" }: FooterProps) {
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.85fr)]">
           {/* Brand column */}
           <div className="flex flex-col gap-5">
-            <OmniwebLogo textClassName="text-lg font-semibold text-white" />
+            <OmniwebLogo textClassName="text-lg font-semibold text-cyan-200" />
 
             <p className="max-w-sm text-sm leading-7 text-white/55">
               AI voice agents, chat assistants, lead qualification, and workflow automation — built to help businesses close more revenue with less manual work.

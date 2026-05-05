@@ -52,7 +52,7 @@ export function AdminSidebar({ activePage, onNavigate }: AdminSidebarProps) {
         {collapsed ? (
           <OmniwebMark className="h-9 w-9 rounded-lg" />
         ) : (
-          <OmniwebLogo href="/admin" textClassName="text-sm font-semibold text-white" sublabel="admin panel" sublabelClassName="text-[11px] text-slate-400" />
+          <OmniwebLogo href="/admin" textClassName="text-sm font-semibold text-cyan-200" sublabel="admin panel" sublabelClassName="text-[11px] text-slate-400" />
         )}
       </div>
 

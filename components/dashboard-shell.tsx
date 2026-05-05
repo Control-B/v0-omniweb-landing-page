@@ -534,7 +534,7 @@ export function DashboardShell({ email, plan, clientId, isTrial, trialLabel, fir
         {/* Sidebar */}
         <aside className="w-full border-b border-white/10 lg:w-64 lg:min-h-dvh lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
-            <OmniwebLogo href="/dashboard" textClassName="text-sm font-semibold text-white" sublabel={config?.business_name || email || "workspace"} sublabelClassName="text-xs text-slate-400" />
+            <OmniwebLogo href="/dashboard" textClassName="text-sm font-semibold text-cyan-200" sublabel={config?.business_name || email || "workspace"} sublabelClassName="text-xs text-slate-400" />
           </div>
 
           <nav className="flex gap-1 overflow-x-auto p-2 lg:flex-col lg:p-3">

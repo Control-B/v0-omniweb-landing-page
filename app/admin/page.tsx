@@ -84,7 +84,7 @@ export default function AdminAuthPage() {
         <div className="kling-panel-strong w-full max-w-md rounded-[2rem] p-8 sm:p-10">
           {/* Header */}
           <div className="mb-8 text-center">
-            <OmniwebLogo className="mb-4 justify-center" textClassName="text-2xl font-bold text-white" />
+            <OmniwebLogo className="mb-4 justify-center" textClassName="text-2xl font-bold text-cyan-200" />
             <p className="mt-2 text-sm text-muted-foreground">
               Admin Portal
             </p>
