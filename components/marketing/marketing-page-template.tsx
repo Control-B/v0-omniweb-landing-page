@@ -364,32 +364,71 @@ function MidPageCta({ content, accentClassName }: { content: MarketingPageConten
   )
 }
 
+function HeroVisualCard({
+  content,
+  accentClassName,
+  image,
+  visualLabel,
+}: {
+  content: MarketingPageContent
+  accentClassName: string
+  image: string
+  visualLabel: string
+}) {
+  const stats = content.hero.stats ?? []
+
+  return (
+    <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#08101d] p-3 shadow-2xl">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[1.55rem]">
+        <Image src={image} alt={content.hero.title} fill priority sizes="(min-width: 1024px) 48vw, 100vw" className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050a12]/92 via-[#050a12]/30 to-[#050a12]/20" />
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.16),transparent_32%,rgba(255,255,255,0.05)_68%,transparent)]" />
+        <div className="absolute left-5 top-5 rounded-full border border-white/15 bg-black/45 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-white/75 backdrop-blur-md">
+          {visualLabel}
+        </div>
+        <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/10 bg-black/55 p-4 backdrop-blur-md">
+          <p className={`text-xs font-bold uppercase tracking-[0.24em] ${accentClassName}`}>Modern AI workflow</p>
+          <p className="mt-1 text-sm font-semibold text-white">{content.hero.title}</p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {(stats.length ? stats.slice(0, 3) : [{ value: "24/7", label: "Coverage" }, { value: "<2s", label: "Response" }, { value: "1", label: "Widget" }]).map((stat) => (
+              <div key={stat.label} className="rounded-xl border border-white/10 bg-white/[0.055] px-3 py-2">
+                <div className={`text-lg font-black ${accentClassName}`}>{stat.value}</div>
+                <div className="text-[10px] font-semibold uppercase tracking-widest text-white/42">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function HeroSection({
   content,
   pattern,
   accentClassName,
   gradientFrom,
-  videos,
+  image,
   visualLabel,
 }: {
   content: MarketingPageContent
   pattern: LayoutPattern
   accentClassName: string
   gradientFrom: string
-  videos: string[]
+  image: string
   visualLabel: string
 }) {
   const split = pattern === "split"
   return (
     <section className={`relative overflow-hidden border-b border-white/10 ${split ? "px-4 py-24 lg:px-8 lg:py-32" : "min-h-[86dvh]"}`}>
-      {!split ? (
-        <div className="absolute inset-0 z-0">
-          <VideoStack videos={videos} label={visualLabel} className="h-full rounded-none border-0" />
-          <div className="absolute inset-0 bg-black/62" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050a12] via-[#050a12]/35 to-[#050a12]/70" />
-          <div className="absolute inset-0" style={{ background: `radial-gradient(ellipse 80% 50% at 50% -10%, ${gradientFrom}, transparent 60%)` }} />
-        </div>
-      ) : null}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[#050a12]" />
+        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full blur-3xl" style={{ background: gradientFrom }} />
+        <div className="absolute -right-20 bottom-10 h-80 w-80 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:72px_72px] opacity-35" />
+        {!split ? <Image src={image} alt="" fill priority sizes="100vw" className="object-cover opacity-18" /> : null}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050a12] via-[#050a12]/82 to-[#050a12]/68" />
+      </div>
 
       <div className={`relative z-10 mx-auto max-w-7xl ${split ? "grid items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]" : "flex min-h-[86dvh] flex-col items-center justify-center px-6 py-32 text-center"}`}>
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className={split ? "max-w-2xl" : "mx-auto max-w-5xl"}>
@@ -426,7 +465,7 @@ function HeroSection({
 
         {split ? (
           <motion.div initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.12 }}>
-            <VideoStack videos={videos} label={visualLabel} />
+            <HeroVisualCard content={content} accentClassName={accentClassName} image={image} visualLabel={visualLabel} />
           </motion.div>
         ) : null}
       </div>
@@ -731,7 +770,7 @@ function MarketingPageShell({
   return (
     <PageLayout>
       <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#050a12] text-white">
-        <HeroSection content={content} pattern={pattern} accentClassName={accentClassName} gradientFrom={gradientFrom} videos={visuals.heroVideos} visualLabel={visuals.visualLabel} />
+        <HeroSection content={content} pattern={pattern} accentClassName={accentClassName} gradientFrom={gradientFrom} image={visuals.primaryImage} visualLabel={visuals.visualLabel} />
         <StatsBar stats={stats} accentClassName={accentClassName} />
         <IndustryMarquee accentClassName={accentClassName} videos={visuals.marqueeVideos} />
         {pattern === "feature-highlight" ? (
