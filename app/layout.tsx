@@ -124,8 +124,8 @@ export default function RootLayout({
             {children}
             <Script
               id="omniweb-widget"
-              src="https://omniweb.ai/widget.js"
-              data-tenant-id="24c78778-c185-4b6a-a255-02d5ed44004a"
+              src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
+              data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
               strategy="afterInteractive"
             />
           </ClerkProvider>
