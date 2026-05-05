@@ -6,6 +6,7 @@ import { ArrowRight, Pause, Play, Volume2, VolumeX, Zap, BarChart3, Clock, Shiel
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { dispatchAssistantOpen } from "@/lib/assistant-events"
 
 type HeroAction = {
   label: string
@@ -498,7 +499,23 @@ function RotatingStatCard({ messages, intervalMs, compact = false }: { messages:
 }
 
 function HeroActionButton({ action }: { action: HeroAction }) {
+  const isLiveDemoAction = action.href === "/demo" || /try\s*live\s*demo|live\s*ai\s*demo|talk\s*to\s*ai|chat\s*with\s*ai/i.test(action.label)
+  const assistantMode = /chat/i.test(action.label) ? "text" : "voice"
+
   if (action.variant === "secondary") {
+    if (isLiveDemoAction) {
+      return (
+        <Button
+          size="lg"
+          variant="outline"
+          className="kling-pill h-12 rounded-lg border border-white/20 bg-transparent px-6 text-[13px] font-bold uppercase tracking-wider text-white hover:bg-white/10"
+          onClick={() => dispatchAssistantOpen(assistantMode)}
+        >
+          {action.label}
+        </Button>
+      )
+    }
+
     return (
       <Button
         size="lg"
@@ -507,6 +524,22 @@ function HeroActionButton({ action }: { action: HeroAction }) {
         className="kling-pill h-12 rounded-lg border border-white/20 bg-transparent px-6 text-[13px] font-bold uppercase tracking-wider text-white hover:bg-white/10"
       >
         <Link href={action.href}>{action.label}</Link>
+      </Button>
+    )
+  }
+
+  if (isLiveDemoAction) {
+    return (
+      <Button
+        size="lg"
+        className={cn(
+          "rounded-lg bg-[#3b82f6] font-bold uppercase tracking-wider text-white hover:bg-[#2563eb]",
+          "h-10 px-5 text-[11px]",
+        )}
+        onClick={() => dispatchAssistantOpen(assistantMode)}
+      >
+        {action.label}
+        <ArrowRight className="h-3.5 w-3.5" />
       </Button>
     )
   }

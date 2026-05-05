@@ -3,6 +3,7 @@ import { Facebook, Instagram, Youtube, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { footerGroups } from "@/lib/site-navigation"
 import { OmniwebLogo } from "@/components/brand-logo"
+import { AssistantOpenButton } from "@/components/assistant-open-button"
 
 // Custom X icon (formerly Twitter)
 function XIcon({ className }: { className?: string }) {
@@ -83,9 +84,9 @@ export function Footer({ variant = "default" }: FooterProps) {
               <Button asChild size="sm" className="h-9 rounded-full px-5 text-sm">
                 <Link href="/get-started">Get Started</Link>
               </Button>
-              <Button asChild size="sm" variant="outline" className="h-9 rounded-full border-white/10 bg-white/5 px-5 text-sm text-white hover:bg-white/10">
-                <Link href="/company/book-demo">Book a Demo</Link>
-              </Button>
+              <AssistantOpenButton size="sm" variant="outline" className="h-9 rounded-full border-white/10 bg-white/5 px-5 text-sm text-white hover:bg-white/10">
+                Try Live Demo
+              </AssistantOpenButton>
             </div>
 
             <div className="flex items-center gap-1.5 pt-1">

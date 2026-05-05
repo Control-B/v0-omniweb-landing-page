@@ -201,7 +201,7 @@ export const navItems: SiteNavItem[] = [
     items: [
       item("About", "/company/about", "Understand the mission and team behind Omniweb's AI revenue platform.", Building2, "cyan"),
       item("Contact", "/company/contact", "Reach sales, support, and partnerships from a single company hub.", Mail, "blue"),
-      item("Book Demo", "/company/book-demo", "Schedule a live walkthrough tailored to your business and goals.", CalendarDays, "violet"),
+      item("Live AI Demo", "/demo", "Open the live assistant and try voice or chat for yourself.", CalendarDays, "violet"),
       item("Partners", "/company/partners", "See who builds with Omniweb and how we collaborate across channels.", Users, "emerald"),
       item("Careers", "/company/careers", "Explore open roles and the culture that shapes the product.", Briefcase, "orange"),
       item("Privacy Policy", "/company/privacy", "Review how Omniweb handles data, permissions, and privacy controls.", ShieldCheck, "teal"),
@@ -220,7 +220,7 @@ export const navItems: SiteNavItem[] = [
 
 export const primaryCtas: SiteCta[] = [
   { label: "Get Started", href: "/get-started" },
-  { label: "Book a Demo", href: "/company/book-demo" },
+  { label: "Try Live Demo", href: "/demo" },
   { label: "See Pricing", href: "/pricing" },
   { label: "Install AI Agent", href: "/dashboard/widget-install" },
   { label: "Talk to Sales", href: "/company/contact" },

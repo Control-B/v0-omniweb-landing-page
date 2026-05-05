@@ -8,6 +8,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { AIWidget } from "@/components/ai-widget"
 import { Button } from "@/components/ui/button"
+import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import {
   ArrowRight,
   BookOpen,
@@ -496,8 +497,12 @@ export default function ResourcesPage() {
                 <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-cyan-400">Popular Reads</p>
                 <h2 className="text-3xl font-bold lg:text-4xl">Start With the Playbooks Buyers Ask for Most</h2>
               </div>
-              <Button asChild variant="outline" className="shrink-0 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10">
-                <Link href="/demo">Request a custom demo <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Button
+                variant="outline"
+                className="shrink-0 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
+                onClick={() => dispatchAssistantOpen("voice")}
+              >
+                Try Live Demo <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
             <div className="grid gap-4">

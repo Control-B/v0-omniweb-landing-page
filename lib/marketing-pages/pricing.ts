@@ -1,7 +1,7 @@
 import { buildPageEntry, type PageEntry } from "@/lib/marketing-page-data"
 
 const primary = { label: "View Pricing", href: "/pricing" }
-const secondary = { label: "Book a Demo", href: "/company/book-demo" }
+const secondary = { label: "Try Live Demo", href: "/demo" }
 
 const pricingSeeds = [
   {
@@ -335,7 +335,7 @@ const pricingSeeds = [
     howItWorks: [
       "Browse the FAQ by category — billing, trials, contracts, usage, and enterprise. Each question has a complete, honest answer without qualification or deflection.",
       "If you have a question that is not answered here, use the chat assistant at the bottom of the page or contact our sales team directly.",
-      "For enterprise or custom pricing questions, use the Book a Demo link to schedule a conversation with our team.",
+      "For enterprise or custom pricing questions, open Chat with AI or contact our team directly.",
     ],
     faq: [
       { question: "Is there a free trial?", answer: "Yes. Every plan includes a 30-day free trial with full feature access. No credit card is required to start the trial. If you decide to subscribe after the trial, you enter your payment information at that point." },

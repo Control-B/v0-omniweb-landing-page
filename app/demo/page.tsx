@@ -1,7 +1,8 @@
 "use client"
 
+import { useEffect } from "react"
 import Link from "next/link"
-import { ArrowRight, CheckCircle2, MessageSquareText, Mic, Sparkles, TimerReset } from "lucide-react"
+import { CheckCircle2, MessageSquareText, Mic, Sparkles, TimerReset } from "lucide-react"
 import { AIWidget } from "@/components/ai-widget"
 import { Button } from "@/components/ui/button"
 import { PageLayout } from "@/components/page-layout"
@@ -20,6 +21,10 @@ const workflow = [
 ]
 
 export default function DemoPage() {
+  useEffect(() => {
+    dispatchAssistantOpen("select")
+  }, [])
+
   return (
     <PageLayout>
       <section className="px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
@@ -50,12 +55,6 @@ export default function DemoPage() {
               >
                 <MessageSquareText className="mr-2 h-4 w-4" />
                 Chat with AI
-              </Button>
-              <Button size="lg" asChild className="h-12 rounded-full bg-blue-600 px-6 text-white hover:bg-blue-500">
-                <Link href="/company/book-demo">
-                  Book a Demo
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
               </Button>
             </div>
           </div>
@@ -112,16 +111,25 @@ export default function DemoPage() {
               />
 
               <div className="mt-5 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/50">Need a guided walkthrough?</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-white/50">Try the live assistant</p>
                 <p className="mt-3 text-sm leading-7 text-white/60">
-                  Book a demo to see how the widget, voice routing, chat flow, and CRM handoff work together for your business.
+                  Open voice or chat mode to see how the widget qualifies visitors, captures context, and routes the next step.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <Button asChild className="rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-400 hover:to-purple-400">
-                    <Link href="/company/book-demo">Book a Demo</Link>
+                  <Button
+                    className="rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-400 hover:to-purple-400"
+                    onClick={() => dispatchAssistantOpen("voice")}
+                  >
+                    <Mic className="mr-2 h-4 w-4" />
+                    Talk to AI
                   </Button>
-                  <Button asChild variant="outline" className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10">
-                    <Link href="/company/contact">Talk to Sales</Link>
+                  <Button
+                    variant="outline"
+                    className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10"
+                    onClick={() => dispatchAssistantOpen("text")}
+                  >
+                    <MessageSquareText className="mr-2 h-4 w-4" />
+                    Chat with AI
                   </Button>
                 </div>
               </div>

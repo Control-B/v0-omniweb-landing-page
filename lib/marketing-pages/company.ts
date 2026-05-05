@@ -1,6 +1,6 @@
 import { buildPageEntry, type PageEntry } from "@/lib/marketing-page-data"
 
-const primary = { label: "Book a Demo", href: "/company/book-demo" }
+const primary = { label: "Try Live Demo", href: "/demo" }
 const secondary = { label: "Contact Us", href: "/company/contact" }
 
 const companySeeds = [
@@ -39,7 +39,7 @@ const companySeeds = [
     howItWorks: [
       "Read about our founding story, mission, and the team behind the product on this page.",
       "Explore our values and approach to building AI for real businesses — not just enterprise accounts.",
-      "If you want to talk to someone on the team, use the Book a Demo link to schedule a conversation or reach out through the contact page.",
+      "If you want to try the product, open the live AI demo or reach out through the contact page.",
     ],
     faq: [
       { question: "Where is Omniweb based?", answer: "Omniweb is headquartered in the United States with a distributed team working across multiple time zones. Our infrastructure is US-based with EU-region availability for GDPR compliance." },
@@ -87,50 +87,7 @@ const companySeeds = [
       { question: "What is the best way to reach someone immediately?", answer: "For urgent matters, the live chat on this page is staffed during business hours. For platform-affecting incidents, existing customers should use the priority support channel in their account dashboard." },
       { question: "Can I call someone directly?", answer: "Yes. Our main support line is available during business hours for existing customers. The number is provided in your account dashboard. Sales inquiries are handled by our team via the form and live chat." },
     ],
-    related: ["/resources/help-center", "/company/book-demo", "/company/about"],
-  },
-  {
-    slug: "book-demo",
-    title: "Book a Demo",
-    summary: "See Omniweb in action with a personalized demo tailored to your industry and use case.",
-    overview: [
-      "The Omniweb demo is not a sales pitch presentation. It is a working session where we show you the platform operating on a use case that matches your specific business — your industry, your customer interaction type, and your current workflow. You see real AI conversations, real configuration options, and real performance data from similar deployments.",
-      "Before the demo, we ask you a few questions about your business: what industry you are in, how many leads or calls you handle per month, what your current process is for handling them, and what outcome you are most hoping AI will produce. This preparation lets us show you the parts of the platform that are most relevant to you, rather than walking through every feature regardless of relevance.",
-      "The demo typically runs 30 to 45 minutes. By the end, you will have seen how the AI would handle your specific use case, asked the questions you came in with, and received an honest assessment of whether Omniweb is the right fit — including what would need to be true for it to work well for your business.",
-      "After the demo, the next step is always a free trial — not a proposal, not a contract. You get 30 days with full access to configure and test the platform yourself before deciding whether to subscribe.",
-    ],
-    problem: "Most software demos show a polished set of generic features rather than answering the specific question the prospect actually has: will this work for my business, in my industry, with my customers? Generic demos waste time and delay decisions.",
-    solution: "Omniweb's demo is prepared based on your specific business context before you arrive. You see the platform operating on your use case with your industry's typical customer interactions — not a generic demonstration designed to impress rather than inform.",
-    valueToIndustry: "Personalized, honest demos accelerate buying decisions and reduce post-purchase disappointment. When prospects understand exactly what they are getting before they commit, they implement more successfully.",
-    valueToUser: "You spend 45 minutes seeing whether Omniweb actually addresses your specific problem rather than watching a presentation about general AI capabilities. You leave with a clear answer.",
-    outcome: "A clear, honest assessment of whether Omniweb is right for your business — based on your actual use case, not a generic fit calculation.",
-    features: [
-      "Pre-demo intake to customize the session for your business",
-      "Live AI demonstration on your industry use case",
-      "Configuration walkthrough tailored to your workflow",
-      "Performance data from similar industry deployments",
-      "Honest assessment of fit and realistic expectations",
-      "Q&A with a product specialist — not a sales script",
-      "Clear next steps — trial, enterprise evaluation, or alternative recommendation",
-      "30-day free trial offered immediately after the session",
-    ],
-    useCases: [
-      "Business owners evaluating AI for the first time and wanting to see it before committing",
-      "Operations leaders assessing integration requirements before a platform decision",
-      "Agency owners evaluating Omniweb for client deployment",
-      "Enterprise buyers requiring a technical deep dive before procurement",
-      "Teams with specific workflow requirements that need to be validated",
-    ],
-    howItWorks: [
-      "Complete the pre-demo form with your business context. This takes about three minutes and lets us prepare a session that is actually relevant to you.",
-      "Select a time slot from the booking calendar. Demo sessions are available Monday through Friday across multiple time zones.",
-      "Attend the 30-45 minute session. Ask every question you have. We will be honest about what the platform does and does not do well for your specific use case.",
-    ],
-    faq: [
-      { question: "Who will be on the demo call?", answer: "A product specialist who has experience with your industry and use case. They are not a generic SDR — they will know your business type before the call starts because you told us in the intake form." },
-      { question: "What happens after the demo?", answer: "If it looks like a good fit, we set you up with a 30-day free trial immediately. If it is not a fit, we will tell you that and may be able to suggest an alternative approach." },
-    ],
-    related: ["/company/contact", "/pricing/combo", "/resources/case-studies"],
+    related: ["/resources/help-center", "/demo", "/company/about"],
   },
   {
     slug: "partners",

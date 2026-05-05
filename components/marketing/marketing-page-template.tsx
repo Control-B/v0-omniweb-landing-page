@@ -21,8 +21,59 @@ import {
 import { PageLayout } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { FAQAccordion } from "@/components/marketing/page-sections"
+import { AssistantOpenButton } from "@/components/assistant-open-button"
 
 type CTA = { label: string; href: string }
+
+type CtaButtonProps = {
+  cta: CTA
+  className: string
+  size?: "default" | "sm" | "lg" | "icon"
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  showArrow?: boolean
+  assistantLabel?: "Talk to AI" | "Chat with AI"
+  assistantMode?: "voice" | "text"
+}
+
+function isLiveDemoCta(cta: CTA) {
+  return cta.href === "/demo" || cta.href === "/company/book-demo" || /book\s*(a\s*)?demo|try\s*live\s*demo|live\s*ai\s*demo|talk\s*to\s*ai|chat\s*with\s*ai/i.test(cta.label)
+}
+
+function getAssistantCtaMode(cta: CTA): "voice" | "text" {
+  return /chat/i.test(cta.label) ? "text" : "voice"
+}
+
+function getAssistantCtaLabel(cta: CTA, fallbackLabel: "Talk to AI" | "Chat with AI") {
+  return /book\s*(a\s*)?demo/i.test(cta.label) ? fallbackLabel : cta.label
+}
+
+function CtaButton({
+  cta,
+  className,
+  size = "lg",
+  variant = "default",
+  showArrow = false,
+  assistantLabel = "Talk to AI",
+  assistantMode = "voice",
+}: CtaButtonProps) {
+  if (isLiveDemoCta(cta)) {
+    return (
+      <AssistantOpenButton mode={getAssistantCtaMode(cta) || assistantMode} size={size} variant={variant} className={className}>
+        {getAssistantCtaLabel(cta, assistantLabel)}
+        {showArrow ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+      </AssistantOpenButton>
+    )
+  }
+
+  return (
+    <Button size={size} asChild variant={variant} className={className}>
+      <Link href={cta.href}>
+        {cta.label}
+        {showArrow ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+      </Link>
+    </Button>
+  )
+}
 
 export type MarketingPageContent = {
   overview?: string[]
@@ -352,12 +403,11 @@ function MidPageCta({ content, accentClassName }: { content: MarketingPageConten
             <h2 className="mt-2 text-2xl font-black text-white lg:text-3xl">Ready to see this flow on your site?</h2>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-white/58">Preview the agent, map your first workflow, and install the widget without changing your backend.</p>
           </div>
-          <Button asChild className="h-12 rounded-full bg-blue-600 px-8 text-sm font-bold text-white hover:bg-blue-500">
-            <Link href={content.hero.primaryAction.href}>
-              {content.hero.primaryAction.label}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
+          <CtaButton
+            cta={content.hero.primaryAction}
+            className="h-12 rounded-full bg-blue-600 px-8 text-sm font-bold text-white hover:bg-blue-500"
+            showArrow
+          />
         </div>
       </div>
     </section>
@@ -442,16 +492,19 @@ function HeroSection({
           </h2>
           <p className={`mt-6 text-lg leading-relaxed text-white/65 ${split ? "max-w-xl" : "mx-auto max-w-2xl"}`}>{content.hero.description}</p>
           <div className={`mt-8 flex flex-col gap-3 sm:flex-row ${split ? "" : "items-center justify-center"}`}>
-            <Button size="lg" asChild className="h-12 rounded-full bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-500">
-              <Link href={content.hero.primaryAction.href}>
-                {content.hero.primaryAction.label}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+            <CtaButton
+              cta={content.hero.primaryAction}
+              className="h-12 rounded-full bg-blue-600 px-8 text-sm font-semibold text-white hover:bg-blue-500"
+              showArrow
+            />
             {content.hero.secondaryAction ? (
-              <Button size="lg" asChild variant="outline" className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-sm text-white hover:bg-white/10">
-                <Link href={content.hero.secondaryAction.href}>{content.hero.secondaryAction.label}</Link>
-              </Button>
+              <CtaButton
+                cta={content.hero.secondaryAction}
+                variant="outline"
+                className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-sm text-white hover:bg-white/10"
+                assistantLabel="Chat with AI"
+                assistantMode="text"
+              />
             ) : null}
           </div>
           <div className={`mt-7 flex flex-wrap gap-2 ${split ? "" : "justify-center"}`}>
@@ -725,16 +778,19 @@ function FinalCta({ content, accentClassName, gradientFrom, gradientTo }: { cont
             <h2 className="mb-4 text-2xl font-black uppercase tracking-wide text-white lg:text-[2.2rem] leading-tight">{content.footerCta.title}</h2>
             <p className="mx-auto mb-10 max-w-xl text-[15px] text-white/70">{content.footerCta.description}</p>
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Button size="lg" asChild className="h-12 rounded-full bg-blue-600 px-10 text-sm font-bold text-white hover:bg-blue-500">
-                <Link href={content.footerCta.primaryAction.href}>
-                  {content.footerCta.primaryAction.label}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              <CtaButton
+                cta={content.footerCta.primaryAction}
+                className="h-12 rounded-full bg-blue-600 px-10 text-sm font-bold text-white hover:bg-blue-500"
+                showArrow
+              />
               {content.footerCta.secondaryAction ? (
-                <Button size="lg" asChild variant="outline" className="h-12 rounded-full border-white/20 bg-white/5 px-10 text-sm text-white hover:bg-white/10">
-                  <Link href={content.footerCta.secondaryAction.href}>{content.footerCta.secondaryAction.label}</Link>
-                </Button>
+                <CtaButton
+                  cta={content.footerCta.secondaryAction}
+                  variant="outline"
+                  className="h-12 rounded-full border-white/20 bg-white/5 px-10 text-sm text-white hover:bg-white/10"
+                  assistantLabel="Chat with AI"
+                  assistantMode="text"
+                />
               ) : null}
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { buildPageEntry, type PageEntry } from "@/lib/marketing-page-data"
 
 const primary = { label: "Explore Resources", href: "/resources" }
-const secondary = { label: "Book a Demo", href: "/company/book-demo" }
+const secondary = { label: "Try Live Demo", href: "/demo" }
 
 const resourceSeeds = [
   {

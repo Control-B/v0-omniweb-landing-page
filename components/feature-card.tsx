@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { dispatchAssistantOpen } from "@/lib/assistant-events"
 
 type FeatureCardProps = {
   icon: LucideIcon
@@ -65,6 +66,7 @@ export function FeatureCard({
   image,
 }: FeatureCardProps) {
   const a = accents[accent]
+  const opensLiveDemo = actionHref === "/demo" || /demo/i.test(actionLabel)
 
   return (
     <motion.div
@@ -105,11 +107,23 @@ export function FeatureCard({
           </li>
         ))}
       </ul>
-      <Button variant="ghost" asChild className={`mt-5 px-0 ${a.link} hover:bg-transparent`}>
-        <Link href={actionHref}>
+      <Button
+        variant="ghost"
+        asChild={!opensLiveDemo}
+        className={`mt-5 px-0 ${a.link} hover:bg-transparent`}
+        onClick={opensLiveDemo ? () => dispatchAssistantOpen("voice") : undefined}
+      >
+        {opensLiveDemo ? (
+          <span>
+            {actionLabel}
+            <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </span>
+        ) : (
+          <Link href={actionHref}>
           {actionLabel}
           <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-        </Link>
+          </Link>
+        )}
       </Button>
       </div>
     </motion.div>

@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { navItems, isRouteActive, primaryCtas } from "@/lib/site-navigation"
 import { OmniwebLogo } from "@/components/brand-logo"
+import { dispatchAssistantOpen } from "@/lib/assistant-events"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -228,11 +229,26 @@ export function Header() {
             <div className="mt-4 border-t border-border/40 pt-4">
               <div className="grid grid-cols-2 gap-2">
                 {primaryCtas.map((cta) => (
-                  <Button key={cta.label} variant="outline" size="sm" asChild className="justify-center border-white/15 bg-white/5 text-white hover:bg-white/10">
-                    <Link href={cta.href} onClick={() => setMobileMenuOpen(false)}>
+                  cta.href === "/demo" ? (
+                    <Button
+                      key={cta.label}
+                      variant="outline"
+                      size="sm"
+                      className="justify-center border-white/15 bg-white/5 text-white hover:bg-white/10"
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        dispatchAssistantOpen("voice")
+                      }}
+                    >
                       {cta.label}
-                    </Link>
-                  </Button>
+                    </Button>
+                  ) : (
+                    <Button key={cta.label} variant="outline" size="sm" asChild className="justify-center border-white/15 bg-white/5 text-white hover:bg-white/10">
+                      <Link href={cta.href} onClick={() => setMobileMenuOpen(false)}>
+                        {cta.label}
+                      </Link>
+                    </Button>
+                  )
                 ))}
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
