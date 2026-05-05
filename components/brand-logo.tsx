@@ -29,7 +29,7 @@ export function OmniwebMark({ className, textClassName }: OmniwebMarkProps) {
 
 export function OmniwebLogo({
   href = "/",
-  label = "Omniweb",
+  label = "omniweb",
   sublabel,
   className,
   textClassName,

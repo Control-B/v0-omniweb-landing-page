@@ -15,7 +15,7 @@ import {
   UserCog,
 } from "lucide-react"
 import { useState } from "react"
-import { OmniwebMark } from "@/components/brand-logo"
+import { OmniwebLogo, OmniwebMark } from "@/components/brand-logo"
 
 const NAV_ITEMS: { id: AdminPageId; label: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
@@ -49,12 +49,10 @@ export function AdminSidebar({ activePage, onNavigate }: AdminSidebarProps) {
     >
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-16 border-b border-white/10">
-        <OmniwebMark className="h-9 w-9 rounded-lg" />
-        {!collapsed && (
-          <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm text-white truncate">Omniweb</span>
-            <span className="text-[11px] text-slate-400 truncate">Admin Panel</span>
-          </div>
+        {collapsed ? (
+          <OmniwebMark className="h-9 w-9 rounded-lg" />
+        ) : (
+          <OmniwebLogo href="/admin" textClassName="text-sm font-semibold text-white" sublabel="admin panel" sublabelClassName="text-[11px] text-slate-400" />
         )}
       </div>
 

@@ -17,7 +17,7 @@ import {
   Wallet,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { OmniwebMark } from "@/components/brand-logo"
+import { OmniwebLogo } from "@/components/brand-logo"
 import { dispatchAssistantOpen } from "@/lib/assistant-events"
 import { getPublicEngineUrl } from "@/lib/engine-url"
 
@@ -457,11 +457,7 @@ export function OmniwebDashboardShell({ email, plan, clientId, isTrial, trialLab
       <div className="flex min-h-dvh flex-col lg:flex-row">
         <aside className="w-full border-b border-white/60 bg-white/75 backdrop-blur lg:min-h-dvh lg:w-[270px] lg:border-b-0 lg:border-r lg:sticky lg:top-0">
           <div className="flex items-center gap-3 px-5 py-5">
-            <OmniwebMark />
-            <div className="min-w-0">
-              <p className="truncate text-2xl font-semibold tracking-tight text-slate-900">omniweb</p>
-              <p className="truncate text-xs text-slate-500">{email}</p>
-            </div>
+            <OmniwebLogo href="/dashboard" textClassName="text-2xl font-semibold tracking-tight text-slate-900" sublabel={email} sublabelClassName="text-xs text-slate-500" />
           </div>
 
           <nav className="flex gap-1 overflow-x-auto px-3 pb-4 lg:flex-col lg:overflow-visible">
