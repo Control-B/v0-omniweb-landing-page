@@ -122,6 +122,12 @@ export default function RootLayout({
             afterSignOutUrl="/"
           >
             {children}
+            <Script
+              id="omniweb-widget"
+              src="https://omniweb.ai/widget.js"
+              data-tenant-id="24c78778-c185-4b6a-a255-02d5ed44004a"
+              strategy="afterInteractive"
+            />
           </ClerkProvider>
         </ThemeProvider>
       </body>
