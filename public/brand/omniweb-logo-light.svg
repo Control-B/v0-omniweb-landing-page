@@ -9,7 +9,9 @@
       <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#22d3ee" flood-opacity="0.16"/>
     </filter>
   </defs>
-  <rect width="1200" height="360" rx="48" fill="transparent"/>
+  <rect width="1200" height="360" rx="48" fill="#050a12"/>
+  <circle cx="178" cy="180" r="170" fill="#22d3ee" opacity="0.08"/>
+  <circle cx="1010" cy="188" r="260" fill="#6d28d9" opacity="0.08"/>
   <rect x="48" y="48" width="264" height="264" rx="92" fill="url(#omniweb-logo-light-bg)" filter="url(#omniweb-logo-light-shadow)"/>
   <rect x="52" y="52" width="256" height="256" rx="88" stroke="#22d3ee" stroke-opacity="0.28" stroke-width="8"/>
   <text x="180" y="230" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="152" font-weight="800" fill="#a5f3fc">O</text>
