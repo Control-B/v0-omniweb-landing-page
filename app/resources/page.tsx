@@ -497,7 +497,7 @@ export default function ResourcesPage() {
                 <h2 className="text-3xl font-bold lg:text-4xl">Start With the Playbooks Buyers Ask for Most</h2>
               </div>
               <Button asChild variant="outline" className="shrink-0 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10">
-                <Link href="/company#contact">Request a custom demo <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/demo">Request a custom demo <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
             <div className="grid gap-4">
