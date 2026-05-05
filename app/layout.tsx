@@ -57,11 +57,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon.png?v=20260411d', type: 'image/png', sizes: '48x48' },
-      { url: '/icon.svg?v=20260411d', type: 'image/svg+xml', sizes: 'any' },
+      { url: '/icon.png?v=20260505a', type: 'image/png', sizes: '48x48' },
+      { url: '/icon.svg?v=20260505a', type: 'image/svg+xml', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico?v=20260411d',
-    apple: '/apple-icon.png?v=20260411d',
+    shortcut: '/favicon.ico?v=20260505a',
+    apple: '/apple-icon.png?v=20260505a',
   },
 }
 
