@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="omniweb-mark-bg" x1="96" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#164e63"/>
+      <stop offset="0.52" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+    <filter id="omniweb-mark-shadow" x="32" y="32" width="448" height="448" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="28" stdDeviation="32" flood-color="#22d3ee" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect x="56" y="56" width="400" height="400" rx="140" fill="url(#omniweb-mark-bg)" filter="url(#omniweb-mark-shadow)"/>
+  <rect x="61" y="61" width="390" height="390" rx="135" stroke="#22d3ee" stroke-opacity="0.28" stroke-width="10"/>
+  <text x="256" y="334" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="232" font-weight="800" fill="#a5f3fc">O</text>
+</svg>
