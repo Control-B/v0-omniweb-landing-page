@@ -83,6 +83,26 @@ const visualVideos = {
   pitch: ["/media/ai-conversion-pitch-web.mp4", "/media/web-developers.mp4"],
 }
 
+const allVideos = [
+  ...visualVideos.commerce,
+  ...visualVideos.contractors,
+  ...visualVideos.professionals,
+  ...visualVideos.builders,
+  "/media/e-commerce-video.mp4",
+  "/media/ai-conversion-pitch.mp4",
+  "/media/ai-conversion-pitch-web.mp4",
+]
+
+const imagePools = {
+  commerce: ["/images/generated/solutions-ecommerce.png", "/images/E-commerceImage.png", "/images/ecommerce-solution.jpg", "/images/generated/template-commerce-pro.png"],
+  contractors: ["/images/generated/solutions-contractors.png", "/images/ai-telephony.jpg", "/images/generated/template-local-pro.png", "/images/AI Voice room.png"],
+  professionals: ["/images/generated/solutions-professional-services.png", "/images/professional-services.jpg", "/images/generated/company-value-customer-success.png", "/images/generated/company-perk-team.png"],
+  resources: ["/images/generated/resources-knowledge-hub.png", "/images/generated/resources-guides-tutorials.png", "/images/generated/resources-case-studies.png", "/images/generated/resources-video-library.png", "/images/generated/resources-blog.png", "/images/generated/resources-free-templates.png"],
+  company: ["/images/generated/company-innovation-team.png", "/images/generated/company-value-innovation.png", "/images/generated/company-value-transparency.png", "/images/generated/company-perk-growth.png", "/images/generated/company-perk-tools.png"],
+  pricing: ["/images/generated/pricing-growth-dashboard.png", "/images/Sales1.webp", "/images/AI lead automation.png", "/images/NextGenAI.png"],
+  features: ["/images/AI Voice room.png", "/images/AI chatflow.png", "/images/AI lead automation.png", "/images/ai-integration.jpg", "/images/ai-web-development.jpg", "/images/generated/WebDevelopers.png"],
+}
+
 const industryVideos = [
   { src: "/media/Doctors.mp4", label: "Patient intake" },
   { src: "/media/Lawyers.mp4", label: "Legal screening" },
@@ -98,12 +118,21 @@ const industryVideos = [
   { src: "/media/Beautiful lady store.mp4", label: "Fashion shoppers" },
 ]
 
-const doubledIndustryVideos = [...industryVideos, ...industryVideos]
 const iconSet = [PhoneCall, MessageSquare, Target, CalendarCheck, TrendingUp, ShieldCheck, BarChart3, Users]
+
+function getPageScore(key: string) {
+  return [...key].reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0)
+}
+
+function rotateArray<T>(items: T[], offset: number) {
+  if (!items.length) return items
+  const start = Math.abs(offset) % items.length
+  return [...items.slice(start), ...items.slice(0, start)]
+}
 
 function getPattern(title: string, sectionLabel: string): LayoutPattern {
   const key = `${sectionLabel}:${title}`
-  const score = [...key].reduce((total, char) => total + char.charCodeAt(0), 0)
+  const score = getPageScore(key)
   return patternOrder[score % patternOrder.length]
 }
 
@@ -121,62 +150,49 @@ function resolveVisuals({
   sectionImage2: string
 }) {
   const text = `${sectionLabel} ${content.hero.title} ${content.hero.description} ${content.useCases.join(" ")}`.toLowerCase()
+  const pageScore = getPageScore(`${sectionLabel}:${content.hero.title}`)
+  const defaultImages = [sectionImage, sectionImage2, ...imagePools.features, ...imagePools.resources]
+  let videoPool = [...heroVideos, ...visualVideos.builders]
+  let imagePool = defaultImages
+  let visualLabel = "AI revenue system"
 
   if (text.includes("shopify") || text.includes("ecommerce") || text.includes("e-commerce") || text.includes("cart")) {
-    return {
-      heroVideos: visualVideos.commerce,
-      primaryImage: "/images/generated/solutions-ecommerce.png",
-      secondaryImage: "/images/E-commerceImage.png",
-      visualLabel: "Commerce conversion layer",
-    }
+    videoPool = visualVideos.commerce
+    imagePool = imagePools.commerce
+    visualLabel = "Commerce conversion layer"
+  } else if (text.includes("contractor") || text.includes("plumbing") || text.includes("hvac") || text.includes("roof") || text.includes("home service") || text.includes("roadside")) {
+    videoPool = visualVideos.contractors
+    imagePool = imagePools.contractors
+    visualLabel = "Field-service intake system"
+  } else if (text.includes("healthcare") || text.includes("patient") || text.includes("legal") || text.includes("professional") || text.includes("appointment")) {
+    videoPool = visualVideos.professionals
+    imagePool = imagePools.professionals
+    visualLabel = "Trust-based intake flow"
+  } else if (text.includes("pricing") || text.includes("enterprise") || text.includes("telephony") || text.includes("combo")) {
+    videoPool = visualVideos.pitch
+    imagePool = imagePools.pricing
+    visualLabel = "ROI planning dashboard"
+  } else if (text.includes("resource") || text.includes("docs") || text.includes("guide") || text.includes("security") || text.includes("api")) {
+    videoPool = visualVideos.builders
+    imagePool = imagePools.resources
+    visualLabel = "Operator knowledge hub"
+  } else if (text.includes("company") || text.includes("partner") || text.includes("career") || text.includes("contact")) {
+    videoPool = visualVideos.builders
+    imagePool = imagePools.company
+    visualLabel = "Omniweb operating system"
   }
 
-  if (text.includes("contractor") || text.includes("plumbing") || text.includes("hvac") || text.includes("roof") || text.includes("home service") || text.includes("roadside")) {
-    return {
-      heroVideos: visualVideos.contractors,
-      primaryImage: "/images/generated/solutions-contractors.png",
-      secondaryImage: "/images/ai-telephony.jpg",
-      visualLabel: "Field-service intake system",
-    }
-  }
+  const mixedVideos = rotateArray([...videoPool, ...allVideos.filter((src) => !videoPool.includes(src))], pageScore)
+  const mixedImages = rotateArray([...imagePool, ...defaultImages.filter((src) => !imagePool.includes(src))], Math.floor(pageScore / 3))
+  const marqueeVideos = rotateArray(industryVideos, pageScore).slice(0, 6)
 
-  if (text.includes("healthcare") || text.includes("patient") || text.includes("legal") || text.includes("professional") || text.includes("appointment")) {
-    return {
-      heroVideos: visualVideos.professionals,
-      primaryImage: "/images/generated/solutions-professional-services.png",
-      secondaryImage: "/images/professional-services.jpg",
-      visualLabel: "Trust-based intake flow",
-    }
+  return {
+    heroVideos: mixedVideos.slice(0, Math.min(4, mixedVideos.length)),
+    primaryImage: mixedImages[0],
+    secondaryImage: mixedImages[1] ?? mixedImages[0],
+    marqueeVideos: [...marqueeVideos, ...marqueeVideos],
+    visualLabel,
   }
-
-  if (text.includes("pricing") || text.includes("enterprise") || text.includes("telephony") || text.includes("combo")) {
-    return {
-      heroVideos: visualVideos.pitch,
-      primaryImage: "/images/generated/pricing-growth-dashboard.png",
-      secondaryImage: "/images/Sales1.webp",
-      visualLabel: "ROI planning dashboard",
-    }
-  }
-
-  if (text.includes("resource") || text.includes("docs") || text.includes("guide") || text.includes("security") || text.includes("api")) {
-    return {
-      heroVideos: visualVideos.builders,
-      primaryImage: "/images/generated/resources-knowledge-hub.png",
-      secondaryImage: "/images/generated/resources-guides-tutorials.png",
-      visualLabel: "Operator knowledge hub",
-    }
-  }
-
-  if (text.includes("company") || text.includes("partner") || text.includes("career") || text.includes("contact")) {
-    return {
-      heroVideos: visualVideos.builders,
-      primaryImage: "/images/generated/company-innovation-team.png",
-      secondaryImage: "/images/generated/company-value-customer-success.png",
-      visualLabel: "Omniweb operating system",
-    }
-  }
-
-  return { heroVideos, primaryImage: sectionImage, secondaryImage: sectionImage2, visualLabel: "AI revenue system" }
 }
 
 function accentBg(accentClassName: string) {
@@ -290,6 +306,21 @@ function ProductMockup({ accentClassName, title, features }: { accentClassName: 
         </div>
       </div>
     </div>
+  )
+}
+
+function ProductUiSection({ content, accentClassName }: { content: MarketingPageContent; accentClassName: string }) {
+  return (
+    <section className="px-4 py-20 lg:px-8 lg:py-24">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+        <div>
+          <p className={`mb-3 text-sm font-semibold uppercase tracking-widest ${accentClassName}`}>Product UI</p>
+          <h2 className="text-3xl font-bold text-white lg:text-4xl">A clear operating view for every workflow</h2>
+          <p className="mt-5 text-[15px] leading-8 text-white/62">Each sub-page now includes a product-style UI mockup so visitors understand how Omniweb captures intent, routes work, and proves ROI.</p>
+        </div>
+        <ProductMockup accentClassName={accentClassName} title={content.hero.title} features={content.features} />
+      </div>
+    </section>
   )
 }
 
@@ -617,7 +648,7 @@ function RelatedAndFaq({ content, accentClassName }: { content: MarketingPageCon
   )
 }
 
-function IndustryMarquee({ accentClassName }: { accentClassName: string }) {
+function IndustryMarquee({ accentClassName, videos }: { accentClassName: string; videos: typeof industryVideos }) {
   return (
     <section className="overflow-hidden border-b border-white/10 bg-white/[0.02] py-14 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 text-center lg:px-8">
@@ -628,7 +659,7 @@ function IndustryMarquee({ accentClassName }: { accentClassName: string }) {
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#050a12] to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#050a12] to-transparent" />
         <div className="flex w-max animate-marquee gap-4">
-          {doubledIndustryVideos.map((video, index) => (
+          {videos.map((video, index) => (
             <div key={`${video.src}-${index}`} className="relative w-[min(360px,72vw)] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10" style={{ aspectRatio: "4/3" }}>
               <video src={video.src} muted autoPlay loop playsInline preload="metadata" className="h-full w-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-3 pb-3 pt-8">
@@ -690,33 +721,58 @@ function MarketingPageShell({
     [content, heroVideos, sectionImage, sectionImage2, sectionLabel]
   )
   const stats = content.hero.stats ?? []
+  const storyOrFeature =
+    pattern === "story" ? (
+      <StoryFlowSection content={content} accentClassName={accentClassName} image={visuals.secondaryImage} />
+    ) : (
+      <FeatureHighlightSection content={content} accentClassName={accentClassName} image={visuals.primaryImage} pattern={pattern} />
+    )
 
   return (
     <PageLayout>
       <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#050a12] text-white">
         <HeroSection content={content} pattern={pattern} accentClassName={accentClassName} gradientFrom={gradientFrom} videos={visuals.heroVideos} visualLabel={visuals.visualLabel} />
         <StatsBar stats={stats} accentClassName={accentClassName} />
-        <IndustryMarquee accentClassName={accentClassName} />
-        <ProblemSolutionSection content={content} accentClassName={accentClassName} pattern={pattern} />
-        <MidPageCta content={content} accentClassName={accentClassName} />
-        {pattern === "story" ? (
-          <StoryFlowSection content={content} accentClassName={accentClassName} image={visuals.secondaryImage} />
+        <IndustryMarquee accentClassName={accentClassName} videos={visuals.marqueeVideos} />
+        {pattern === "feature-highlight" ? (
+          <>
+            {storyOrFeature}
+            <ProblemSolutionSection content={content} accentClassName={accentClassName} pattern={pattern} />
+            <ProductUiSection content={content} accentClassName={accentClassName} />
+            <MidPageCta content={content} accentClassName={accentClassName} />
+            <VisualBreakSection videos={visuals.heroVideos} label={visuals.visualLabel} accentClassName={accentClassName} content={content} />
+            <ProcessSection content={content} accentClassName={accentClassName} pattern={pattern} />
+          </>
+        ) : pattern === "story" ? (
+          <>
+            <ProblemSolutionSection content={content} accentClassName={accentClassName} pattern={pattern} />
+            <MidPageCta content={content} accentClassName={accentClassName} />
+            {storyOrFeature}
+            <VisualBreakSection videos={visuals.heroVideos} label={visuals.visualLabel} accentClassName={accentClassName} content={content} />
+            <ProductUiSection content={content} accentClassName={accentClassName} />
+            <ProcessSection content={content} accentClassName={accentClassName} pattern={pattern} />
+          </>
+        ) : pattern === "funnel" ? (
+          <>
+            <ProblemSolutionSection content={content} accentClassName={accentClassName} pattern={pattern} />
+            <MidPageCta content={content} accentClassName={accentClassName} />
+            <ProofSection content={content} accentClassName={accentClassName} pattern={pattern} />
+            {storyOrFeature}
+            <ProductUiSection content={content} accentClassName={accentClassName} />
+            <VisualBreakSection videos={visuals.heroVideos} label={visuals.visualLabel} accentClassName={accentClassName} content={content} />
+            <ProcessSection content={content} accentClassName={accentClassName} pattern={pattern} />
+          </>
         ) : (
-          <FeatureHighlightSection content={content} accentClassName={accentClassName} image={visuals.primaryImage} pattern={pattern} />
+          <>
+            <ProblemSolutionSection content={content} accentClassName={accentClassName} pattern={pattern} />
+            <MidPageCta content={content} accentClassName={accentClassName} />
+            {storyOrFeature}
+            <ProductUiSection content={content} accentClassName={accentClassName} />
+            <ProcessSection content={content} accentClassName={accentClassName} pattern={pattern} />
+            <VisualBreakSection videos={visuals.heroVideos} label={visuals.visualLabel} accentClassName={accentClassName} content={content} />
+          </>
         )}
-        <section className="px-4 py-20 lg:px-8 lg:py-24">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-            <div>
-              <p className={`mb-3 text-sm font-semibold uppercase tracking-widest ${accentClassName}`}>Product UI</p>
-              <h2 className="text-3xl font-bold text-white lg:text-4xl">A clear operating view for every workflow</h2>
-              <p className="mt-5 text-[15px] leading-8 text-white/62">Each sub-page now includes a product-style UI mockup so visitors understand how Omniweb captures intent, routes work, and proves ROI.</p>
-            </div>
-            <ProductMockup accentClassName={accentClassName} title={content.hero.title} features={content.features} />
-          </div>
-        </section>
-        <ProcessSection content={content} accentClassName={accentClassName} pattern={pattern} />
-        <VisualBreakSection videos={visuals.heroVideos} label={visuals.visualLabel} accentClassName={accentClassName} content={content} />
-        <ProofSection content={content} accentClassName={accentClassName} pattern={pattern} />
+        {pattern !== "funnel" ? <ProofSection content={content} accentClassName={accentClassName} pattern={pattern} /> : null}
         <RelatedAndFaq content={content} accentClassName={accentClassName} />
         <FinalCta content={content} accentClassName={accentClassName} gradientFrom={gradientFrom} gradientTo={gradientTo} />
       </div>
