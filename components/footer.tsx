@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Facebook, Instagram, Youtube, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { footerGroups, primaryCtas } from "@/lib/site-navigation"
+import { footerGroups } from "@/lib/site-navigation"
 
 // Custom X icon (formerly Twitter)
 function XIcon({ className }: { className?: string }) {
@@ -67,82 +67,87 @@ export function Footer({ variant = "default" }: FooterProps) {
 
   return (
     <footer className="border-t border-white/10 bg-[#050a12]">
-      <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
-        <div className="grid gap-10 xl:grid-cols-[1.1fr_1.9fr]">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-100">
-              O
-            </span>
-            <span className="text-lg font-semibold text-white">Omniweb</span>
-          </div>
-          <p className="mt-4 max-w-md text-sm leading-7 text-white/55">
-            AI voice agents, chat assistants, lead qualification, workflow automation, and multi-tenant deployments designed to help businesses close more revenue with less manual work.
-          </p>
-          <a href="mailto:support@omniweb.ai" className="mt-5 inline-flex items-center gap-2 text-sm text-white/70 transition hover:text-white">
-            <Mail className="site-icon-accent h-4 w-4" />
-            support@omniweb.ai
-          </a>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            {primaryCtas.map((cta) => (
-              <Button key={cta.label} asChild variant={cta.label === "Get Started" ? "default" : "outline"} className="h-10 rounded-full border-white/10 bg-white/5 px-4 text-sm text-white hover:bg-white/10">
-                <Link href={cta.href}>{cta.label}</Link>
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-5">
-          {footerGroups.map((group) => (
-            <div key={group.label}>
-              <Link href={group.href} className="text-sm font-semibold uppercase tracking-[0.22em] text-white">
-                {group.label}
-              </Link>
-              <ul className="mt-4 space-y-3 text-sm text-white/55">
-                {group.links.map((link) => (
-                  <li key={link.href}>
-                    <Link href={link.href} className="transition hover:text-white">
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+      <div className="mx-auto max-w-7xl px-4 py-14 lg:px-8">
+        {/* Main grid: brand column + nav columns */}
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1.85fr)]">
+          {/* Brand column */}
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-100">
+                O
+              </span>
+              <span className="text-lg font-semibold text-white">Omniweb</span>
             </div>
-          ))}
-        </div>
-        </div>
-      </div>
 
-      <div className="mt-10 border-t border-white/10 pt-5">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap gap-4 text-sm text-white/45">
-            <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
-            <Link href="/terms" className="transition hover:text-white">Terms</Link>
-            <Link href="/sms-consent" className="transition hover:text-white">SMS Consent</Link>
-            <Link href="/company/status" className="transition hover:text-white">System Status</Link>
+            <p className="max-w-sm text-sm leading-7 text-white/55">
+              AI voice agents, chat assistants, lead qualification, and workflow automation — built to help businesses close more revenue with less manual work.
+            </p>
+
+            <a href="mailto:support@omniweb.ai" className="inline-flex items-center gap-2 text-sm text-white/65 transition hover:text-white">
+              <Mail className="site-icon-accent h-4 w-4 shrink-0" />
+              support@omniweb.ai
+            </a>
+
+            <div className="flex flex-wrap gap-2.5">
+              <Button asChild size="sm" className="h-9 rounded-full px-5 text-sm">
+                <Link href="/get-started">Get Started</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline" className="h-9 rounded-full border-white/10 bg-white/5 px-5 text-sm text-white hover:bg-white/10">
+                <Link href="/company/book-demo">Book a Demo</Link>
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-1.5 pt-1">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="site-social-icon rounded-full p-2"
+                  aria-label={social.label}
+                >
+                  <social.icon className="h-4 w-4" />
+                </a>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {socialLinks.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="site-social-icon rounded-full p-2"
-                aria-label={social.label}
-              >
-                <social.icon className="h-4 w-4" />
-              </a>
+          {/* Nav columns */}
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 xl:grid-cols-5">
+            {footerGroups.map((group) => (
+              <div key={group.label}>
+                <Link
+                  href={group.href}
+                  className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80 transition hover:text-white"
+                >
+                  {group.label}
+                </Link>
+                <ul className="mt-4 space-y-2.5 text-sm text-white/50">
+                  {group.links.slice(1).map((link) => (
+                    <li key={link.href}>
+                      <Link href={link.href} className="transition hover:text-white/90">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-sm text-white/35 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <span>© 2026 Omniweb. All rights reserved.</span>
-          <span>Built for businesses that want AI to answer, qualify, book, and follow up at scale.</span>
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-5 text-sm lg:px-8 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-white/35">© 2026 Omniweb. All rights reserved.</span>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-white/40">
+            <Link href="/privacy" className="transition hover:text-white/80">Privacy Policy</Link>
+            <Link href="/terms" className="transition hover:text-white/80">Terms of Use</Link>
+            <Link href="/sms-consent" className="transition hover:text-white/80">SMS Consent</Link>
+            <Link href="/company/status" className="transition hover:text-white/80">System Status</Link>
+          </div>
         </div>
       </div>
     </footer>
