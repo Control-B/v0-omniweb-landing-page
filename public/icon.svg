@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-  <rect x="2" y="2" width="28" height="28" rx="10" fill="url(#bg)"/>
-  <rect x="2.5" y="2.5" width="27" height="27" rx="9.5" stroke="#22d3ee" stroke-opacity="0.28"/>
-  <text x="16" y="20.8" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#a5f3fc">O</text>
+  <rect x="1" y="1" width="30" height="30" rx="10" fill="url(#bg)"/>
+  <rect x="1.5" y="1.5" width="29" height="29" rx="9.5" stroke="#22d3ee" stroke-opacity="0.32"/>
+  <text x="16" y="21.4" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16.5" font-weight="800" fill="#a5f3fc">O</text>
   <defs>
-    <linearGradient id="bg" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
       <stop stop-color="#164e63" stop-opacity="0.78"/>
       <stop offset="1" stop-color="#6d28d9" stop-opacity="0.78"/>
     </linearGradient>
