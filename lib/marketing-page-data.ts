@@ -7,6 +7,7 @@ export type PageSeed = {
   slug: string
   title: string
   summary: string
+  overview?: string[]
   problem: string
   solution: string
   valueToIndustry: string
@@ -72,6 +73,7 @@ export function buildPageEntry({
     metaTitle: `${seed.title} | Omniweb AI`,
     metaDescription: seed.summary,
     content: {
+      overview: seed.overview,
       hero: {
         eyebrow: sectionLabel,
         title: seed.title,

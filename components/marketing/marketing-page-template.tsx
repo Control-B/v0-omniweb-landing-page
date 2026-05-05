@@ -11,6 +11,7 @@ import { FAQAccordion } from "@/components/marketing/page-sections"
 type CTA = { label: string; href: string }
 
 export type MarketingPageContent = {
+  overview?: string[]
   hero: {
     eyebrow: string
     title: string
@@ -209,6 +210,19 @@ function MarketingPageShell({
               </div>
             </section>
           )}
+
+          {/* Overview */}
+          {content.overview?.length ? (
+            <section className="px-4 py-20 lg:px-8">
+              <div className="mx-auto max-w-4xl">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8 lg:p-12 space-y-5">
+                  {content.overview.map((para, i) => (
+                    <p key={i} className="text-base leading-9 text-white/70">{para}</p>
+                  ))}
+                </div>
+              </div>
+            </section>
+          ) : null}
 
           {/* Problem / Solution */}
           <section className="bg-[#050811] px-4 py-24 lg:px-8">
