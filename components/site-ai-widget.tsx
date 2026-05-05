@@ -28,13 +28,17 @@ const LANG_FLAGS: Record<string, string> = {
 
 const AUTO_LANGUAGE_CODES = new Set(["auto", "multi", "all", "detect"])
 
+function isAutoLanguageLabel(label?: string | null) {
+  return /^auto\b/i.test((label || "").trim())
+}
+
 function normalizeLanguageCode(code?: string | null) {
   const normalized = (code || "multi").trim().toLowerCase().replace("_", "-").split("-", 1)[0]
   return AUTO_LANGUAGE_CODES.has(normalized) ? "multi" : normalized
 }
 
 function normalizeLanguageOption(option: LangOption): LangOption | null {
-  const code = normalizeLanguageCode(option.code)
+  const code = isAutoLanguageLabel(option.label) ? "multi" : normalizeLanguageCode(option.code)
   if (!code) return null
   if (code === "multi") {
     return { ...option, code, label: AUTO_LANGUAGE_LABEL, flag: option.flag || "🌐" }

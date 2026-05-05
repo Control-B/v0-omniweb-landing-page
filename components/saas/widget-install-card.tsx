@@ -6,11 +6,10 @@ import { CheckCircle2, Copy, Loader2, RefreshCw, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { fetchAgentConfig } from "@/lib/saas/agentConfigService"
 import { fetchWidgetSettings, saveWidgetSettings } from "@/lib/saas/widgetService"
-import type { KnowledgeSourceRecord, WidgetSettingsRecord } from "@/lib/saas/types"
+import type { WidgetSettingsRecord } from "@/lib/saas/types"
 
-const sectionClassName = "rounded-[1.75rem] border border-slate-200 bg-white/80 p-4 shadow-[0_10px_25px_rgba(148,163,184,0.08)] sm:p-5"
+const sectionClassName = "rounded-[1.75rem] border border-slate-200 bg-white/80 p-5 shadow-[0_10px_25px_rgba(148,163,184,0.08)]"
 const inputClassName = "mt-2 h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
 const textareaClassName = "mt-2 min-h-28 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
 
@@ -48,19 +47,7 @@ function formatLastSeen(value: string | null) {
   return `Installed · Last seen ${date.toLocaleString()}`
 }
 
-type WidgetInstallCardProps = {
-  compact?: boolean
-  tenantId?: string | null
-  websiteDomain?: string | null
-  initialKnowledgeSources?: KnowledgeSourceRecord[]
-}
-
-export function WidgetInstallCard({
-  compact = false,
-  tenantId,
-  websiteDomain,
-  initialKnowledgeSources = [],
-}: WidgetInstallCardProps) {
+export function WidgetInstallCard({ compact = false }: { compact?: boolean } = {}) {
   const [settings, setSettings] = useState<WidgetSettingsRecord | null>(null)
   const [form, setForm] = useState<WidgetFormState | null>(null)
   const [loading, setLoading] = useState(true)
@@ -70,28 +57,6 @@ export function WidgetInstallCard({
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [activeTab, setActiveTab] = useState<"test" | "install">("test")
-  const [knowledgeSources, setKnowledgeSources] = useState<KnowledgeSourceRecord[]>(initialKnowledgeSources)
-
-  useEffect(() => {
-    setKnowledgeSources(initialKnowledgeSources)
-  }, [initialKnowledgeSources])
-
-  useEffect(() => {
-    if (!tenantId) return
-    let cancelled = false
-    void (async () => {
-      try {
-        const latest = await fetchAgentConfig()
-        if (cancelled || !latest?.knowledgeSources) return
-        setKnowledgeSources(latest.knowledgeSources)
-      } catch {
-        return
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [tenantId])
 
   useEffect(() => {
     let cancelled = false
@@ -130,6 +95,15 @@ export function WidgetInstallCard({
     if (!domain) return null
     return domain.startsWith("http") ? domain : `https://${domain}`
   }, [settings?.allowedDomains])
+
+  const liveWidgetPreviewUrl = useMemo(() => {
+    if (!settings?.publicWidgetId) return null
+    const params = new URLSearchParams({ open: "1" })
+    if (settings.widgetPrimaryColor) {
+      params.set("color", settings.widgetPrimaryColor)
+    }
+    return `/widget/${encodeURIComponent(settings.publicWidgetId)}?${params.toString()}`
+  }, [settings?.publicWidgetId, settings?.widgetPrimaryColor])
 
   const updateField = <K extends keyof WidgetFormState>(key: K, value: WidgetFormState[K]) => {
     setForm((current) => current ? { ...current, [key]: value } : current)
@@ -287,6 +261,11 @@ export function WidgetInstallCard({
                 </Button>
               ) : null}
             </div>
+            {liveWidgetPreviewUrl ? (
+              <Button type="button" size="sm" variant="outline" className="w-full justify-center rounded-xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">Open live widget preview</a>
+              </Button>
+            ) : null}
           </div>
         ) : (
           <div className="mt-4">
@@ -338,7 +317,7 @@ export function WidgetInstallCard({
         </div>
       </div>
 
-      <div className="dashboard-responsive-tabs mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-2">
+      <div className="mt-6 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
         {[
           { key: "test", label: "Test widget" },
           { key: "install", label: "Install snippet" },
@@ -347,7 +326,7 @@ export function WidgetInstallCard({
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key as "test" | "install")}
-            className={`dashboard-responsive-tab rounded-xl px-4 py-2 text-sm font-semibold transition ${
+            className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
               activeTab === tab.key ? "bg-slate-950 text-white shadow-sm" : "text-slate-600 hover:bg-white"
             }`}
           >
@@ -356,7 +335,7 @@ export function WidgetInstallCard({
         ))}
       </div>
 
-      <div className="mt-6 grid min-w-0 gap-4 sm:gap-5 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+      <div className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-5">
           {activeTab === "test" ? (
             <>
@@ -377,6 +356,11 @@ export function WidgetInstallCard({
                     </Button>
                   ) : null}
                 </div>
+                {liveWidgetPreviewUrl ? (
+                  <Button type="button" variant="outline" className="mt-3 w-full justify-center rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15" asChild>
+                    <a href={liveWidgetPreviewUrl} target="_blank" rel="noreferrer">One-click live widget preview</a>
+                  </Button>
+                ) : null}
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">

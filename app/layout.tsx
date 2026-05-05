@@ -122,12 +122,6 @@ export default function RootLayout({
             afterSignOutUrl="/"
           >
             {children}
-            <Script
-              id="omniweb-widget"
-              src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
-              data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
-              strategy="afterInteractive"
-            />
           </ClerkProvider>
         </ThemeProvider>
       </body>
