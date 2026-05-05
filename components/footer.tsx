@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { Facebook, Instagram, Youtube, Mail } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { footerGroups, primaryCtas } from "@/lib/site-navigation"
 
 // Custom X icon (formerly Twitter)
 function XIcon({ className }: { className?: string }) {
@@ -65,7 +67,8 @@ export function Footer({ variant = "default" }: FooterProps) {
 
   return (
     <footer className="border-t border-white/10 bg-[#050a12]">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 lg:grid-cols-[1.4fr_1fr_auto] lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
+        <div className="grid gap-10 xl:grid-cols-[1.1fr_1.9fr]">
         <div>
           <div className="flex items-center gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 text-sm font-semibold text-cyan-100">
@@ -74,24 +77,52 @@ export function Footer({ variant = "default" }: FooterProps) {
             <span className="text-lg font-semibold text-white">Omniweb</span>
           </div>
           <p className="mt-4 max-w-md text-sm leading-7 text-white/55">
-            AI voice agents, chat assistants, lead qualification, and workflow automation designed to help businesses close more revenue with less manual work.
+            AI voice agents, chat assistants, lead qualification, workflow automation, and multi-tenant deployments designed to help businesses close more revenue with less manual work.
           </p>
           <a href="mailto:support@omniweb.ai" className="mt-5 inline-flex items-center gap-2 text-sm text-white/70 transition hover:text-white">
             <Mail className="site-icon-accent h-4 w-4" />
             support@omniweb.ai
           </a>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            {primaryCtas.map((cta) => (
+              <Button key={cta.label} asChild variant={cta.label === "Get Started" ? "default" : "outline"} className="h-10 rounded-full border-white/10 bg-white/5 px-4 text-sm text-white hover:bg-white/10">
+                <Link href={cta.href}>{cta.label}</Link>
+              </Button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid gap-3 text-sm text-white/55 sm:grid-cols-2 lg:grid-cols-1">
-          <Link href="/features" className="transition hover:text-white">Features</Link>
-          <Link href="/solutions" className="transition hover:text-white">Solutions</Link>
-          <Link href="/resources" className="transition hover:text-white">Resources</Link>
-          <Link href="/pricing" className="transition hover:text-white">Pricing</Link>
-          <Link href="/company" className="transition hover:text-white">Company</Link>
-          <Link href="/get-started" className="transition hover:text-white">Get Started</Link>
+        <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-5">
+          {footerGroups.map((group) => (
+            <div key={group.label}>
+              <Link href={group.href} className="text-sm font-semibold uppercase tracking-[0.22em] text-white">
+                {group.label}
+              </Link>
+              <ul className="mt-4 space-y-3 text-sm text-white/55">
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="transition hover:text-white">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
+        </div>
+      </div>
 
-        <div className="flex flex-col items-start gap-4 lg:items-end">
+      <div className="mt-10 border-t border-white/10 pt-5">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap gap-4 text-sm text-white/45">
+            <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
+            <Link href="/terms" className="transition hover:text-white">Terms</Link>
+            <Link href="/sms-consent" className="transition hover:text-white">SMS Consent</Link>
+            <Link href="/company/status" className="transition hover:text-white">System Status</Link>
+          </div>
+
           <div className="flex items-center gap-2">
             {socialLinks.map((social) => (
               <a
@@ -105,11 +136,6 @@ export function Footer({ variant = "default" }: FooterProps) {
                 <social.icon className="h-4 w-4" />
               </a>
             ))}
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm text-white/45 lg:justify-end">
-            <Link href="/privacy" className="transition hover:text-white">Privacy Policy</Link>
-            <Link href="/terms" className="transition hover:text-white">Terms</Link>
-            <Link href="/sms-consent" className="transition hover:text-white">SMS Consent</Link>
           </div>
         </div>
       </div>

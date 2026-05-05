@@ -3,245 +3,18 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import {
-  ChevronDown,
-  Phone,
-  Menu,
-  X,
-  Briefcase,
-  Bot,
-  BookOpen,
-  Video,
-  Wallet,
-  LayoutTemplate,
-  Building2,
-  ArrowRight,
-  type LucideIcon,
-} from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { ArrowRight, ChevronDown, Menu, X } from "lucide-react"
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-
-type NavSubItem = {
-  label: string
-  href: string
-  description: string
-  icon: LucideIcon
-  iconClassName?: string
-  iconChipClassName?: string
-}
-
-type NavItem = {
-  label: string
-  href: string
-  items: NavSubItem[]
-  preview: {
-    eyebrow: string
-    title: string
-    description: string
-    href: string
-    image?: string
-    contentClassName?: string
-    mediaClassName?: string
-  }
-}
-
-const navItems: NavItem[] = [
-  {
-    label: "Features",
-    href: "/features",
-    items: [
-      {
-        label: "AI voice agents",
-        href: "/features#voice-agents",
-        description: "LiveKit-powered voice agents that answer, qualify, and book while your team focuses on closing.",
-        icon: LayoutTemplate,
-        iconClassName: "text-fuchsia-200",
-        iconChipClassName: "border-fuchsia-500/35 bg-gradient-to-br from-fuchsia-500/22 to-purple-500/18 shadow-[0_12px_30px_rgba(217,70,239,0.18)]",
-      },
-      {
-        label: "AI chat assistants",
-        href: "/features#chat-assistants",
-        description: "Always-on chat that handles objections, captures context, and routes high-intent buyers instantly.",
-        icon: Video,
-        iconClassName: "text-pink-200",
-        iconChipClassName: "border-pink-500/35 bg-gradient-to-br from-pink-500/22 to-rose-500/18 shadow-[0_12px_30px_rgba(236,72,153,0.18)]",
-      },
-      {
-        label: "Lead automation",
-        href: "/features#lead-automation",
-        description: "Push qualified leads into your CRM, trigger follow-up, and keep reps focused on real opportunities.",
-        icon: Briefcase,
-        iconClassName: "text-orange-200",
-        iconChipClassName: "border-orange-500/35 bg-gradient-to-br from-orange-500/22 to-amber-500/18 shadow-[0_12px_30px_rgba(249,115,22,0.18)]",
-      },
-    ],
-    preview: {
-      eyebrow: "Core platform",
-      title: "Sell with voice, chat, qualification, and workflow automation",
-      description: "Explore the Omniweb capabilities that turn AI into a revenue engine for your business.",
-      href: "/features",
-      image: "/images/generated/templates-showcase.png",
-    },
-  },
-  {
-    label: "Solutions",
-    href: "/solutions",
-    items: [
-      {
-        label: "Vertical playbooks",
-        href: "/solutions#industry-solutions",
-        description: "Revenue-focused AI journeys for Shopify brands, contractors, clinics, law firms, and service businesses.",
-        icon: Briefcase,
-        iconClassName: "text-sky-200",
-        iconChipClassName: "border-sky-500/35 bg-gradient-to-br from-sky-500/22 to-indigo-500/20 shadow-[0_12px_30px_rgba(56,189,248,0.18)]",
-      },
-      {
-        label: "AI workflows",
-        href: "/solutions#how-it-works",
-        description: "See how voice, chat, qualification, and automation work together from first contact to booked call.",
-        icon: Bot,
-        iconClassName: "text-cyan-200",
-        iconChipClassName: "border-cyan-500/35 bg-gradient-to-br from-cyan-500/22 to-blue-500/20 shadow-[0_12px_30px_rgba(34,211,238,0.18)]",
-      },
-      {
-        label: "Expected outcomes",
-        href: "/solutions#results",
-        description: "Explore the pipeline lift, response speed, and revenue outcomes businesses can expect from AI-first systems.",
-        icon: ArrowRight,
-        iconClassName: "text-violet-200",
-        iconChipClassName: "border-violet-500/35 bg-gradient-to-br from-violet-500/22 to-fuchsia-500/20 shadow-[0_12px_30px_rgba(139,92,246,0.2)]",
-      },
-    ],
-    preview: {
-      eyebrow: "Featured",
-      title: "AI systems tailored to how your business actually sells",
-      description: "Explore verticalized service journeys that turn traffic into qualified leads, booked calls, and automated follow-up.",
-      href: "/solutions",
-      image: "/images/generated/solutions-ecommerce.png",
-      contentClassName: "bottom-0 max-w-[88%] -translate-y-4 px-6 pb-2 pt-0",
-      mediaClassName: "h-[17rem] w-full aspect-auto",
-    },
-  },
-  {
-    label: "Resources",
-    href: "/resources",
-    items: [
-      {
-        label: "Demo library",
-        href: "/resources#library",
-        description: "Browse demo videos, AI playbooks, case studies, and launch resources for revenue-focused deployments.",
-        icon: BookOpen,
-        iconClassName: "text-purple-200",
-        iconChipClassName: "border-purple-500/35 bg-gradient-to-br from-purple-500/22 to-pink-500/18 shadow-[0_12px_30px_rgba(168,85,247,0.18)]",
-      },
-      {
-        label: "Case studies",
-        href: "/resources#articles",
-        description: "See how AI assistants, qualification flows, and automations improve conversion and response times.",
-        icon: Video,
-        iconClassName: "text-rose-200",
-        iconChipClassName: "border-rose-500/35 bg-gradient-to-br from-rose-500/22 to-orange-500/18 shadow-[0_12px_30px_rgba(244,63,94,0.18)]",
-      },
-      {
-        label: "AI playbooks",
-        href: "/resources#videos",
-        description: "Get battle-tested scripts, flows, and rollout ideas for AI voice, chat, and onboarding.",
-        icon: Bot,
-        iconClassName: "text-blue-200",
-        iconChipClassName: "border-blue-500/35 bg-gradient-to-br from-blue-500/22 to-cyan-500/18 shadow-[0_12px_30px_rgba(59,130,246,0.18)]",
-      },
-    ],
-    preview: {
-      eyebrow: "Spotlight",
-      title: "Learn the system before you book a call",
-      description: "Use videos, case studies, and playbooks to understand how Omniweb drives sales, lead qualification, and automation.",
-      href: "/resources",
-      image: "/images/generated/resources-knowledge-hub.png",
-    },
-  },
-  {
-    label: "Pricing",
-    href: "/pricing",
-    items: [
-      {
-        label: "Starter / Growth / Scale",
-        href: "/pricing#plans",
-        description: "Compare outcome-driven plans built around AI minutes, active agents, and onboarding support.",
-        icon: Wallet,
-        iconClassName: "text-emerald-200",
-        iconChipClassName: "border-emerald-500/35 bg-gradient-to-br from-emerald-500/22 to-teal-500/18 shadow-[0_12px_30px_rgba(16,185,129,0.18)]",
-      },
-      {
-        label: "Outcome comparison",
-        href: "/pricing#plans",
-        description: "See which plan best fits lead volume, automation complexity, and sales coverage.",
-        icon: Bot,
-        iconClassName: "text-indigo-200",
-        iconChipClassName: "border-indigo-500/35 bg-gradient-to-br from-indigo-500/22 to-blue-500/18 shadow-[0_12px_30px_rgba(99,102,241,0.18)]",
-      },
-      {
-        label: "Buying questions",
-        href: "/pricing#faq",
-        description: "Get clear answers around onboarding, usage, agent setup, and subscription growth.",
-        icon: BookOpen,
-        iconClassName: "text-amber-200",
-        iconChipClassName: "border-amber-500/35 bg-gradient-to-br from-amber-500/22 to-orange-500/18 shadow-[0_12px_30px_rgba(245,158,11,0.18)]",
-      },
-    ],
-    preview: {
-      eyebrow: "Plan smarter",
-      title: "Pricing built around outcomes, not software clutter",
-      description: "Position value around qualified leads, handled conversations, and faster follow-up instead of random feature lists.",
-      href: "/pricing",
-      image: "/images/generated/pricing-growth-dashboard.png",
-    },
-  },
-  {
-    label: "Company",
-    href: "/company",
-    items: [
-      {
-        label: "Mission",
-        href: "/company#mission",
-        description: "Understand the company vision behind Omniweb and the market problem it solves.",
-        icon: Building2,
-        iconClassName: "text-cyan-200",
-        iconChipClassName: "border-cyan-500/35 bg-gradient-to-br from-cyan-500/22 to-sky-500/18 shadow-[0_12px_30px_rgba(34,211,238,0.18)]",
-      },
-      {
-        label: "The Team",
-        href: "/company#careers",
-        description: "Meet the people, culture, and operating principles behind the product.",
-        icon: Bot,
-        iconClassName: "text-purple-200",
-        iconChipClassName: "border-purple-500/35 bg-gradient-to-br from-purple-500/22 to-indigo-500/18 shadow-[0_12px_30px_rgba(168,85,247,0.18)]",
-      },
-      {
-        label: "Contact",
-        href: "/company#contact",
-        description: "Reach support, sales, partnerships, or press from a single company hub.",
-        icon: Phone,
-        iconClassName: "text-green-200",
-        iconChipClassName: "border-green-500/35 bg-gradient-to-br from-green-500/22 to-emerald-500/18 shadow-[0_12px_30px_rgba(34,197,94,0.18)]",
-      },
-    ],
-    preview: {
-      eyebrow: "Behind the product",
-      title: "Meet the team building AI systems that drive revenue",
-      description: "Learn the vision behind Omniweb and how we help businesses automate conversations, qualification, and follow-up.",
-      href: "/company",
-      image: "/images/generated/company-innovation-team.png",
-    },
-  },
-]
+import { navItems, isRouteActive, primaryCtas } from "@/lib/site-navigation"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [openSection, setOpenSection] = useState<string | null>(navItems[0]?.label ?? null)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
-  const currentSection = useMemo(() => pathname?.split("#")[0] ?? "/", [pathname])
-  const isHome = currentSection === "/"
+  const isHome = pathname === "/"
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -249,6 +22,10 @@ export function Header() {
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [pathname])
 
   return (
     <header
@@ -281,7 +58,7 @@ export function Header() {
                 href={item.href}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all",
-                  currentSection === item.href
+                  isRouteActive(pathname, item.href)
                     ? "bg-white/10 text-white"
                     : "text-foreground/70 hover:bg-white/5 hover:text-foreground",
                 )}
@@ -290,11 +67,11 @@ export function Header() {
                 {item.items?.length ? <ChevronDown className="h-3.5 w-3.5 opacity-60 transition group-hover:opacity-100" /> : null}
               </Link>
               {item.items?.length ? (
-                <div className="pointer-events-none absolute left-1/2 top-full z-20 hidden w-[52rem] -translate-x-1/2 pt-4 opacity-0 transition group-hover:pointer-events-auto group-hover:block group-hover:opacity-100">
+                <div className="pointer-events-none absolute left-1/2 top-full z-20 hidden w-[64rem] max-w-[calc(100vw-2rem)] -translate-x-1/2 pt-4 opacity-0 transition group-hover:pointer-events-auto group-hover:block group-hover:opacity-100">
                   <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#08101b]/95 shadow-2xl shadow-black/50 backdrop-blur-xl">
                     <div className="grid grid-cols-[1.2fr_0.8fr]">
                       <div className="border-r border-white/10 p-3">
-                        <div className="grid gap-2 p-1">
+                        <div className="grid max-h-[32rem] gap-2 overflow-y-auto p-1 lg:grid-cols-2">
                           {item.items.map((subItem) => (
                             <Link
                               key={`${subItem.href}-${subItem.label}`}
@@ -409,32 +186,39 @@ export function Header() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="absolute left-0 right-0 top-16 border-b border-border/40 bg-[#050a12]/95 backdrop-blur-xl lg:hidden">
-          <nav className="flex flex-col px-4 py-4">
+          <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto px-4 py-4">
             {navItems.map((item) => (
-              <div key={item.label} className="rounded-2xl border border-transparent transition hover:border-white/10 hover:bg-white/[0.03]">
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "block rounded-xl px-4 py-3 text-sm font-medium transition-colors",
-                    currentSection === item.href ? "bg-white/8 text-white" : "text-foreground/80 hover:text-foreground",
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-                {item.items?.length ? (
-                  <div className="space-y-1 px-4 pb-3">
+              <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.02] transition hover:bg-white/[0.04]">
+                <div className="flex items-center gap-2 px-4 py-3">
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex-1 rounded-xl px-2 py-1.5 text-sm font-medium transition-colors",
+                      isRouteActive(pathname, item.href) ? "bg-white/8 text-white" : "text-foreground/80 hover:text-foreground",
+                    )}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                  <button
+                    type="button"
+                    className="rounded-full border border-white/10 bg-white/[0.04] p-2 text-white/60 transition hover:bg-white/[0.08] hover:text-white"
+                    onClick={() => setOpenSection((current) => (current === item.label ? null : item.label))}
+                    aria-label={`Toggle ${item.label} submenu`}
+                  >
+                    <ChevronDown className={cn("h-4 w-4 transition-transform", openSection === item.label ? "rotate-180" : "rotate-0")} />
+                  </button>
+                </div>
+                {item.items?.length && openSection === item.label ? (
+                  <div className="space-y-1 px-4 pb-4">
                     {item.items.map((subItem) => (
                       <Link
                         key={`${subItem.href}-${subItem.label}`}
                         href={subItem.href}
-                        className="flex items-start gap-3 rounded-lg px-3 py-3 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
+                        className="flex items-start gap-3 rounded-xl px-3 py-3 text-sm text-white/50 transition hover:bg-white/5 hover:text-white"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <span className={cn(
-                          "mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border",
-                          subItem.iconChipClassName,
-                        )}>
+                        <span className={cn("mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border", subItem.iconChipClassName)}>
                           <subItem.icon className={cn("h-4 w-4", subItem.iconClassName)} />
                         </span>
                         <span>
@@ -447,23 +231,24 @@ export function Header() {
                 ) : null}
               </div>
             ))}
-            <div className="mt-4 flex flex-col gap-2 border-t border-border/40 pt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-                className="justify-start gap-2 border-white/15 bg-white/5 text-white hover:bg-white/10"
-              >
-                <a href="tel:+18666233331">
-                  Call Us
-                </a>
-              </Button>
-              <Button variant="outline" size="sm" asChild className="justify-start border-white/15 bg-white/5 text-white hover:bg-white/10">
-                <Link href="/signin">Sign In</Link>
-              </Button>
-              <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400">
-                <Link href="/get-started">Get Started</Link>
-              </Button>
+            <div className="mt-4 border-t border-border/40 pt-4">
+              <div className="grid grid-cols-2 gap-2">
+                {primaryCtas.map((cta) => (
+                  <Button key={cta.label} variant="outline" size="sm" asChild className="justify-center border-white/15 bg-white/5 text-white hover:bg-white/10">
+                    <Link href={cta.href} onClick={() => setMobileMenuOpen(false)}>
+                      {cta.label}
+                    </Link>
+                  </Button>
+                ))}
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" asChild className="justify-center border-white/15 bg-white/5 text-white hover:bg-white/10">
+                  <Link href="/signin">Sign In</Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild className="justify-center border-white/15 bg-white/5 text-white hover:bg-white/10">
+                  <a href="tel:+18666233331">Call Us</a>
+                </Button>
+              </div>
             </div>
           </nav>
         </div>
