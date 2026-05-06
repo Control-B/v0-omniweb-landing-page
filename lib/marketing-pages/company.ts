@@ -174,6 +174,48 @@ const companySeeds = [
     ],
     related: ["/company/about", "/company/contact", "/company/partners"],
   },
+  {
+    slug: "status",
+    title: "System Status",
+    summary: "Review Omniweb platform health, availability practices, and incident communication standards.",
+    overview: [
+      "Omniweb is built as a business-critical customer engagement layer. Voice calls, chat conversations, lead routing, and follow-up workflows all need to be reliable because they sit directly between a business and its customers.",
+      "This status page explains how we monitor the platform, how we communicate incidents, and what customers can expect from the infrastructure that powers Omniweb.ai and embedded widgets.",
+      "For live account-specific support, customers should use the dashboard support channel or contact our team. For public launch readiness, this page gives buyers and reviewers a clear view of our reliability posture.",
+    ],
+    problem: "AI customer communication platforms lose trust quickly when reliability expectations are unclear. Buyers need to know how incidents are monitored, escalated, and communicated before they depend on the platform for revenue-critical conversations.",
+    solution: "Omniweb uses continuous health monitoring across web, widget, voice, and API surfaces, with clear internal escalation and customer-facing communication when platform availability is affected.",
+    valueToIndustry: "Transparent reliability practices raise the standard for AI SaaS platforms that handle customer conversations and lead data.",
+    valueToUser: "You understand how Omniweb monitors availability, how issues are handled, and where to go if something affects your deployment.",
+    outcome: "A clearer reliability posture for customers, reviewers, partners, and enterprise buyers evaluating Omniweb for production use.",
+    features: [
+      "Widget availability and install health monitoring",
+      "Voice-agent connection and session monitoring",
+      "API endpoint health checks for customer workflows",
+      "Incident escalation process for revenue-impacting issues",
+      "Customer communication standards for service disruptions",
+      "Post-incident review process for recurring risks",
+      "Dashboard support route for account-specific issues",
+      "Security and privacy links for platform review",
+    ],
+    useCases: [
+      "Enterprise buyers reviewing production readiness",
+      "Shopify and SaaS reviewers checking operational maturity",
+      "Customers confirming where to escalate service-impacting issues",
+      "Partners evaluating Omniweb for client deployments",
+      "Internal teams documenting launch readiness expectations",
+    ],
+    howItWorks: [
+      "Omniweb monitors public web surfaces, widget installation, voice session startup, and API paths that support customer conversations.",
+      "When a platform issue is detected, the team triages impact, identifies affected surfaces, and prioritizes fixes based on customer and revenue impact.",
+      "For account-specific issues, customers can use dashboard support or the contact page so the team can investigate with deployment context.",
+    ],
+    faq: [
+      { question: "Where should customers report an issue?", answer: "Use the dashboard support area for account-specific issues, or contact the team through the Contact page if you cannot access your dashboard." },
+      { question: "Does Omniweb publish incident updates?", answer: "For broad service-impacting incidents, Omniweb communicates status and next steps through customer support channels and direct customer updates." },
+    ],
+    related: ["/resources/security", "/resources/docs", "/company/contact"],
+  },
 ]
 
 export const companyPages: Record<string, PageEntry> = Object.fromEntries(

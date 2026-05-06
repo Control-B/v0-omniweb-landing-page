@@ -13,6 +13,8 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   if (slug === "book-demo") return { title: "Live AI Demo | Omniweb AI" }
+  if (slug === "privacy") return { title: "Privacy Policy | Omniweb AI" }
+  if (slug === "terms") return { title: "Terms of Service | Omniweb AI" }
   const page = getMarketingPage("company", slug)
   if (!page) return {}
   return { title: page.metaTitle, description: page.metaDescription }
@@ -21,6 +23,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CompanyDetailPage({ params }: PageProps) {
   const { slug } = await params
   if (slug === "book-demo") redirect("/demo")
+  if (slug === "privacy") redirect("/privacy")
+  if (slug === "terms") redirect("/terms")
   const page = getMarketingPage("company", slug)
   if (!page) notFound()
   return <CompanyPageTemplate content={page.content} />
