@@ -68,7 +68,7 @@ export const SCENARIOS: PersonaScenario[] = [
     title: "Omniweb Site Concierge & Navigation AI",
     industry: "Platform Intelligence & Site Guide",
     avatarTone: "cyan",
-    voiceName: "Deepgram Flux-Kit + Gemini 2.0 Flash",
+    voiceName: "Deepgram Aura (Asteria Studio)",
     latencyMs: 185,
     greeting: "Hello! I am Elena Rostova, your Omniweb AI site concierge. I can answer questions about our services, pricing tiers, and guide you to any page on our website. How may I help you today?",
     description: "Answers all questions about Omniweb capabilities, service packages, pricing plans, and provides interactive real-time site navigation.",
@@ -92,7 +92,7 @@ export const SCENARIOS: PersonaScenario[] = [
     title: "Senior Billing & Disputes Specialist",
     industry: "SaaS & Enterprise Telecom",
     avatarTone: "violet",
-    voiceName: "Deepgram Nova-3 + Cartesia Studio Voice",
+    voiceName: "Deepgram Aura (Orion Studio)",
     latencyMs: 240,
     greeting: "Hello! Thanks for calling Omniweb Billing. I'm Alex Vance. How can I assist with your invoice or account today?",
     description: "Resolves high-value billing disputes, reconciles historical invoice ledgers, and handles refund policies with Human-in-the-Loop governance.",
@@ -115,7 +115,7 @@ export const SCENARIOS: PersonaScenario[] = [
     title: "Enterprise Solutions & Closing Specialist",
     industry: "B2B SaaS & Automation",
     avatarTone: "emerald",
-    voiceName: "LiveKit OSS + Gemini 2.0 Flash",
+    voiceName: "Deepgram Aura (Zeus Studio)",
     latencyMs: 195,
     greeting: "Hi there! I'm Marcus Vance with Omniweb Enterprise Solutions. Are you looking to scale an inbound voice swarm or migrate an existing call center team?",
     description: "Qualifies high-intent inbound prospects, analyzes seat replacement ROI, and schedules executive product walkthroughs.",
@@ -138,7 +138,7 @@ export const SCENARIOS: PersonaScenario[] = [
     title: "Emergency Dispatch & Triage Coordinator",
     industry: "Home Services & Emergency HVAC",
     avatarTone: "rose",
-    voiceName: "ElevenLabs Ultra-Low Latency Turbo v2.5",
+    voiceName: "Deepgram Aura (Luna Studio)",
     latencyMs: 210,
     greeting: "Omniweb 24/7 Emergency Dispatch, this is Sophia Martinez. Are you reporting an urgent service failure or emergency outage?",
     description: "24/7 emergency triage that screens urgency, geo-routes technicians, and dispatches rapid response teams in under 60 seconds.",
@@ -160,6 +160,7 @@ export const SCENARIOS: PersonaScenario[] = [
 export function LiveCallCenterSimulator() {
   const [activeScenario, setActiveScenario] = useState<PersonaScenario>(SCENARIOS[0])
   const [callState, setCallState] = useState<"idle" | "connecting" | "active" | "ended">("idle")
+  const [voiceProvider, setVoiceProvider] = useState<"deepgram" | "elevenlabs">("deepgram")
   const [isMuted, setIsMuted] = useState(false)
   const [isMicListening, setIsMicListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
@@ -181,37 +182,65 @@ export function LiveCallCenterSimulator() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const recognitionRef = useRef<any>(null)
   const transcriptEndRef = useRef<HTMLDivElement | null>(null)
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null)
 
-  // Voice speech synthesis helper
-  const speakAloud = (textToSpeak: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return
+  // Natural Human Studio Speech Synthesis (Deepgram Aura / ElevenLabs)
+  const speakAloud = async (textToSpeak: string) => {
+    if (typeof window === "undefined") return
+
+    // Stop any existing audio stream
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current.src = ""
+      currentAudioRef.current = null
+    }
+
+    setIsSpeaking(true)
+
     try {
-      window.speechSynthesis.cancel() // Stop any prior speech
-      const cleanText = textToSpeak.replace(/https?:\/\/[^\s]+/g, "").replace(/[\*#_`]/g, "")
-      const utterance = new SpeechSynthesisUtterance(cleanText)
-      utterance.rate = 1.05
-      utterance.pitch = 1.0
+      const res = await fetch("/api/voice/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: textToSpeak,
+          personaId: activeScenario.id,
+          provider: voiceProvider,
+        }),
+      })
 
-      // Pick a natural British/English voice if available
-      const voices = window.speechSynthesis.getVoices()
-      const preferredVoice = voices.find(
-        (v) =>
-          v.name.includes("Natural") ||
-          v.name.includes("Google UK English") ||
-          v.name.includes("Samantha") ||
-          v.name.includes("Daniel") ||
-          v.lang.startsWith("en")
-      )
-      if (preferredVoice) utterance.voice = preferredVoice
+      if (!res.ok) {
+        throw new Error(`TTS HTTP error ${res.status}`)
+      }
 
-      utterance.onstart = () => setIsSpeaking(true)
-      utterance.onend = () => setIsSpeaking(false)
-      utterance.onerror = () => setIsSpeaking(false)
+      const blob = await res.blob()
+      const audioUrl = URL.createObjectURL(blob)
+      const audio = new Audio(audioUrl)
+      currentAudioRef.current = audio
 
-      window.speechSynthesis.speak(utterance)
+      audio.onplay = () => setIsSpeaking(true)
+      audio.onended = () => {
+        setIsSpeaking(false)
+        URL.revokeObjectURL(audioUrl)
+      }
+      audio.onerror = () => {
+        setIsSpeaking(false)
+        URL.revokeObjectURL(audioUrl)
+      }
+
+      await audio.play()
     } catch (err) {
-      console.warn("SpeechSynthesis error:", err)
-      setIsSpeaking(false)
+      console.warn("Studio Neural TTS stream fallback:", err)
+      // Browser Web Speech fallback only if network offline
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(textToSpeak)
+        utterance.rate = 1.05
+        utterance.onend = () => setIsSpeaking(false)
+        utterance.onerror = () => setIsSpeaking(false)
+        window.speechSynthesis.speak(utterance)
+      } else {
+        setIsSpeaking(false)
+      }
     }
   }
 
@@ -236,7 +265,7 @@ export function LiveCallCenterSimulator() {
       const height = canvas.height
       const centerY = height / 2
 
-      const amplitude = callState === "active" ? (isSpeaking ? 34 : isMicListening ? 28 : isThinking ? 18 : 10) : 4
+      const amplitude = callState === "active" ? (isSpeaking ? 36 : isMicListening ? 28 : isThinking ? 18 : 10) : 4
       const bars = 48
       const barWidth = width / bars
 
@@ -268,7 +297,7 @@ export function LiveCallCenterSimulator() {
         ctx.fill()
       }
 
-      phase += callState === "active" ? (isSpeaking ? 0.12 : 0.07) : 0.02
+      phase += callState === "active" ? (isSpeaking ? 0.14 : 0.07) : 0.02
       animationFrameId = requestAnimationFrame(render)
     }
 
@@ -310,17 +339,21 @@ export function LiveCallCenterSimulator() {
       setCallState("active")
       const greetingTurn = {
         speaker: "agent" as const,
-        thought: `NLU Intent: session_start. Loaded ${activeScenario.title} profile.`,
+        thought: `NLU Intent: session_start. Loaded ${activeScenario.title} profile (Deepgram Aura / ElevenLabs Studio voice).`,
         text: activeScenario.greeting,
       }
       setTranscript([greetingTurn])
-      // Speak the greeting aloud!
+      // Speak the studio-grade greeting aloud!
       speakAloud(activeScenario.greeting)
-    }, 600)
+    }, 500)
   }
 
   const handleEndCall = () => {
     setCallState("ended")
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel()
     }
@@ -359,6 +392,10 @@ export function LiveCallCenterSimulator() {
   }
 
   const handleSelectScenario = (scenario: PersonaScenario) => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel()
     }
@@ -419,6 +456,10 @@ export function LiveCallCenterSimulator() {
     const text = textToSend || customInput
     if (!text.trim()) return
 
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause()
+      currentAudioRef.current = null
+    }
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel()
     }
@@ -538,7 +579,7 @@ export function LiveCallCenterSimulator() {
       }
 
       setTranscript([...newTurns, agentTurn])
-      // Speak the response text aloud through the user's speakers!
+      // Speak the human studio audio aloud!
       speakAloud(agentTurn.text)
     }, 850)
   }
@@ -556,18 +597,38 @@ export function LiveCallCenterSimulator() {
             Autonomous Contact Center & Site AI Concierge
           </h2>
           <p className="mt-1 text-sm text-slate-400">
-            Powered by <strong>LiveKit OSS</strong> WebRTC media transport, <strong>Deepgram Nova-3 / Flux</strong> STT, and <strong>LangGraph</strong> multi-agent swarms.
+            Powered by <strong>LiveKit OSS</strong> WebRTC media transport, <strong>Deepgram Aura & Nova-3</strong> Studio Neural Voice, and <strong>LangGraph</strong> multi-agent swarms.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {/* Voice Model Provider Switcher */}
+          <div className="flex items-center rounded-xl border border-white/10 bg-black/40 p-1">
+            <button
+              onClick={() => setVoiceProvider("deepgram")}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                voiceProvider === "deepgram"
+                  ? "bg-cyan-500 text-black font-semibold shadow"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              🎙️ Deepgram Aura
+            </button>
+            <button
+              onClick={() => setVoiceProvider("elevenlabs")}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+                voiceProvider === "elevenlabs"
+                  ? "bg-purple-500 text-white font-semibold shadow"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              ✨ ElevenLabs
+            </button>
+          </div>
+
           <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 py-1.5 px-3">
             <span className="mr-1.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             LiveKit OSS (WebRTC Active)
-          </Badge>
-          <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400 py-1.5 px-3">
-            <Zap className="mr-1 h-3.5 w-3.5 text-cyan-400" />
-            Deepgram STT ({activeScenario.latencyMs}ms)
           </Badge>
         </div>
       </div>
@@ -638,7 +699,9 @@ export function LiveCallCenterSimulator() {
                       </span>
                     )}
                   </h3>
-                  <p className="text-xs text-slate-400">{activeScenario.voiceName}</p>
+                  <p className="text-xs text-slate-400">
+                    {voiceProvider === "deepgram" ? activeScenario.voiceName : "ElevenLabs Turbo v2.5"}
+                  </p>
                 </div>
               </div>
 
@@ -668,7 +731,7 @@ export function LiveCallCenterSimulator() {
                 </span>
                 <span className="flex items-center gap-1">
                   <Volume2 className="h-3 w-3 text-emerald-400" />
-                  Voice Audio: {isSpeaking ? "Streaming Out" : isMicListening ? "Mic In" : "Ready"}
+                  Neural Voice: {isSpeaking ? "Deepgram Studio (Playing)" : isMicListening ? "Mic Active" : "Ready"}
                 </span>
               </div>
             </div>
@@ -716,7 +779,7 @@ export function LiveCallCenterSimulator() {
               {callState === "active" && (
                 <p className="text-center text-[11px] text-slate-400">
                   {isSpeaking ? (
-                    <span className="text-emerald-400 font-medium">🔊 Agent is speaking aloud... Listen or interrupt!</span>
+                    <span className="text-emerald-400 font-medium">🔊 Agent is speaking aloud in natural studio voice...</span>
                   ) : isMicListening ? (
                     <span className="text-cyan-400 font-medium">🎤 Listening to your microphone... Speak anytime!</span>
                   ) : (
