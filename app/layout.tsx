@@ -109,67 +109,99 @@ export default function RootLayout({
           </noscript>
         ) : null}
         <ThemeProvider attribute="data-theme" defaultTheme="default" enableSystem={false} themes={["default", "light", "dark"]}>
-          <ClerkProvider
-            appearance={{
-              baseTheme: dark,
-              elements: {
-                userButtonAvatarBox: 'w-8 h-8 ring-2 ring-cyan-500/30',
-                userButtonPopoverCard: 'bg-[#0a1225] border border-white/[0.08] shadow-2xl rounded-2xl',
-                userButtonPopoverActionButton: 'text-slate-300 hover:bg-white/[0.05] rounded-xl',
-                userButtonPopoverFooter: 'hidden',
-              },
-            }}
-            afterSignOutUrl="/"
-          >
-            {children}
-            <Script
-              id="omniweb-widget"
-              src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
-              data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
-              async
-              strategy="afterInteractive"
-            />
-            <Script
-              id="omniweb-widget-bridge"
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
-                  (function () {
-                    function getWidgetRoot() {
-                      var host = document.querySelector('[data-omniweb-widget-host="true"]');
-                      return host && host.shadowRoot ? host.shadowRoot : null;
-                    }
+          {(() => {
+            const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
+            const hasValidClerk = Boolean(
+              publishableKey &&
+              !publishableKey.includes('example.com') &&
+              publishableKey.startsWith('pk_') &&
+              !publishableKey.includes('pk_test_...') &&
+              !publishableKey.includes('pk_test_Y2xlcmsuY2xlcmsuZGV2JA')
+            )
 
-                    function openWidget(mode, attempts) {
-                      var root = getWidgetRoot();
-                      if (!root) {
-                        if ((attempts || 0) < 40) window.setTimeout(function () { openWidget(mode, (attempts || 0) + 1); }, 150);
-                        return;
-                      }
+            const scripts = (
+              <>
+                <Script
+                  id="omniweb-widget"
+                  src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
+                  data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
+                  async
+                  strategy="afterInteractive"
+                />
+                <Script
+                  id="omniweb-widget-bridge"
+                  strategy="afterInteractive"
+                  dangerouslySetInnerHTML={{
+                    __html: `
+                      (function () {
+                        function getWidgetRoot() {
+                          var host = document.querySelector('[data-omniweb-widget-host="true"]');
+                          return host && host.shadowRoot ? host.shadowRoot : null;
+                        }
 
-                      var panel = root.querySelector('.ow-panel');
-                      var launcher = root.querySelector('.ow-launcher');
-                      if (panel && !panel.classList.contains('open') && launcher) launcher.click();
+                        function openWidget(mode, attempts) {
+                          var root = getWidgetRoot();
+                          if (!root) {
+                            if ((attempts || 0) < 40) window.setTimeout(function () { openWidget(mode, (attempts || 0) + 1); }, 150);
+                            return;
+                          }
 
-                      if (mode === 'voice' || mode === 'text') {
-                        window.setTimeout(function () {
-                          var button = root.querySelector('.ow-mode.' + mode);
-                          if (button) button.click();
-                        }, 50);
-                      }
-                    }
+                          var panel = root.querySelector('.ow-panel');
+                          var launcher = root.querySelector('.ow-launcher');
+                          if (panel && !panel.classList.contains('open') && launcher) launcher.click();
 
-                    window.addEventListener('omniweb:assistant-open', function (event) {
-                      var detail = event && event.detail ? event.detail : {};
-                      openWidget(detail.mode === 'text' ? 'text' : detail.mode === 'voice' ? 'voice' : 'select', 0);
-                    });
-                  })();
-                `,
-              }}
-            />
-          </ClerkProvider>
+                          if (mode === 'voice' || mode === 'text') {
+                            window.setTimeout(function () {
+                              var button = root.querySelector('.ow-mode.' + mode);
+                              if (button) button.click();
+                            }, 50);
+                          }
+                        }
+
+                        window.addEventListener('omniweb:assistant-open', function (event) {
+                          var detail = event && event.detail ? event.detail : {};
+                          openWidget(detail.mode === 'text' ? 'text' : detail.mode === 'voice' ? 'voice' : 'select', 0);
+                        });
+                      })();
+                    `,
+                  }}
+                />
+              </>
+            )
+
+            if (hasValidClerk) {
+              return (
+                <ClerkProvider
+                  publishableKey={publishableKey}
+                  appearance={{
+                    baseTheme: dark,
+                    elements: {
+                      userButtonAvatarBox: 'w-8 h-8 ring-2 ring-cyan-500/30',
+                      userButtonPopoverCard: 'bg-[#0a1225] border border-white/[0.08] shadow-2xl rounded-2xl',
+                      userButtonPopoverActionButton: 'text-slate-300 hover:bg-white/[0.05] rounded-xl',
+                      userButtonPopoverFooter: 'hidden',
+                    },
+                  } as any}
+                  afterSignOutUrl="/"
+                >
+                  {children}
+                  {scripts}
+                </ClerkProvider>
+              )
+            }
+
+            return (
+              <>
+                {children}
+                {scripts}
+              </>
+            )
+          })()}
         </ThemeProvider>
+
       </body>
     </html>
   )
 }
+
+

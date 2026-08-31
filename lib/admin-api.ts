@@ -84,6 +84,7 @@ export async function createAdminUser(body: {
   name: string;
   email: string;
   password: string;
+  role?: string;
 }): Promise<AdminUser> {
   return apiFetch<AdminUser>("/auth/admin/users", {
     method: "POST",
@@ -91,10 +92,13 @@ export async function createAdminUser(body: {
   });
 }
 
-export async function inviteAdminUser(body: {
-  name: string;
-  email: string;
-}): Promise<AdminUser> {
+export async function inviteAdminUser(
+  emailOrBody: string | { name?: string; email: string }
+): Promise<AdminUser> {
+  const body =
+    typeof emailOrBody === "string"
+      ? { email: emailOrBody, name: emailOrBody.split("@")[0] || "Admin" }
+      : emailOrBody;
   return apiFetch<AdminUser>("/auth/admin/users/invite", {
     method: "POST",
     body: JSON.stringify(body),
@@ -103,13 +107,15 @@ export async function inviteAdminUser(body: {
 
 export async function setAdminUserStatus(
   userId: string,
-  isActive: boolean
+  isActive: boolean | string
 ): Promise<AdminUser> {
+  const activeBool = typeof isActive === "boolean" ? isActive : isActive === "active";
   return apiFetch<AdminUser>(`/auth/admin/users/${userId}/status`, {
     method: "POST",
-    body: JSON.stringify({ is_active: isActive }),
+    body: JSON.stringify({ is_active: activeBool }),
   });
 }
+
 
 export async function sendAdminUserReset(userId: string): Promise<AdminUser> {
   return apiFetch<AdminUser>(`/auth/admin/users/${userId}/send-reset`, {

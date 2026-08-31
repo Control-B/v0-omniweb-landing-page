@@ -17,7 +17,7 @@ import {
 import { useState } from "react"
 import { OmniwebLogo, OmniwebMark } from "@/components/brand-logo"
 
-const NAV_ITEMS: { id: AdminPageId; label: string; icon: React.ElementType }[] = [
+const NAV_ITEMS: { id: AdminPageId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "sessions", label: "Sessions", icon: MessageSquare },
@@ -25,6 +25,7 @@ const NAV_ITEMS: { id: AdminPageId; label: string; icon: React.ElementType }[] =
   { id: "templates", label: "Templates", icon: FileText },
   { id: "team", label: "Team", icon: UserCog },
 ]
+
 
 interface AdminSidebarProps {
   activePage: AdminPageId

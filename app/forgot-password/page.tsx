@@ -7,6 +7,9 @@ import { useState } from "react"
 import { getPublicEngineUrl } from "@/lib/engine-url"
 import { OmniwebLogo } from "@/components/brand-logo"
 
+export const dynamic = "force-dynamic"
+
+
 const ENGINE_URL = getPublicEngineUrl()
 
 export default function ForgotPasswordPage() {

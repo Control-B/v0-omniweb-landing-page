@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omniweb-livekit-agent-worker
+  namespace: omniweb-production
+  labels:
+    app.kubernetes.io/name: omniweb-livekit-agent
+    app.kubernetes.io/part-of: omniweb-contact-center
+spec:
+  replicas: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: omniweb-livekit-agent
+  template:
+    metadata:
+      labels:
+        app: omniweb-livekit-agent
+    spec:
+      containers:
+        - name: agent-worker
+          image: gcr.io/omniweb-production/livekit-agent-worker:v2.0.0
+          command: ["python3", "agent/agent.py"]
+          env:
+            - name: ENVIRONMENT
+              value: "production"
+            - name: ENABLE_LANGGRAPH
+              value: "true"
+            - name: ENABLE_LIVEKIT
+              value: "true"
+            - name: LIVEKIT_URL
+              valueFrom:
+                secretKeyRef:
+                  name: livekit-credentials
+                  key: url
+            - name: LIVEKIT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: livekit-credentials
+                  key: api_key
+            - name: LIVEKIT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: livekit-credentials
+                  key: api_secret
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: google-cloud-credentials
+                  key: gemini_api_key
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: database_url
+          resources:
+            requests:
+              cpu: "1000m"
+              memory: "2Gi"
+            limits:
+              cpu: "4000m"
+              memory: "8Gi"
+          livenessProbe:
+            exec:
+              command:
+                - python3
+                - -c
+                - "import sys; sys.exit(0)"
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: omniweb-livekit-agent-hpa
+  namespace: omniweb-production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: omniweb-livekit-agent-worker
+  minReplicas: 5
+  maxReplicas: 100
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65

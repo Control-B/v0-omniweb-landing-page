@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { OmniwebLogo } from "@/components/brand-logo"
 
+export const dynamic = "force-dynamic"
+
+
 export default function GetStartedPage() {
   const { isSignedIn } = useAuth()
   const { signOut } = useClerk()

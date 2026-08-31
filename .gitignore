@@ -8,19 +8,30 @@ __v0_jsx-dev-runtime.ts
 next.user-config.*
 
 # Environment variables
+.env
 .env*.local
+.env.gcp
+.env.production
+!.env*.example
 
 # Common ignores
 node_modules
 .next/
+.DS_Store
 .DS_Store.mcp.json
 ai/.venv/
 ai/__pycache__/
-.env.local
 *.pyc
+__pycache__/
+*/__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # clerk configuration (can include secrets)
 /.clerk/
 
 # Local git repair backup (do not commit — duplicates .git objects)
 .git-corrupt-backup-*/
+

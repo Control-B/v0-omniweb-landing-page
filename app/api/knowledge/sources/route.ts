@@ -16,9 +16,10 @@ function normalizeSources(value: unknown): KnowledgeSourceRecord[] {
       id: String(item.id ?? Date.now()),
       url: String(item.url ?? "").trim(),
       details: String(item.details ?? ""),
-      status: item.status === "ready" ? "ready" : "indexing",
+      status: (item.status === "ready" ? "ready" : "indexing") as "indexing" | "ready",
       addedAt: item.addedAt ? new Date(String(item.addedAt)).toISOString() : new Date().toISOString(),
     }))
+
     .filter((item) => item.url.length > 0)
 }
 

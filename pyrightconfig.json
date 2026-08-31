@@ -1,0 +1,18 @@
+{
+  "include": [
+    "backend",
+    "agent"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/.venv",
+    "**/__pycache__",
+    "backend/frontend"
+  ],
+  "extraPaths": [
+    "backend",
+    "."
+  ],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic"
+}

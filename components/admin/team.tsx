@@ -28,7 +28,8 @@ export function AdminTeam() {
 
   async function fetchUsers() {
     setLoading(true)
-    try { const res = await getAdminUsers(); setUsers(Array.isArray(res) ? res : res.admins || []) }
+    try { const res = await getAdminUsers(); setUsers(Array.isArray(res) ? res : ((res as any).admins || [])) }
+
     catch (e: unknown) { setError((e as Error).message) }
     finally { setLoading(false) }
   }

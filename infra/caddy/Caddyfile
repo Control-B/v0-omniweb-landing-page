@@ -1,0 +1,16 @@
+:80 {
+    # Forward API routes to FastAPI Backend
+    handle /api/engine/* {
+        uri strip_prefix /api/engine
+        reverse_proxy backend:8000
+    }
+
+    handle /health {
+        reverse_proxy backend:8000
+    }
+
+    # Forward all other requests to Next.js Frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

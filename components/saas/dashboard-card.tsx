@@ -14,10 +14,11 @@ export function DashboardCard<T extends ElementType = "section">({
   density = "comfortable",
   ...props
 }: DashboardCardProps<T>) {
-  const Component = (as || "section") as ElementType
+  const Component = (as || "section") as any
 
   return (
     <Component
+
       className={cn(
         "dashboard-card-surface min-h-[140px] min-w-0 max-w-full overflow-hidden rounded-[20px] break-words",
         density === "comfortable" ? "p-4 sm:p-6 lg:p-7" : "p-4 sm:p-5",

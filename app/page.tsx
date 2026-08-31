@@ -11,32 +11,36 @@ import { PageHeroWithVideo } from "@/components/marketing/page-hero-with-video"
 import { SolutionHeroBlock } from "@/components/solution-hero-block"
 import { Button } from "@/components/ui/button"
 
+import { LiveCallCenterSimulator } from "@/components/call-center/live-call-center-simulator"
+import { CallCenterRoiCalculator } from "@/components/call-center/call-center-roi-calculator"
+
 const features = [
   {
     icon: PhoneCall,
-    title: "AI Voice Agents",
-    benefit: "Answer instantly",
-    summary: "Use AI-powered voice agents to answer calls, qualify urgency, collect details, and route buyers without missing revenue after hours.",
-    bullets: ["24/7 inbound handling", "Lead qualification scripts", "Booking and routing logic"],
+    title: "Autonomous Voice Swarms",
+    benefit: "Sub-250ms Realtime Voice",
+    summary: "LiveKit WebRTC + Deepgram Nova-3 + Gemini 2.0 streaming pipeline eliminates awkward latency and scales to 500+ concurrent lines with zero hold time.",
+    bullets: ["24/7 Inbound & Outbound Swarms", "Deterministic LangGraph State Machine", "Cal.com & CRM Auto-Sync"],
     image: "/images/AI Voice room.png",
   },
   {
     icon: MessageSquare,
-    title: "AI Chat Assistants",
-    benefit: "Convert more visitors",
-    summary: "Turn site traffic into conversations that capture contact details, overcome objections, and move buyers into your pipeline faster.",
-    bullets: ["Website chat + SMS style flows", "Intent capture and routing", "Escalation to human team"],
+    title: "Multi-Agent Specialist Swarm",
+    benefit: "Strict RBAC & Tool Bounds",
+    summary: "8 bounded specialist agents (Receptionist, Billing, Sales, Support, Scheduling, Retention, Escalation) collaborating seamlessly.",
+    bullets: ["Context-preserving handoffs", "pgvector Knowledge Base RAG", "DeepAgents long-horizon audits"],
     image: "/images/AI chatflow.png",
   },
   {
     icon: Bot,
-    title: "Lead Automation",
-    benefit: "Reduce manual work",
-    summary: "Automate qualification, handoff, and follow-up so your team spends time closing opportunities instead of chasing every inquiry manually.",
-    bullets: ["CRM entry automation", "Follow-up sequences", "Pipeline-ready summaries"],
+    title: "Human-in-the-Loop Governance",
+    benefit: "Supervisor War Room",
+    summary: "Policy Engine automatically halts high-risk refunds, discounts, and cancellations at checkpoints until supervisor confirmation.",
+    bullets: ["Live Listen-in & Barge-in", "Automated QA scorecards", "100% TCPA & DNC compliance"],
     image: "/images/AI lead automation.png",
   },
 ]
+
 
 const solutions = [
   {
@@ -135,14 +139,22 @@ export default function Home() {
 
         <ScrollingMarqueeSection />
 
+        {/* ── Live Autonomous Contact Center Simulator Section ── */}
+        <section id="simulator" className="site-section-shell relative overflow-hidden bg-[#040812]">
+          <div className="site-shell relative z-10 space-y-12">
+            <LiveCallCenterSimulator />
+            <CallCenterRoiCalculator />
+          </div>
+        </section>
+
         <section id="features" className="site-section-shell relative overflow-hidden border-y border-white/15 bg-[#050a12]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(34,211,238,0.08),transparent_50%),radial-gradient(ellipse_at_80%_100%,rgba(139,92,246,0.08),transparent_50%)]" />
           <div className="site-shell relative z-10">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="site-eyebrow">Features</p>
-              <h2 className="site-h2 mt-4">AI-first tools that move buyers forward</h2>
+              <p className="site-eyebrow">Platform Capabilities</p>
+              <h2 className="site-h2 mt-4">Enterprise Agentic Contact Center</h2>
               <p className="site-section-copy mt-5 mx-auto max-w-2xl">
-                Every touchpoint is designed to answer faster, qualify better, and automate what slows revenue down.
+                Every touchpoint is designed to answer in sub-250ms, execute deterministic business tools, and escalate safely with supervisor oversight.
               </p>
             </div>
             <div className="mt-10 grid gap-6 lg:grid-cols-3">
@@ -152,6 +164,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+
 
         {/* ── Solutions: three hero-style blocks ── */}
         <div id="solutions">

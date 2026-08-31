@@ -18,6 +18,7 @@ import {
   Mic,
   PhoneCall,
   PlugZap,
+  RadioTower,
   ShieldCheck,
   ShoppingCart,
   Store,
@@ -107,6 +108,7 @@ export const navItems: SiteNavItem[] = [
     label: "Features",
     href: "/features",
     items: [
+      item("Autonomous Contact Center", "/demo", "Sub-250ms voice swarms, LangGraph orchestration, and 24/7 autonomous dispatch.", RadioTower, "cyan"),
       item("AI Voice Agents", "/features/ai-voice-agents", "Answer inbound calls, qualify intent, and book the next step 24/7.", Mic, "purple"),
       item("AI Chat Assistants", "/features/ai-chat-assistants", "Turn website traffic into live conversations that capture and convert.", MessageSquare, "rose"),
       item("Lead Automation", "/features/lead-automation", "Score, summarize, route, and follow up with every high-intent lead.", Workflow, "orange"),
@@ -116,17 +118,17 @@ export const navItems: SiteNavItem[] = [
       item("Email Follow-Up", "/features/email-follow-up", "Send timely follow-up sequences based on conversation outcomes.", Mail, "emerald"),
       item("Analytics & Reporting", "/features/analytics-reporting", "See conversion, response-time, and pipeline performance at a glance.", BarChart3, "sky"),
       item("Website Knowledge Base", "/features/website-knowledge-base", "Let Omniweb answer from your site content, FAQs, and product docs.", BookOpen, "violet"),
-      item("Video Presenter", "/features/video-presenter", "Use guided video experiences to explain offers and boost engagement.", Video, "purple"),
       item("Workflow Automation", "/features/workflow-automation", "Chain triggers, handoffs, and tasks into one revenue workflow.", Bot, "cyan"),
     ],
     preview: {
       eyebrow: "Core platform",
-      title: "Sell with voice, chat, qualification, and workflow automation",
-      description: "Explore the Omniweb capabilities that turn AI into a revenue engine for your business.",
-      href: "/features",
+      title: "Sell with voice swarms, chat, qualification, and workflow automation",
+      description: "Explore the Omniweb capabilities that turn AI into an autonomous contact center and revenue engine.",
+      href: "/demo",
       image: "/images/generated/templates-showcase.png",
     },
   },
+
   {
     label: "Solutions",
     href: "/solutions",

@@ -12,9 +12,12 @@ import {
   ChevronUp,
   CircleHelp,
   CreditCard,
+  Headphones,
   LayoutDashboard,
   LogOut,
   Phone,
+  PhoneOutgoing,
+  RadioTower,
   Settings,
   Sparkles,
   UserRound,
@@ -28,13 +31,17 @@ const DESKTOP_SIDEBAR_WIDTH = 240
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, aliases: [] },
-  { href: "/dashboard/ai-agent", label: "AI Agent", icon: Bot, aliases: [] },
+  { href: "/dashboard/call-center", label: "War Room", icon: RadioTower, aliases: [] },
+  { href: "/dashboard/ai-agent", label: "Agent Fleet", icon: Bot, aliases: [] },
+  { href: "/dashboard/campaigns", label: "AI Dialer", icon: PhoneOutgoing, aliases: [] },
+  { href: "/dashboard/call-logs", label: "Call Logs & QA", icon: Headphones, aliases: [] },
+  { href: "/dashboard/ai-telephony", label: "SIP Telephony", icon: Phone, aliases: [] },
+  { href: "/dashboard/knowledge", label: "Knowledge RAG", icon: Brain, aliases: [] },
   { href: "/dashboard/widget-install", label: "Widget Install", icon: Code2, aliases: [] },
-  { href: "/dashboard/ai-telephony", label: "AI Telephony", icon: Phone, aliases: [] },
-  { href: "/dashboard/knowledge", label: "Knowledge", icon: Brain, aliases: [] },
-  { href: "/dashboard/billing", label: "Billing", icon: Wallet, aliases: ["/dashboard/pricing"] },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3, aliases: [] },
+  { href: "/dashboard/billing", label: "Billing", icon: Wallet, aliases: ["/dashboard/pricing"] },
 ] as const
+
 
 const accountMenuItems = [
   { href: "/dashboard/billing", label: "Upgrade plan", icon: Sparkles },
