@@ -1,4 +1,10 @@
-:80 {
+{
+    # Global options
+    email admin@omniweb.ai
+}
+
+# ── 1. Public Domain with Automatic Trusted Let's Encrypt / ZeroSSL HTTPS ──────
+{$DOMAIN_NAME:136.114.167.50.sslip.io}, 136.114.167.50.nip.io {
     # Encode responses with gzip & zstandard compression
     encode gzip zstd
 
@@ -9,15 +15,17 @@
 
     # Enterprise-grade HTTP Security Headers
     header {
+        # Strict Transport Security (HSTS) for HTTPS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         # Prevent clickjacking
         X-Frame-Options "SAMEORIGIN"
         # Prevent MIME type sniffing
         X-Content-Type-Options "nosniff"
-        # Legacy XSS protection for older user agents
+        # Legacy XSS protection
         X-XSS-Protection "1; mode=block"
         # Strict referrer leakage prevention
         Referrer-Policy "strict-origin-when-cross-origin"
-        # Control browser features & permissions (allow microphone for AI voice calling)
+        # Allow microphone for WebRTC AI voice calling
         Permissions-Policy "camera=(), microphone=(self), geolocation=()"
         # Cross-Origin Opener Policy for secure popups/OAuth
         Cross-Origin-Opener-Policy "same-origin-allow-popups"
@@ -36,6 +44,40 @@
     }
 
     # Forward all other requests to Next.js Frontend
+    handle {
+        reverse_proxy frontend:3000
+    }
+}
+
+# ── 2. Direct IP Address Support (HTTP + Self-Signed HTTPS Fallback) ───────────
+http://136.114.167.50, https://136.114.167.50 {
+    tls internal
+
+    encode gzip zstd
+
+    request_body {
+        max_size 10MB
+    }
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(self), geolocation=()"
+        Cross-Origin-Opener-Policy "same-origin-allow-popups"
+        -Server
+    }
+
+    handle /api/engine/* {
+        uri strip_prefix /api/engine
+        reverse_proxy backend:8000
+    }
+
+    handle /health {
+        reverse_proxy backend:8000
+    }
+
     handle {
         reverse_proxy frontend:3000
     }
