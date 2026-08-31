@@ -7,9 +7,12 @@ import {
   AlertTriangle,
   ArrowRight,
   Bot,
+  Check,
   CheckCircle2,
   ChevronRight,
   Compass,
+  Copy,
+  Download,
   ExternalLink,
   Flame,
   Globe,
@@ -47,6 +50,7 @@ export type PersonaScenario = {
   voiceName: string
   latencyMs: number
   description: string
+  greeting: string
   suggestedPrompts: string[]
   sampleDialogue: Array<{
     speaker: "caller" | "agent"
@@ -64,8 +68,9 @@ export const SCENARIOS: PersonaScenario[] = [
     title: "Omniweb Site Concierge & Navigation AI",
     industry: "Platform Intelligence & Site Guide",
     avatarTone: "cyan",
-    voiceName: "Deepgram Nova-3 + Gemini 2.0 Flash",
+    voiceName: "Deepgram Flux-Kit + Gemini 2.0 Flash",
     latencyMs: 185,
+    greeting: "Hello! I am Elena Rostova, your Omniweb AI site concierge. I can answer questions about our services, pricing tiers, and guide you to any page on our website. How may I help you today?",
     description: "Answers all questions about Omniweb capabilities, service packages, pricing plans, and provides interactive real-time site navigation.",
     suggestedPrompts: [
       "What services does Omniweb AI offer for businesses?",
@@ -75,45 +80,9 @@ export const SCENARIOS: PersonaScenario[] = [
     ],
     sampleDialogue: [
       {
-        speaker: "caller",
-        text: "Hi Elena! Can you explain what services Omniweb offers and how the pricing works?",
-      },
-      {
         speaker: "agent",
-        thought: "NLU Intent: platform_services_inquiry (confidence 0.99). Invoking search_knowledge for service catalog and navigate_site for pricing breakdown.",
-        toolCall: {
-          name: "search_knowledge",
-          params: { query: "Omniweb core services and pricing tiers", top_k: 2 },
-          result: {
-            services: ["Autonomous Voice Swarms (LiveKit)", "24/7 AI Chat", "Lead Automation", "Calendar Sync", "Shopify Storefront Assistant"],
-            pricing_tiers: { starter: "$49/mo (500 min)", pro: "$149/mo (2,500 min + War Room)", enterprise: "Custom ($499+/mo)" },
-          },
-        },
-        navigation: {
-          title: "Explore Omniweb Pricing Plans",
-          href: "/pricing",
-          description: "Starter ($49), Growth/Pro ($149), and Enterprise Custom scale plans.",
-        },
-        text: "Omniweb AI is an autonomous contact center platform providing sub-250ms voice agents powered by LiveKit OSS, 24/7 chat assistants, lead qualification, and Shopify store integrations. Plans start at $49/month for Starter and $149/month for our Pro Growth tier with full Live War Room access!",
-      },
-      {
-        speaker: "caller",
-        text: "That sounds great! Can you show me the Shopify AI Assistant and how it recovers abandoned carts?",
-      },
-      {
-        speaker: "agent",
-        thought: "NLU Intent: shopify_solution_navigation. Calling navigate_site tool with target: 'shopify'.",
-        toolCall: {
-          name: "navigate_site",
-          params: { query: "Shopify AI Storefront Assistant", category: "Solutions" },
-          result: { matched_route: "/solutions/shopify-ai-assistant", title: "Shopify AI Assistant" },
-        },
-        navigation: {
-          title: "Open Shopify AI Assistant Solution",
-          href: "/solutions/shopify-ai-assistant",
-          description: "Product catalog sync, sizing advice, and autonomous abandoned cart recovery.",
-        },
-        text: "I have loaded our Shopify AI Assistant solution for you! It connects to your Shopify store in one click, syncs inventory in real time, answers customer product questions, and autonomously recovers abandoned checkouts. You can click the link below to explore the walkthrough!",
+        thought: "NLU Intent: session_start. Loaded Omniweb service catalog, 3 pricing tiers, and full site map into memory.",
+        text: "Hello! I am Elena Rostova, your Omniweb AI site concierge. I can answer questions about our services, pricing tiers, and guide you to any page on our website. How may I help you today?",
       },
     ],
   },
@@ -125,6 +94,7 @@ export const SCENARIOS: PersonaScenario[] = [
     avatarTone: "violet",
     voiceName: "Deepgram Nova-3 + Cartesia Studio Voice",
     latencyMs: 240,
+    greeting: "Hello! Thanks for calling Omniweb Billing. I'm Alex Vance. How can I assist with your invoice or account today?",
     description: "Resolves high-value billing disputes, reconciles historical invoice ledgers, and handles refund policies with Human-in-the-Loop governance.",
     suggestedPrompts: [
       "Can you explain why my invoice was $299 this month instead of $199?",
@@ -133,42 +103,9 @@ export const SCENARIOS: PersonaScenario[] = [
     ],
     sampleDialogue: [
       {
-        speaker: "caller",
-        text: "Hi, I noticed a $299 charge on my account today and I wanted to know what caused the rate increase.",
-      },
-      {
         speaker: "agent",
-        thought: "NLU Intent: billing_inquiry (high confidence 0.98). Calling lookup_customer and get_invoices to inspect active subscription and ledger.",
-        toolCall: {
-          name: "get_invoices",
-          params: { customer_id: "cust_849201", limit: 2 },
-          result: {
-            status: "paid",
-            invoice_id: "INV-2026-0881",
-            amount: 299.0,
-            items: ["Omniweb AI Contact Center (10 Agents)", "Twilio SIP Inbound Minutes (2,400 min)"],
-          },
-        },
-        text: "Hello! I have your account open in front of me. Your base plan is $199 for 10 autonomous agents, and the additional $100 corresponds to 2,400 inbound telephony minutes utilized during your recent marketing campaign.",
-      },
-      {
-        speaker: "caller",
-        text: "Got it! Could you issue a $150 courtesy credit since we had downtime on Tuesday?",
-      },
-      {
-        speaker: "agent",
-        thought: "NLU Intent: refund_request ($150.00). Policy Engine flags HIGH_RISK (limit: $50). Triggering Human-in-the-Loop approval gate.",
-        toolCall: {
-          name: "request_refund",
-          params: { customer_id: "cust_849201", amount: 150.0, reason: "Downtime credit request" },
-          result: { status: "pending_human_approval", approval_id: "appr_98a42f", message: "Dispatched to Supervisor War Room" },
-        },
-        navigation: {
-          title: "View Live Supervisor War Room",
-          href: "/dashboard/call-center",
-          description: "Track approval tickets, agent swarms, and live queue status.",
-        },
-        text: "I completely understand and apologize for that downtime. Because this request is for $150, I have dispatched an instant authorization ticket directly to our shift supervisor in the Live War Room. You will receive an SMS confirmation the moment it is approved!",
+        thought: "NLU Intent: session_start. Initialized billing specialist ledger access.",
+        text: "Hello! Thanks for calling Omniweb Billing. I'm Alex Vance. How can I assist with your invoice or account today?",
       },
     ],
   },
@@ -180,6 +117,7 @@ export const SCENARIOS: PersonaScenario[] = [
     avatarTone: "emerald",
     voiceName: "LiveKit OSS + Gemini 2.0 Flash",
     latencyMs: 195,
+    greeting: "Hi there! I'm Marcus Vance with Omniweb Enterprise Solutions. Are you looking to scale an inbound voice swarm or migrate an existing call center team?",
     description: "Qualifies high-intent inbound prospects, analyzes seat replacement ROI, and schedules executive product walkthroughs.",
     suggestedPrompts: [
       "We operate a 50-person call center costing $180k/mo. How does Omniweb compare?",
@@ -188,23 +126,9 @@ export const SCENARIOS: PersonaScenario[] = [
     ],
     sampleDialogue: [
       {
-        speaker: "caller",
-        text: "We currently have 50 human agents handling customer service and want to explore autonomous AI swarms. What is the pricing and migration timeline?",
-      },
-      {
         speaker: "agent",
-        thought: "NLU Intent: sales_qualification. High-value opportunity (50 seats). Calling CRM lead creation and checking executive calendar availability.",
-        toolCall: {
-          name: "create_lead",
-          params: { caller_name: "Enterprise Prospect", intent: "50-Seat Call Center Migration", budget_range: "$5,000+/mo", urgency: "high" },
-          result: { lead_id: "lead_88492", status: "enterprise_qualified", lead_score: 0.96 },
-        },
-        navigation: {
-          title: "Calculate Call Center ROI",
-          href: "/demo#roi-calculator",
-          description: "See monthly cost savings from 50 seats to autonomous swarms.",
-        },
-        text: "At 50 seats, Omniweb typically reduces monthly operational spend from roughly $175,000 down to under $4,200 while eliminating hold times completely. I have reserved an executive architecture briefing for your team—would Tuesday at 2:00 PM EST work for you?",
+        thought: "NLU Intent: session_start. Connected Enterprise ROI qualification model.",
+        text: "Hi there! I'm Marcus Vance with Omniweb Enterprise Solutions. Are you looking to scale an inbound voice swarm or migrate an existing call center team?",
       },
     ],
   },
@@ -216,6 +140,7 @@ export const SCENARIOS: PersonaScenario[] = [
     avatarTone: "rose",
     voiceName: "ElevenLabs Ultra-Low Latency Turbo v2.5",
     latencyMs: 210,
+    greeting: "Omniweb 24/7 Emergency Dispatch, this is Sophia Martinez. Are you reporting an urgent service failure or emergency outage?",
     description: "24/7 emergency triage that screens urgency, geo-routes technicians, and dispatches rapid response teams in under 60 seconds.",
     suggestedPrompts: [
       "Our commercial freezer stopped cooling and we have $40k of inventory at risk!",
@@ -224,23 +149,9 @@ export const SCENARIOS: PersonaScenario[] = [
     ],
     sampleDialogue: [
       {
-        speaker: "caller",
-        text: "Emergency! Our commercial cooling unit died and temperatures are rising fast!",
-      },
-      {
         speaker: "agent",
-        thought: "NLU Urgency: CRITICAL. Intent: emergency_dispatch. Extracting location and assigning nearest Tier-1 on-call technician.",
-        toolCall: {
-          name: "create_ticket",
-          params: { category: "hardware_emergency", severity: "critical", issue_summary: "Commercial cooling failure" },
-          result: { ticket_id: "TICK-EMERG-492", assigned_queue: "Immediate On-Call Dispatch", sla_hours: 1 },
-        },
-        navigation: {
-          title: "Explore Contractor & HVAC Solutions",
-          href: "/solutions/contractors",
-          description: "24/7 emergency quote generation and on-call technician routing.",
-        },
-        text: "I am treating this with highest urgency. I have locked in Emergency Ticket #492 and alerted our nearest on-call commercial technician in your zone. They are en route with an estimated ETA of 28 minutes. Can I confirm your street address?",
+        thought: "NLU Intent: session_start. SLA Priority queue armed for sub-60-second dispatch.",
+        text: "Omniweb 24/7 Emergency Dispatch, this is Sophia Martinez. Are you reporting an urgent service failure or emergency outage?",
       },
     ],
   },
@@ -251,6 +162,8 @@ export function LiveCallCenterSimulator() {
   const [callState, setCallState] = useState<"idle" | "connecting" | "active" | "ended">("idle")
   const [isMuted, setIsMuted] = useState(false)
   const [isMicListening, setIsMicListening] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+  const [copiedTranscript, setCopiedTranscript] = useState(false)
   const [transcript, setTranscript] = useState<PersonaScenario["sampleDialogue"]>(SCENARIOS[0].sampleDialogue)
   const [customInput, setCustomInput] = useState("")
   const [isThinking, setIsThinking] = useState(false)
@@ -267,6 +180,45 @@ export function LiveCallCenterSimulator() {
   const [supervisorMode, setSupervisorMode] = useState<"monitor" | "whisper" | "barge">("monitor")
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const recognitionRef = useRef<any>(null)
+  const transcriptEndRef = useRef<HTMLDivElement | null>(null)
+
+  // Voice speech synthesis helper
+  const speakAloud = (textToSpeak: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return
+    try {
+      window.speechSynthesis.cancel() // Stop any prior speech
+      const cleanText = textToSpeak.replace(/https?:\/\/[^\s]+/g, "").replace(/[\*#_`]/g, "")
+      const utterance = new SpeechSynthesisUtterance(cleanText)
+      utterance.rate = 1.05
+      utterance.pitch = 1.0
+
+      // Pick a natural British/English voice if available
+      const voices = window.speechSynthesis.getVoices()
+      const preferredVoice = voices.find(
+        (v) =>
+          v.name.includes("Natural") ||
+          v.name.includes("Google UK English") ||
+          v.name.includes("Samantha") ||
+          v.name.includes("Daniel") ||
+          v.lang.startsWith("en")
+      )
+      if (preferredVoice) utterance.voice = preferredVoice
+
+      utterance.onstart = () => setIsSpeaking(true)
+      utterance.onend = () => setIsSpeaking(false)
+      utterance.onerror = () => setIsSpeaking(false)
+
+      window.speechSynthesis.speak(utterance)
+    } catch (err) {
+      console.warn("SpeechSynthesis error:", err)
+      setIsSpeaking(false)
+    }
+  }
+
+  // Scroll transcript to bottom on new turns
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [transcript, isThinking])
 
   // Reactive Waveform Simulation
   useEffect(() => {
@@ -284,7 +236,7 @@ export function LiveCallCenterSimulator() {
       const height = canvas.height
       const centerY = height / 2
 
-      const amplitude = callState === "active" ? (isThinking ? 18 : isMicListening ? 30 : 22) : 4
+      const amplitude = callState === "active" ? (isSpeaking ? 34 : isMicListening ? 28 : isThinking ? 18 : 10) : 4
       const bars = 48
       const barWidth = width / bars
 
@@ -296,9 +248,15 @@ export function LiveCallCenterSimulator() {
 
         const gradient = ctx.createLinearGradient(0, centerY - barHeight, 0, centerY + barHeight)
         if (callState === "active") {
-          gradient.addColorStop(0, "rgba(34, 211, 238, 0.9)")
-          gradient.addColorStop(0.5, "rgba(139, 92, 246, 0.9)")
-          gradient.addColorStop(1, "rgba(59, 130, 246, 0.9)")
+          if (isSpeaking) {
+            gradient.addColorStop(0, "rgba(52, 211, 153, 0.95)")
+            gradient.addColorStop(0.5, "rgba(34, 211, 238, 0.9)")
+            gradient.addColorStop(1, "rgba(59, 130, 246, 0.95)")
+          } else {
+            gradient.addColorStop(0, "rgba(34, 211, 238, 0.9)")
+            gradient.addColorStop(0.5, "rgba(139, 92, 246, 0.9)")
+            gradient.addColorStop(1, "rgba(59, 130, 246, 0.9)")
+          }
         } else {
           gradient.addColorStop(0, "rgba(148, 163, 184, 0.3)")
           gradient.addColorStop(1, "rgba(100, 116, 139, 0.2)")
@@ -310,13 +268,13 @@ export function LiveCallCenterSimulator() {
         ctx.fill()
       }
 
-      phase += callState === "active" ? 0.08 : 0.02
+      phase += callState === "active" ? (isSpeaking ? 0.12 : 0.07) : 0.02
       animationFrameId = requestAnimationFrame(render)
     }
 
     render()
     return () => cancelAnimationFrame(animationFrameId)
-  }, [callState, isThinking, isMicListening])
+  }, [callState, isThinking, isMicListening, isSpeaking])
 
   // Setup Browser Speech Recognition (Deepgram / WebSpeech bridge)
   useEffect(() => {
@@ -350,12 +308,23 @@ export function LiveCallCenterSimulator() {
     setCallState("connecting")
     setTimeout(() => {
       setCallState("active")
-      setTranscript(activeScenario.sampleDialogue)
-    }, 700)
+      const greetingTurn = {
+        speaker: "agent" as const,
+        thought: `NLU Intent: session_start. Loaded ${activeScenario.title} profile.`,
+        text: activeScenario.greeting,
+      }
+      setTranscript([greetingTurn])
+      // Speak the greeting aloud!
+      speakAloud(activeScenario.greeting)
+    }, 600)
   }
 
   const handleEndCall = () => {
     setCallState("ended")
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsSpeaking(false)
     if (recognitionRef.current && isMicListening) {
       try {
         recognitionRef.current.stop()
@@ -366,7 +335,7 @@ export function LiveCallCenterSimulator() {
 
   const toggleMicListening = () => {
     if (!recognitionRef.current) {
-      alert("Microphone recognition is supported in Chrome, Edge, and Safari.")
+      alert("Microphone recognition is supported in modern browsers like Chrome, Edge, and Safari.")
       return
     }
 
@@ -378,6 +347,7 @@ export function LiveCallCenterSimulator() {
     } else {
       if (callState !== "active") {
         setCallState("active")
+        speakAloud(activeScenario.greeting)
       }
       try {
         recognitionRef.current.start()
@@ -389,9 +359,22 @@ export function LiveCallCenterSimulator() {
   }
 
   const handleSelectScenario = (scenario: PersonaScenario) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsSpeaking(false)
     setActiveScenario(scenario)
-    setTranscript(scenario.sampleDialogue)
-    if (callState === "ended") setCallState("idle")
+    const initialTurn = {
+      speaker: "agent" as const,
+      thought: `NLU Intent: session_start. Switched to ${scenario.title}.`,
+      text: scenario.greeting,
+    }
+    setTranscript([initialTurn])
+    if (callState === "active") {
+      speakAloud(scenario.greeting)
+    } else {
+      setCallState("idle")
+    }
     setActiveAgentHUD((prev) => ({
       ...prev,
       activeAgent: `${scenario.name} (${scenario.title.split("&")[0].trim()})`,
@@ -399,9 +382,47 @@ export function LiveCallCenterSimulator() {
     }))
   }
 
+  const handleCopyTranscript = () => {
+    const formatted = transcript
+      .map((t) => {
+        const speakerName = t.speaker === "caller" ? "CALLER" : `${activeScenario.name} (AI)`
+        const toolStr = t.toolCall ? `\n[Tool Executed: ${t.toolCall.name} -> ${JSON.stringify(t.toolCall.result)}]` : ""
+        return `${speakerName}: ${t.text}${toolStr}`
+      })
+      .join("\n\n")
+
+    navigator.clipboard.writeText(formatted)
+    setCopiedTranscript(true)
+    setTimeout(() => setCopiedTranscript(false), 2000)
+  }
+
+  const handleDownloadTranscript = () => {
+    const data = {
+      sessionId: `omniweb-session-${Date.now()}`,
+      agent: activeScenario.name,
+      agentTitle: activeScenario.title,
+      timestamp: new Date().toISOString(),
+      latencyAvgMs: activeScenario.latencyMs,
+      turns: transcript,
+    }
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `omniweb-transcript-${activeScenario.id}-${Date.now()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handleSendMessage = (textToSend?: string) => {
     const text = textToSend || customInput
     if (!text.trim()) return
+
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsSpeaking(false)
 
     setCallState("active")
     const newTurns: PersonaScenario["sampleDialogue"] = [
@@ -432,7 +453,7 @@ export function LiveCallCenterSimulator() {
             href: "/pricing",
             description: "Transparent per-seat and usage pricing with 14-day free trial.",
           },
-          text: "Our plans are designed for teams of all sizes: Starter is $49/mo (500 mins, 1 agent), Pro Growth is $149/mo (2,500 mins, multi-agent swarms, Live War Room), and Enterprise starts at $499/mo for dedicated SIP trunks and custom pgvector RAG. Would you like to view our pricing table?",
+          text: "Our plans are designed for teams of all sizes: Starter is $49 a month for 500 minutes, Pro Growth is $149 a month with multi-agent swarms and the live War Room, and Enterprise starts at $499 for dedicated SIP trunks and custom RAG. You can click the link in the transcript to view the full pricing table!",
         }
       } else if (textLower.includes("shopify") || textLower.includes("ecommerce") || textLower.includes("store") || textLower.includes("cart")) {
         agentTurn = {
@@ -448,7 +469,7 @@ export function LiveCallCenterSimulator() {
             href: "/solutions/shopify-ai-assistant",
             description: "Product catalog sync, sizing advice, and autonomous abandoned cart recovery.",
           },
-          text: "Omniweb's Shopify AI Assistant directly indexes your product catalog, provides instant sizing and availability answers, and recovers abandoned carts on your checkout flow. I've linked the full breakdown below!",
+          text: "Omniweb's Shopify AI Assistant directly indexes your product catalog, provides instant sizing and availability answers, and recovers abandoned carts on your checkout flow. I've linked the full walkthrough below!",
         }
       } else if (textLower.includes("war room") || textLower.includes("call center") || textLower.includes("dashboard") || textLower.includes("monitor") || textLower.includes("queue")) {
         agentTurn = {
@@ -517,7 +538,9 @@ export function LiveCallCenterSimulator() {
       }
 
       setTranscript([...newTurns, agentTurn])
-    }, 950)
+      // Speak the response text aloud through the user's speakers!
+      speakAloud(agentTurn.text)
+    }, 850)
   }
 
   return (
@@ -533,7 +556,7 @@ export function LiveCallCenterSimulator() {
             Autonomous Contact Center & Site AI Concierge
           </h2>
           <p className="mt-1 text-sm text-slate-400">
-            Powered by <strong>LiveKit OSS</strong> WebRTC media transport, <strong>Deepgram Nova-3</strong> STT, and <strong>LangGraph</strong> multi-agent swarms.
+            Powered by <strong>LiveKit OSS</strong> WebRTC media transport, <strong>Deepgram Nova-3 / Flux</strong> STT, and <strong>LangGraph</strong> multi-agent swarms.
           </p>
         </div>
 
@@ -592,7 +615,11 @@ export function LiveCallCenterSimulator() {
           <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/90 p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-500/10 text-cyan-400 shadow-md">
+                <div className={`relative flex h-12 w-12 items-center justify-center rounded-2xl border transition-all ${
+                  isSpeaking
+                    ? "border-emerald-400/50 bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-500/30 scale-105"
+                    : "border-cyan-400/30 bg-cyan-500/10 text-cyan-400 shadow-md"
+                }`}>
                   <Bot className="h-6 w-6" />
                   {callState === "active" && (
                     <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5">
@@ -602,7 +629,15 @@ export function LiveCallCenterSimulator() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white">{activeScenario.name}</h3>
+                  <h3 className="font-semibold text-white flex items-center gap-1.5">
+                    {activeScenario.name}
+                    {isSpeaking && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+                        <Volume2 className="h-3 w-3 animate-pulse" />
+                        Speaking
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-xs text-slate-400">{activeScenario.voiceName}</p>
                 </div>
               </div>
@@ -618,7 +653,7 @@ export function LiveCallCenterSimulator() {
                   }`}
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${callState === "active" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                  {callState === "active" ? "CALL IN PROGRESS" : callState === "connecting" ? "CONNECTING LIVEKIT..." : "IDLE"}
+                  {callState === "active" ? "VOICE CALL LIVE" : callState === "connecting" ? "CONNECTING LIVEKIT..." : "IDLE"}
                 </span>
               </div>
             </div>
@@ -632,8 +667,8 @@ export function LiveCallCenterSimulator() {
                   LiveKit: {livekitMode === "oss" ? "OSS (localhost:7880)" : "Cloud"}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Mic className="h-3 w-3 text-emerald-400" />
-                  STT: Deepgram Nova-3
+                  <Volume2 className="h-3 w-3 text-emerald-400" />
+                  Voice Audio: {isSpeaking ? "Streaming Out" : isMicListening ? "Mic In" : "Ready"}
                 </span>
               </div>
             </div>
@@ -672,7 +707,7 @@ export function LiveCallCenterSimulator() {
                           : "bg-white/5 text-white hover:bg-white/10"
                       }`}
                     >
-                      {isMicListening ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+                      {isMicListening ? <Mic className="h-5 w-5 text-emerald-400" /> : <MicOff className="h-5 w-5" />}
                     </Button>
                   </>
                 )}
@@ -680,10 +715,12 @@ export function LiveCallCenterSimulator() {
 
               {callState === "active" && (
                 <p className="text-center text-[11px] text-slate-400">
-                  {isMicListening ? (
-                    <span className="text-emerald-400 font-medium">🎤 Microphone listening... Speak now to transcribe!</span>
+                  {isSpeaking ? (
+                    <span className="text-emerald-400 font-medium">🔊 Agent is speaking aloud... Listen or interrupt!</span>
+                  ) : isMicListening ? (
+                    <span className="text-cyan-400 font-medium">🎤 Listening to your microphone... Speak anytime!</span>
                   ) : (
-                    <span>Click the microphone button to speak directly or use the prompts below.</span>
+                    <span>Click the microphone button to speak or use the suggested questions below.</span>
                   )}
                 </p>
               )}
@@ -746,12 +783,47 @@ export function LiveCallCenterSimulator() {
           </div>
 
           {/* Dual-Channel Live Transcript Box */}
-          <div className="flex flex-col h-[420px] rounded-3xl border border-white/10 bg-slate-950/90 p-5 shadow-2xl">
+          <div className="flex flex-col h-[440px] rounded-3xl border border-white/10 bg-slate-950/90 p-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                Live Dual-Channel Speech Transcript
-              </span>
-              <span className="text-xs text-slate-400">{transcript.length} conversational turns</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                  Live Dual-Channel Speech Transcript
+                </span>
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-slate-300">
+                  {transcript.length} turns
+                </span>
+              </div>
+
+              {/* Transcript Actions (Copy & Download) */}
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCopyTranscript}
+                  className="h-7 rounded-lg border-white/10 bg-white/5 px-2.5 text-[11px] text-slate-300 hover:bg-white/10 hover:text-white"
+                >
+                  {copiedTranscript ? (
+                    <>
+                      <Check className="mr-1 h-3 w-3 text-emerald-400" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="mr-1 h-3 w-3" />
+                      Copy Transcript
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleDownloadTranscript}
+                  className="h-7 rounded-lg border-white/10 bg-white/5 px-2.5 text-[11px] text-slate-300 hover:bg-white/10 hover:text-white"
+                >
+                  <Download className="mr-1 h-3 w-3" />
+                  JSON
+                </Button>
+              </div>
             </div>
 
             {/* Message Stream */}
@@ -833,6 +905,7 @@ export function LiveCallCenterSimulator() {
                   <span>Agent is reasoning and executing tools...</span>
                 </div>
               )}
+              <div ref={transcriptEndRef} />
             </div>
 
             {/* Text Input Row for testing */}
