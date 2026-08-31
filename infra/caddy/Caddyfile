@@ -1,10 +1,10 @@
 {
     # Global options
-    email admin@omniweb.ai
+    email admin@omniweb.com
 }
 
-# ── 1. Public Domain with Automatic Trusted Let's Encrypt / ZeroSSL HTTPS ──────
-{$DOMAIN_NAME:136.114.167.50.sslip.io}, 136.114.167.50.nip.io {
+# ── 1. Custom Domain & Public Hostnames (Automatic Trusted ACME HTTPS) ──────────
+omniweb.com, www.omniweb.com, {$DOMAIN_NAME:136.114.167.50.sslip.io}, 136.114.167.50.sslip.io, 136.114.167.50.nip.io {
     # Encode responses with gzip & zstandard compression
     encode gzip zstd
 
