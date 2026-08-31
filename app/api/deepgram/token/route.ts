@@ -1,10 +1,31 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, createRateLimitResponse } from "@/lib/rate-limiter"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
+  const rateLimitResult = checkRateLimit(request, {
+    limit: 20,
+    windowMs: 60 * 1000,
+    prefix: "deepgram-token",
+  })
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult)
+  }
+
   return handleDeepgramToken()
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResult = checkRateLimit(request, {
+    limit: 20,
+    windowMs: 60 * 1000,
+    prefix: "deepgram-token",
+  })
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult)
+  }
+
   return handleDeepgramToken()
 }
 

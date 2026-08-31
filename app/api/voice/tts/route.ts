@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { checkRateLimit, createRateLimitResponse } from "@/lib/rate-limiter"
 
 export const dynamic = "force-dynamic"
 
@@ -23,18 +24,37 @@ const VOICE_MAP: Record<string, { deepgram: string; elevenlabs: string }> = {
 }
 
 export async function POST(req: NextRequest) {
+  // 1. IP Rate Limiting (max 30 requests per minute)
+  const rateLimitResult = checkRateLimit(req, {
+    limit: 30,
+    windowMs: 60 * 1000,
+    prefix: "tts",
+  })
+
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult)
+  }
+
   try {
     const body = await req.json()
-    const text = (body.text || "").trim()
+    const rawText = (body.text || "").trim()
     const personaId = body.personaId || "site-concierge"
     const requestedProvider = body.provider || "auto"
 
-    if (!text) {
+    if (!rawText) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 })
     }
 
+    // 2. Character Length Restriction (max 1000 characters per utterance to protect API quotas)
+    if (rawText.length > 1000) {
+      return NextResponse.json(
+        { error: "Text exceeds maximum permitted length of 1000 characters" },
+        { status: 400 }
+      )
+    }
+
     // Clean markdown, links, and code formatting from text
-    const cleanText = text
+    const cleanText = rawText
       .replace(/https?:\/\/[^\s]+/g, "")
       .replace(/[\*#_`]/g, "")
       .trim()

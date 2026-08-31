@@ -1,12 +1,29 @@
 import { NextRequest, NextResponse } from "next/server"
 import { SignJWT } from "jose"
+import { checkRateLimit, createRateLimitResponse } from "@/lib/rate-limiter"
+
+export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
+  const rateLimitResult = checkRateLimit(request, {
+    limit: 20,
+    windowMs: 60 * 1000,
+    prefix: "livekit-token",
+  })
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult)
+  }
+
   try {
     const { searchParams } = new URL(request.url)
-    const room = searchParams.get("room") || `omniweb-room-${Math.random().toString(36).substring(7)}`
-    const identity = searchParams.get("identity") || `user-${Math.random().toString(36).substring(7)}`
-    const name = searchParams.get("name") || "Website Visitor"
+    const rawRoom = searchParams.get("room") || `omniweb-room-${Math.random().toString(36).substring(7)}`
+    const rawIdentity = searchParams.get("identity") || `user-${Math.random().toString(36).substring(7)}`
+    const rawName = searchParams.get("name") || "Website Visitor"
+
+    // Sanitize parameters
+    const room = rawRoom.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64)
+    const identity = rawIdentity.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64)
+    const name = rawName.replace(/[<>]/g, "").slice(0, 64)
 
     const apiKey = process.env.LIVEKIT_API_KEY || "devkey"
     const apiSecret = process.env.LIVEKIT_API_SECRET || "secret"
@@ -48,11 +65,25 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResult = checkRateLimit(request, {
+    limit: 20,
+    windowMs: 60 * 1000,
+    prefix: "livekit-token",
+  })
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult)
+  }
+
   try {
     const body = await request.json().catch(() => ({}))
-    const room = body.room || `omniweb-room-${Math.random().toString(36).substring(7)}`
-    const identity = body.identity || `user-${Math.random().toString(36).substring(7)}`
-    const name = body.name || "Website Visitor"
+    const rawRoom = body.room || `omniweb-room-${Math.random().toString(36).substring(7)}`
+    const rawIdentity = body.identity || `user-${Math.random().toString(36).substring(7)}`
+    const rawName = body.name || "Website Visitor"
+
+    // Sanitize parameters
+    const room = String(rawRoom).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64)
+    const identity = String(rawIdentity).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64)
+    const name = String(rawName).replace(/[<>]/g, "").slice(0, 64)
 
     const apiKey = process.env.LIVEKIT_API_KEY || "devkey"
     const apiSecret = process.env.LIVEKIT_API_SECRET || "secret"
