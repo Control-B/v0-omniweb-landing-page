@@ -167,34 +167,25 @@ export default function RootLayout({
                   }}
                 />
               </>
-            )
-
-            if (hasValidClerk) {
-              return (
-                <ClerkProvider
-                  publishableKey={publishableKey}
-                  appearance={{
-                    baseTheme: dark,
-                    elements: {
-                      userButtonAvatarBox: 'w-8 h-8 ring-2 ring-cyan-500/30',
-                      userButtonPopoverCard: 'bg-[#0a1225] border border-white/[0.08] shadow-2xl rounded-2xl',
-                      userButtonPopoverActionButton: 'text-slate-300 hover:bg-white/[0.05] rounded-xl',
-                      userButtonPopoverFooter: 'hidden',
-                    },
-                  } as any}
-                  afterSignOutUrl="/"
-                >
-                  {children}
-                  {scripts}
-                </ClerkProvider>
-              )
-            }
+            const effectivePublishableKey = hasValidClerk ? publishableKey : 'pk_test_bW9jay1jbGVyay1rZXktZm9yLWJ1aWxkLXRlc3RpbmctcHVycG9zZXMk'
 
             return (
-              <>
+              <ClerkProvider
+                publishableKey={effectivePublishableKey}
+                appearance={{
+                  baseTheme: dark,
+                  elements: {
+                    userButtonAvatarBox: 'w-8 h-8 ring-2 ring-cyan-500/30',
+                    userButtonPopoverCard: 'bg-[#0a1225] border border-white/[0.08] shadow-2xl rounded-2xl',
+                    userButtonPopoverActionButton: 'text-slate-300 hover:bg-white/[0.05] rounded-xl',
+                    userButtonPopoverFooter: 'hidden',
+                  },
+                } as any}
+                afterSignOutUrl="/"
+              >
                 {children}
                 {scripts}
-              </>
+              </ClerkProvider>
             )
           })()}
         </ThemeProvider>
