@@ -53,18 +53,7 @@ function CtaButton({
   size = "lg",
   variant = "default",
   showArrow = false,
-  assistantLabel = "Talk to AI",
-  assistantMode = "voice",
 }: CtaButtonProps) {
-  if (isLiveDemoCta(cta)) {
-    return (
-      <AssistantOpenButton mode={getAssistantCtaMode(cta) || assistantMode} size={size} variant={variant} className={className}>
-        {getAssistantCtaLabel(cta, assistantLabel)}
-        {showArrow ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-      </AssistantOpenButton>
-    )
-  }
-
   return (
     <Button size={size} asChild variant={variant} className={className}>
       <Link href={cta.href}>

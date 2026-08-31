@@ -119,55 +119,6 @@ export default function RootLayout({
               !publishableKey.includes('pk_test_Y2xlcmsuY2xlcmsuZGV2JA')
             )
 
-            const scripts = (
-              <>
-                <Script
-                  id="omniweb-widget"
-                  src="https://omniweb-engine-rs6fr.ondigitalocean.app/widget.js"
-                  data-tenant-id="dlPBhYBUzIpAeeA8FImeGXYz"
-                  async
-                  strategy="afterInteractive"
-                />
-                <Script
-                  id="omniweb-widget-bridge"
-                  strategy="afterInteractive"
-                  dangerouslySetInnerHTML={{
-                    __html: `
-                      (function () {
-                        function getWidgetRoot() {
-                          var host = document.querySelector('[data-omniweb-widget-host="true"]');
-                          return host && host.shadowRoot ? host.shadowRoot : null;
-                        }
-
-                        function openWidget(mode, attempts) {
-                          var root = getWidgetRoot();
-                          if (!root) {
-                            if ((attempts || 0) < 40) window.setTimeout(function () { openWidget(mode, (attempts || 0) + 1); }, 150);
-                            return;
-                          }
-
-                          var panel = root.querySelector('.ow-panel');
-                          var launcher = root.querySelector('.ow-launcher');
-                          if (panel && !panel.classList.contains('open') && launcher) launcher.click();
-
-                          if (mode === 'voice' || mode === 'text') {
-                            window.setTimeout(function () {
-                              var button = root.querySelector('.ow-mode.' + mode);
-                              if (button) button.click();
-                            }, 50);
-                          }
-                        }
-
-                        window.addEventListener('omniweb:assistant-open', function (event) {
-                          var detail = event && event.detail ? event.detail : {};
-                          openWidget(detail.mode === 'text' ? 'text' : detail.mode === 'voice' ? 'voice' : 'select', 0);
-                        });
-                      })();
-                    `,
-                  }}
-                />
-              </>
-            )
             const effectivePublishableKey = hasValidClerk ? publishableKey : 'pk_test_bW9jay1jbGVyay1rZXktZm9yLWJ1aWxkLXRlc3RpbmctcHVycG9zZXMk'
 
             return (
@@ -185,7 +136,6 @@ export default function RootLayout({
                 afterSignOutUrl="/"
               >
                 {children}
-                {scripts}
               </ClerkProvider>
             )
           })()}

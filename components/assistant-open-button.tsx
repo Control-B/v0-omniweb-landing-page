@@ -1,34 +1,36 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { dispatchAssistantOpen, type AssistantOpenMode } from "@/lib/assistant-events"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 type AssistantOpenButtonProps = {
-  mode?: AssistantOpenMode
+  mode?: "select" | "text" | "voice"
   children: ReactNode
   className?: string
   size?: "default" | "sm" | "lg" | "icon"
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  href?: string
 }
 
 export function AssistantOpenButton({
-  mode = "voice",
   children,
   className,
   size = "lg",
   variant = "default",
+  href = "/demo",
 }: AssistantOpenButtonProps) {
   return (
     <Button
-      type="button"
+      asChild
       size={size}
       variant={variant}
       className={cn(className)}
-      onClick={() => dispatchAssistantOpen(mode)}
     >
-      {children}
+      <Link href={href}>
+        {children}
+      </Link>
     </Button>
   )
 }

@@ -109,21 +109,13 @@ export function FeatureCard({
       </ul>
       <Button
         variant="ghost"
-        asChild={!opensLiveDemo}
+        asChild
         className={`mt-5 px-0 ${a.link} hover:bg-transparent`}
-        onClick={opensLiveDemo ? () => dispatchAssistantOpen("voice") : undefined}
       >
-        {opensLiveDemo ? (
-          <span>
-            {actionLabel}
-            <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-          </span>
-        ) : (
-          <Link href={actionHref}>
+        <Link href={actionHref}>
           {actionLabel}
           <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-          </Link>
-        )}
+        </Link>
       </Button>
       </div>
     </motion.div>
