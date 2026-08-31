@@ -53,6 +53,7 @@
     "embla-carousel-react": "8.6.0",
     "framer-motion": "^12.38.0",
     "input-otp": "1.4.2",
+    "jose": "^6.2.10",
     "livekit-client": "^2.18.0",
     "lucide-react": "^0.564.0",
     "next": "16.2.0",
@@ -83,4 +84,3 @@
   },
   "packageManager": "pnpm@9.15.4"
 }
-
