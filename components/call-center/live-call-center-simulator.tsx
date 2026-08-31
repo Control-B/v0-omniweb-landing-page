@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import {
   Activity,
   AlertTriangle,
@@ -8,13 +9,16 @@ import {
   Bot,
   CheckCircle2,
   ChevronRight,
-  Clock3,
-  Download,
+  Compass,
+  ExternalLink,
   Flame,
+  Globe,
   Headphones,
   Info,
+  Layers,
   Mic,
   MicOff,
+  Navigation,
   Phone,
   PhoneCall,
   PhoneForwarded,
@@ -25,6 +29,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Tag,
   User,
   Volume2,
   VolumeX,
@@ -48,16 +53,76 @@ export type PersonaScenario = {
     text: string
     thought?: string
     toolCall?: { name: string; params: Record<string, any>; result: Record<string, any> }
+    navigation?: { title: string; href: string; description?: string }
   }>
 }
 
 export const SCENARIOS: PersonaScenario[] = [
   {
+    id: "site-concierge",
+    name: "Elena Rostova",
+    title: "Omniweb Site Concierge & Navigation AI",
+    industry: "Platform Intelligence & Site Guide",
+    avatarTone: "cyan",
+    voiceName: "Deepgram Nova-3 + Gemini 2.0 Flash",
+    latencyMs: 185,
+    description: "Answers all questions about Omniweb capabilities, service packages, pricing plans, and provides interactive real-time site navigation.",
+    suggestedPrompts: [
+      "What services does Omniweb AI offer for businesses?",
+      "How much does the autonomous voice agent cost?",
+      "Can you take me to the Shopify AI Storefront Assistant?",
+      "Where can I see the Live Call Center War Room and outbound dialer?",
+    ],
+    sampleDialogue: [
+      {
+        speaker: "caller",
+        text: "Hi Elena! Can you explain what services Omniweb offers and how the pricing works?",
+      },
+      {
+        speaker: "agent",
+        thought: "NLU Intent: platform_services_inquiry (confidence 0.99). Invoking search_knowledge for service catalog and navigate_site for pricing breakdown.",
+        toolCall: {
+          name: "search_knowledge",
+          params: { query: "Omniweb core services and pricing tiers", top_k: 2 },
+          result: {
+            services: ["Autonomous Voice Swarms (LiveKit)", "24/7 AI Chat", "Lead Automation", "Calendar Sync", "Shopify Storefront Assistant"],
+            pricing_tiers: { starter: "$49/mo (500 min)", pro: "$149/mo (2,500 min + War Room)", enterprise: "Custom ($499+/mo)" },
+          },
+        },
+        navigation: {
+          title: "Explore Omniweb Pricing Plans",
+          href: "/pricing",
+          description: "Starter ($49), Growth/Pro ($149), and Enterprise Custom scale plans.",
+        },
+        text: "Omniweb AI is an autonomous contact center platform providing sub-250ms voice agents powered by LiveKit OSS, 24/7 chat assistants, lead qualification, and Shopify store integrations. Plans start at $49/month for Starter and $149/month for our Pro Growth tier with full Live War Room access!",
+      },
+      {
+        speaker: "caller",
+        text: "That sounds great! Can you show me the Shopify AI Assistant and how it recovers abandoned carts?",
+      },
+      {
+        speaker: "agent",
+        thought: "NLU Intent: shopify_solution_navigation. Calling navigate_site tool with target: 'shopify'.",
+        toolCall: {
+          name: "navigate_site",
+          params: { query: "Shopify AI Storefront Assistant", category: "Solutions" },
+          result: { matched_route: "/solutions/shopify-ai-assistant", title: "Shopify AI Assistant" },
+        },
+        navigation: {
+          title: "Open Shopify AI Assistant Solution",
+          href: "/solutions/shopify-ai-assistant",
+          description: "Product catalog sync, sizing advice, and autonomous abandoned cart recovery.",
+        },
+        text: "I have loaded our Shopify AI Assistant solution for you! It connects to your Shopify store in one click, syncs inventory in real time, answers customer product questions, and autonomously recovers abandoned checkouts. You can click the link below to explore the walkthrough!",
+      },
+    ],
+  },
+  {
     id: "billing-investigation",
     name: "Alex Vance",
     title: "Senior Billing & Disputes Specialist",
     industry: "SaaS & Enterprise Telecom",
-    avatarTone: "cyan",
+    avatarTone: "violet",
     voiceName: "Deepgram Nova-3 + Cartesia Studio Voice",
     latencyMs: 240,
     description: "Resolves high-value billing disputes, reconciles historical invoice ledgers, and handles refund policies with Human-in-the-Loop governance.",
@@ -98,7 +163,48 @@ export const SCENARIOS: PersonaScenario[] = [
           params: { customer_id: "cust_849201", amount: 150.0, reason: "Downtime credit request" },
           result: { status: "pending_human_approval", approval_id: "appr_98a42f", message: "Dispatched to Supervisor War Room" },
         },
-        text: "I completely understand and apologize for that downtime. Because this request is for $150, I have dispatched an instant authorization ticket directly to our shift supervisor. You will receive an SMS confirmation the moment it is approved!",
+        navigation: {
+          title: "View Live Supervisor War Room",
+          href: "/dashboard/call-center",
+          description: "Track approval tickets, agent swarms, and live queue status.",
+        },
+        text: "I completely understand and apologize for that downtime. Because this request is for $150, I have dispatched an instant authorization ticket directly to our shift supervisor in the Live War Room. You will receive an SMS confirmation the moment it is approved!",
+      },
+    ],
+  },
+  {
+    id: "high-ticket-closer",
+    name: "Marcus Vance",
+    title: "Enterprise Solutions & Closing Specialist",
+    industry: "B2B SaaS & Automation",
+    avatarTone: "emerald",
+    voiceName: "LiveKit OSS + Gemini 2.0 Flash",
+    latencyMs: 195,
+    description: "Qualifies high-intent inbound prospects, analyzes seat replacement ROI, and schedules executive product walkthroughs.",
+    suggestedPrompts: [
+      "We operate a 50-person call center costing $180k/mo. How does Omniweb compare?",
+      "Can we integrate Omniweb with Salesforce CRM and custom SIP trunks?",
+      "I want to book an executive demo for our leadership team next Tuesday at 2pm.",
+    ],
+    sampleDialogue: [
+      {
+        speaker: "caller",
+        text: "We currently have 50 human agents handling customer service and want to explore autonomous AI swarms. What is the pricing and migration timeline?",
+      },
+      {
+        speaker: "agent",
+        thought: "NLU Intent: sales_qualification. High-value opportunity (50 seats). Calling CRM lead creation and checking executive calendar availability.",
+        toolCall: {
+          name: "create_lead",
+          params: { caller_name: "Enterprise Prospect", intent: "50-Seat Call Center Migration", budget_range: "$5,000+/mo", urgency: "high" },
+          result: { lead_id: "lead_88492", status: "enterprise_qualified", lead_score: 0.96 },
+        },
+        navigation: {
+          title: "Calculate Call Center ROI",
+          href: "/demo#roi-calculator",
+          description: "See monthly cost savings from 50 seats to autonomous swarms.",
+        },
+        text: "At 50 seats, Omniweb typically reduces monthly operational spend from roughly $175,000 down to under $4,200 while eliminating hold times completely. I have reserved an executive architecture briefing for your team—would Tuesday at 2:00 PM EST work for you?",
       },
     ],
   },
@@ -129,38 +235,12 @@ export const SCENARIOS: PersonaScenario[] = [
           params: { category: "hardware_emergency", severity: "critical", issue_summary: "Commercial cooling failure" },
           result: { ticket_id: "TICK-EMERG-492", assigned_queue: "Immediate On-Call Dispatch", sla_hours: 1 },
         },
-        text: "I am treating this with highest urgency. I have locked in Emergency Ticket #492 and alerted our nearest on-call commercial technician in your zone. They are en route with an estimated ETA of 28 minutes. Can I confirm your street address?",
-      },
-    ],
-  },
-  {
-    id: "high-ticket-closer",
-    name: "Marcus Vance",
-    title: "Enterprise Solutions & Closing Specialist",
-    industry: "B2B SaaS & Automation",
-    avatarTone: "emerald",
-    voiceName: "Gemini 2.0 Multimodal Live Voice",
-    latencyMs: 195,
-    description: "Qualifies high-intent inbound prospects, analyzes seat replacement ROI, and schedules executive product walkthroughs.",
-    suggestedPrompts: [
-      "We operate a 50-person call center costing $180k/mo. How does Omniweb compare?",
-      "Can we integrate Omniweb with Salesforce CRM and custom SIP trunks?",
-      "I want to book an executive demo for our leadership team next Tuesday at 2pm.",
-    ],
-    sampleDialogue: [
-      {
-        speaker: "caller",
-        text: "We currently have 50 human agents handling customer service and want to explore autonomous AI swarms. What is the pricing and migration timeline?",
-      },
-      {
-        speaker: "agent",
-        thought: "NLU Intent: sales_qualification. High-value opportunity (50 seats). Calling CRM lead creation and checking executive calendar availability.",
-        toolCall: {
-          name: "create_lead",
-          params: { caller_name: "Enterprise Prospect", intent: "50-Seat Call Center Migration", budget_range: "$5,000+/mo", urgency: "high" },
-          result: { lead_id: "lead_88492", status: "enterprise_qualified", lead_score: 0.96 },
+        navigation: {
+          title: "Explore Contractor & HVAC Solutions",
+          href: "/solutions/contractors",
+          description: "24/7 emergency quote generation and on-call technician routing.",
         },
-        text: "At 50 seats, Omniweb typically reduces monthly operational spend from roughly $175,000 down to under $4,200 while eliminating hold times completely. I have reserved an executive architecture briefing for your team—would Tuesday at 2:00 PM EST work for you?",
+        text: "I am treating this with highest urgency. I have locked in Emergency Ticket #492 and alerted our nearest on-call commercial technician in your zone. They are en route with an estimated ETA of 28 minutes. Can I confirm your street address?",
       },
     ],
   },
@@ -170,22 +250,23 @@ export function LiveCallCenterSimulator() {
   const [activeScenario, setActiveScenario] = useState<PersonaScenario>(SCENARIOS[0])
   const [callState, setCallState] = useState<"idle" | "connecting" | "active" | "ended">("idle")
   const [isMuted, setIsMuted] = useState(false)
-  const [audioLevel, setAudioLevel] = useState(0)
+  const [isMicListening, setIsMicListening] = useState(false)
   const [transcript, setTranscript] = useState<PersonaScenario["sampleDialogue"]>(SCENARIOS[0].sampleDialogue)
   const [customInput, setCustomInput] = useState("")
   const [isThinking, setIsThinking] = useState(false)
+  const [livekitMode, setLivekitMode] = useState<"oss" | "cloud">("oss")
   const [activeAgentHUD, setActiveAgentHUD] = useState({
-    activeAgent: "Alex Vance (Billing Specialist)",
-    intent: "billing_inquiry",
-    confidence: 0.98,
+    activeAgent: "Elena Rostova (Site Concierge)",
+    intent: "site_services_inquiry",
+    confidence: 0.99,
     sentiment: "positive",
     urgency: "medium",
-    lastTool: "get_invoices",
-    turnLatency: "240ms",
+    lastTool: "navigate_site",
+    turnLatency: "185ms",
   })
   const [supervisorMode, setSupervisorMode] = useState<"monitor" | "whisper" | "barge">("monitor")
-  const [whisperText, setWhisperText] = useState("")
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const recognitionRef = useRef<any>(null)
 
   // Reactive Waveform Simulation
   useEffect(() => {
@@ -203,7 +284,7 @@ export function LiveCallCenterSimulator() {
       const height = canvas.height
       const centerY = height / 2
 
-      const amplitude = callState === "active" ? (isThinking ? 18 : 26) : 4
+      const amplitude = callState === "active" ? (isThinking ? 18 : isMicListening ? 30 : 22) : 4
       const bars = 48
       const barWidth = width / bars
 
@@ -235,24 +316,87 @@ export function LiveCallCenterSimulator() {
 
     render()
     return () => cancelAnimationFrame(animationFrameId)
-  }, [callState, isThinking])
+  }, [callState, isThinking, isMicListening])
+
+  // Setup Browser Speech Recognition (Deepgram / WebSpeech bridge)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition()
+        recognition.continuous = true
+        recognition.interimResults = false
+        recognition.lang = "en-US"
+
+        recognition.onresult = (event: any) => {
+          const current = event.resultIndex
+          const text = event.results[current][0].transcript
+          if (text && text.trim()) {
+            handleSendMessage(text.trim())
+          }
+        }
+
+        recognition.onerror = (event: any) => {
+          console.warn("[SpeechRecognition] error:", event.error)
+          setIsMicListening(false)
+        }
+
+        recognitionRef.current = recognition
+      }
+    }
+  }, [])
 
   const handleStartCall = () => {
     setCallState("connecting")
     setTimeout(() => {
       setCallState("active")
       setTranscript(activeScenario.sampleDialogue)
-    }, 900)
+    }, 700)
   }
 
   const handleEndCall = () => {
     setCallState("ended")
+    if (recognitionRef.current && isMicListening) {
+      try {
+        recognitionRef.current.stop()
+      } catch (e) {}
+      setIsMicListening(false)
+    }
+  }
+
+  const toggleMicListening = () => {
+    if (!recognitionRef.current) {
+      alert("Microphone recognition is supported in Chrome, Edge, and Safari.")
+      return
+    }
+
+    if (isMicListening) {
+      try {
+        recognitionRef.current.stop()
+      } catch (e) {}
+      setIsMicListening(false)
+    } else {
+      if (callState !== "active") {
+        setCallState("active")
+      }
+      try {
+        recognitionRef.current.start()
+        setIsMicListening(true)
+      } catch (e) {
+        setIsMicListening(false)
+      }
+    }
   }
 
   const handleSelectScenario = (scenario: PersonaScenario) => {
     setActiveScenario(scenario)
     setTranscript(scenario.sampleDialogue)
     if (callState === "ended") setCallState("idle")
+    setActiveAgentHUD((prev) => ({
+      ...prev,
+      activeAgent: `${scenario.name} (${scenario.title.split("&")[0].trim()})`,
+      turnLatency: `${scenario.latencyMs}ms`,
+    }))
   }
 
   const handleSendMessage = (textToSend?: string) => {
@@ -268,48 +412,112 @@ export function LiveCallCenterSimulator() {
     setCustomInput("")
     setIsThinking(true)
 
-    // Simulate AI Agent Reasoning & Response
+    // Simulate AI Agent Reasoning, Deepgram transcription, and Navigation tool execution
     setTimeout(() => {
       setIsThinking(false)
       let agentTurn: PersonaScenario["sampleDialogue"][0]
+      const textLower = text.toLowerCase()
 
-      if (text.toLowerCase().includes("book") || text.toLowerCase().includes("appointment") || text.toLowerCase().includes("tuesday")) {
+      if (textLower.includes("price") || textLower.includes("pricing") || textLower.includes("cost") || textLower.includes("plan")) {
+        agentTurn = {
+          speaker: "agent",
+          thought: "NLU Intent: pricing_inquiry. Invoking navigate_site for '/pricing' and search_knowledge for tier specifications.",
+          toolCall: {
+            name: "navigate_site",
+            params: { query: "pricing", category: "Pricing" },
+            result: { matched_route: "/pricing", recommended_path: "/pricing", title: "Platform Pricing & Plans" },
+          },
+          navigation: {
+            title: "View Pricing Plans ($49 / $149 / Enterprise)",
+            href: "/pricing",
+            description: "Transparent per-seat and usage pricing with 14-day free trial.",
+          },
+          text: "Our plans are designed for teams of all sizes: Starter is $49/mo (500 mins, 1 agent), Pro Growth is $149/mo (2,500 mins, multi-agent swarms, Live War Room), and Enterprise starts at $499/mo for dedicated SIP trunks and custom pgvector RAG. Would you like to view our pricing table?",
+        }
+      } else if (textLower.includes("shopify") || textLower.includes("ecommerce") || textLower.includes("store") || textLower.includes("cart")) {
+        agentTurn = {
+          speaker: "agent",
+          thought: "NLU Intent: shopify_solution_query. Calling navigate_site tool for '/solutions/shopify-ai-assistant'.",
+          toolCall: {
+            name: "navigate_site",
+            params: { query: "shopify-ai-assistant", category: "Solutions" },
+            result: { matched_route: "/solutions/shopify-ai-assistant", title: "Shopify AI Store Assistant" },
+          },
+          navigation: {
+            title: "Shopify AI Storefront Assistant",
+            href: "/solutions/shopify-ai-assistant",
+            description: "Product catalog sync, sizing advice, and autonomous abandoned cart recovery.",
+          },
+          text: "Omniweb's Shopify AI Assistant directly indexes your product catalog, provides instant sizing and availability answers, and recovers abandoned carts on your checkout flow. I've linked the full breakdown below!",
+        }
+      } else if (textLower.includes("war room") || textLower.includes("call center") || textLower.includes("dashboard") || textLower.includes("monitor") || textLower.includes("queue")) {
+        agentTurn = {
+          speaker: "agent",
+          thought: "NLU Intent: war_room_navigation. Calling navigate_site for '/dashboard/call-center'.",
+          toolCall: {
+            name: "navigate_site",
+            params: { query: "call center war room", category: "Dashboard" },
+            result: { matched_route: "/dashboard/call-center", title: "Live Call Center War Room" },
+          },
+          navigation: {
+            title: "Open Live Call Center War Room",
+            href: "/dashboard/call-center",
+            description: "Monitor live agent swarms, queue depths, and supervisor approval tickets.",
+          },
+          text: "You can access our real-time Live Call Center War Room at /dashboard/call-center. It features active swarm telemetry, live queue depth metrics, whisper coaching, and one-click barge-in takeover!",
+        }
+      } else if (textLower.includes("book") || textLower.includes("appointment") || textLower.includes("schedule") || textLower.includes("demo")) {
         agentTurn = {
           speaker: "agent",
           thought: "NLU Intent: appointment_booking. Invoking check_availability and book_appointment tool contracts.",
           toolCall: {
             name: "book_appointment",
-            params: { appointment_date: "Next Tuesday", appointment_time: "2:00 PM EST", topic: "Executive Briefing" },
+            params: { appointment_date: "Next Tuesday", appointment_time: "2:00 PM EST", topic: "Omniweb Architecture Walkthrough" },
             result: { booking_id: "cal_84920", confirmed_time: "Next Tuesday at 2:00 PM EST", calendar_invite_sent: true },
           },
-          text: "I have confirmed and booked your executive briefing for next Tuesday at 2:00 PM EST. Calendar invites and preparation context have been sent to your email!",
+          navigation: {
+            title: "Appointment Booking Confirmed",
+            href: "/features/appointment-scheduling",
+            description: "Review automated calendar sync and SMS confirmation sequences.",
+          },
+          text: "I have confirmed and reserved an executive architecture briefing for next Tuesday at 2:00 PM EST. Calendar invites and preparation context have been sent to your email!",
         }
-      } else if (text.toLowerCase().includes("refund") || text.toLowerCase().includes("credit") || text.toLowerCase().includes("$")) {
+      } else if (textLower.includes("services") || textLower.includes("what can you do") || textLower.includes("features") || textLower.includes("overview")) {
         agentTurn = {
           speaker: "agent",
-          thought: "NLU Intent: refund_request. Amount exceeds automatic threshold. Triggering Human-in-the-Loop policy approval.",
+          thought: "NLU Intent: services_catalog_discovery. Searching knowledge base and generating deep-link overview.",
           toolCall: {
-            name: "request_refund",
-            params: { amount: 150.0, reason: "Customer dispute request" },
-            result: { status: "pending_human_approval", approval_id: "appr_0918c" },
+            name: "search_knowledge",
+            params: { query: "Omniweb platform capabilities and services", top_k: 3 },
+            result: { total_found: 7, top_features: ["LiveKit Voice Swarms", "LangGraph Workflow State", "Lead Automation", "Shopify Assistant"] },
           },
-          text: "I have logged that request into our supervisor queue with Priority 1. Our shift supervisor has been alerted and will confirm the credit momentarily.",
+          navigation: {
+            title: "Explore All Platform Features",
+            href: "/features",
+            description: "Voice agents, chat assistants, CRM integration, and outbound dialers.",
+          },
+          text: "Omniweb delivers 7 core services: 1) Autonomous Inbound & Outbound AI Voice Swarms via LiveKit OSS, 2) 24/7 Web Chat Assistants, 3) High-Intent Lead Automation, 4) Two-Way Calendar Booking, 5) Outbound Campaign Power Dialer, 6) Shopify Storefront AI, and 7) Live Supervisor War Room with Human-in-the-Loop approval.",
         }
       } else {
         agentTurn = {
           speaker: "agent",
-          thought: "NLU Intent: general_inquiry. Searching tenant-isolated knowledge base (pgvector) for accurate grounding.",
+          thought: "NLU Intent: general_site_guidance. Searching tenant knowledge base (pgvector) and navigating site directory.",
           toolCall: {
-            name: "search_knowledge",
+            name: "navigate_site",
             params: { query: text },
-            result: { total_found: 2, top_chunk: "Omniweb Autonomous Contact Center SLA commitments" },
+            result: { total_matched: 3, top_recommendation: "/demo" },
           },
-          text: "Omniweb's autonomous contact center provides sub-300ms conversational turn latency, 99.8% first-contact resolution, and native tool execution with full CRM synchronization.",
+          navigation: {
+            title: "Explore Live Agentic Lab",
+            href: "/demo",
+            description: "Interactive voice swarms, execution graph inspector, and ROI calculator.",
+          },
+          text: "Omniweb AI provides sub-250ms conversational turn latency, 99.8% first-contact resolution, and native tool execution with full CRM synchronization. Let me know which area you'd like to explore!",
         }
       }
 
       setTranscript([...newTurns, agentTurn])
-    }, 1100)
+    }, 950)
   }
 
   return (
@@ -322,28 +530,32 @@ export function LiveCallCenterSimulator() {
             Live Voice Studio
           </div>
           <h2 className="mt-2.5 text-2xl font-bold tracking-tight text-white lg:text-3xl">
-            Autonomous Contact Center Simulator
+            Autonomous Contact Center & Site AI Concierge
           </h2>
           <p className="mt-1 text-sm text-slate-400">
-            Test real-time conversational voice turns, dual-channel speaker diarization, live tool calls, and supervisor monitoring.
+            Powered by <strong>LiveKit OSS</strong> WebRTC media transport, <strong>Deepgram Nova-3</strong> STT, and <strong>LangGraph</strong> multi-agent swarms.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 py-1.5 px-3">
             <span className="mr-1.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-            LiveKit WebRTC Active
+            LiveKit OSS (WebRTC Active)
           </Badge>
-          <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-            Latency: {activeScenario.latencyMs}ms
+          <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400 py-1.5 px-3">
+            <Zap className="mr-1 h-3.5 w-3.5 text-cyan-400" />
+            Deepgram STT ({activeScenario.latencyMs}ms)
           </Badge>
         </div>
       </div>
 
       {/* Persona / Scenario Selector */}
       <div className="mt-6">
-        <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Select Specialist Persona & Scenario</label>
-        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Select Specialist Persona & Scenario</label>
+          <span className="text-xs text-cyan-400 font-medium">4 Active Swarms Available</span>
+        </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {SCENARIOS.map((scenario) => {
             const isSelected = scenario.id === activeScenario.id
             return (
@@ -357,11 +569,15 @@ export function LiveCallCenterSimulator() {
                 }`}
               >
                 <div className="flex w-full items-center justify-between">
-                  <span className="font-semibold text-white">{scenario.name}</span>
-                  {isSelected && <span className="h-2 w-2 rounded-full bg-cyan-400" />}
+                  <span className="font-semibold text-white text-sm">{scenario.name}</span>
+                  {isSelected ? (
+                    <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 ring-4 ring-cyan-400/20" />
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-white/20" />
+                  )}
                 </div>
-                <span className="mt-0.5 text-xs text-cyan-300">{scenario.title}</span>
-                <span className="mt-2 text-[11px] text-slate-400 line-clamp-2">{scenario.description}</span>
+                <span className="mt-0.5 text-xs text-cyan-300 font-medium">{scenario.title}</span>
+                <span className="mt-2 text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{scenario.description}</span>
               </button>
             )
           })}
@@ -402,7 +618,7 @@ export function LiveCallCenterSimulator() {
                   }`}
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${callState === "active" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                  {callState === "active" ? "CALL IN PROGRESS" : callState === "connecting" ? "CONNECTING SIP..." : "IDLE"}
+                  {callState === "active" ? "CALL IN PROGRESS" : callState === "connecting" ? "CONNECTING LIVEKIT..." : "IDLE"}
                 </span>
               </div>
             </div>
@@ -411,42 +627,65 @@ export function LiveCallCenterSimulator() {
             <div className="mt-5 rounded-2xl border border-white/5 bg-slate-950/80 p-3">
               <canvas ref={canvasRef} width={380} height={70} className="w-full h-[70px]" />
               <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
-                <span>Audio: 24kHz Opus / WebRTC</span>
-                <span>VAD: Silero Active</span>
+                <span className="flex items-center gap-1">
+                  <Globe className="h-3 w-3 text-cyan-400" />
+                  LiveKit: {livekitMode === "oss" ? "OSS (localhost:7880)" : "Cloud"}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Mic className="h-3 w-3 text-emerald-400" />
+                  STT: Deepgram Nova-3
+                </span>
               </div>
             </div>
 
-            {/* Call Control Buttons */}
-            <div className="mt-6 flex items-center justify-center gap-4">
-              {callState !== "active" ? (
-                <Button
-                  size="lg"
-                  onClick={handleStartCall}
-                  className="h-13 flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 hover:from-emerald-400 hover:to-cyan-400"
-                >
-                  <PhoneCall className="mr-2 h-5 w-5 animate-bounce" />
-                  Start Inbound Call
-                </Button>
-              ) : (
-                <>
+            {/* Call Control Buttons & Live Mic Streaming */}
+            <div className="mt-6 flex flex-col gap-3">
+              <div className="flex items-center justify-center gap-3">
+                {callState !== "active" ? (
                   <Button
                     size="lg"
-                    variant="destructive"
-                    onClick={handleEndCall}
-                    className="h-12 flex-1 rounded-2xl bg-rose-600 font-semibold text-white hover:bg-rose-500"
+                    onClick={handleStartCall}
+                    className="h-13 flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 hover:from-emerald-400 hover:to-cyan-400"
                   >
-                    <PhoneOff className="mr-2 h-5 w-5" />
-                    Hang Up Call
+                    <PhoneCall className="mr-2 h-5 w-5 animate-bounce" />
+                    Start Inbound Voice Call
                   </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setIsMuted(!isMuted)}
-                    className={`h-12 w-12 rounded-2xl border-white/10 ${isMuted ? "bg-rose-500/20 text-rose-300" : "bg-white/5 text-white"}`}
-                  >
-                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  </Button>
-                </>
+                ) : (
+                  <>
+                    <Button
+                      size="lg"
+                      variant="destructive"
+                      onClick={handleEndCall}
+                      className="h-12 flex-1 rounded-2xl bg-rose-600 font-semibold text-white hover:bg-rose-500 shadow-lg shadow-rose-600/20"
+                    >
+                      <PhoneOff className="mr-2 h-5 w-5" />
+                      Hang Up
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={toggleMicListening}
+                      title={isMicListening ? "Mute Microphone" : "Unmute / Speak into Mic"}
+                      className={`h-12 w-12 rounded-2xl border-white/10 transition-all ${
+                        isMicListening
+                          ? "bg-emerald-500/20 text-emerald-300 ring-2 ring-emerald-400 animate-pulse"
+                          : "bg-white/5 text-white hover:bg-white/10"
+                      }`}
+                    >
+                      {isMicListening ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              {callState === "active" && (
+                <p className="text-center text-[11px] text-slate-400">
+                  {isMicListening ? (
+                    <span className="text-emerald-400 font-medium">🎤 Microphone listening... Speak now to transcribe!</span>
+                  ) : (
+                    <span>Click the microphone button to speak directly or use the prompts below.</span>
+                  )}
+                </p>
               )}
             </div>
           </div>
@@ -455,17 +694,17 @@ export function LiveCallCenterSimulator() {
           <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5">
             <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
               <Sparkles className="h-3.5 w-3.5" />
-              Suggested Test Prompts
+              Suggested Test Questions & Actions
             </h4>
             <div className="mt-3 space-y-2">
               {activeScenario.suggestedPrompts.map((prompt, i) => (
                 <button
                   key={i}
                   onClick={() => handleSendMessage(prompt)}
-                  className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] p-3 text-left text-xs text-slate-300 transition hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-white"
+                  className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] p-3 text-left text-xs text-slate-300 transition hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-white group"
                 >
-                  <span>"{prompt}"</span>
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                  <span className="group-hover:text-cyan-200">"{prompt}"</span>
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500 group-hover:text-cyan-400" />
                 </button>
               ))}
             </div>
@@ -479,17 +718,17 @@ export function LiveCallCenterSimulator() {
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-purple-300">
                 <Zap className="h-4 w-4 text-purple-400" />
-                Agent Brain Reasoning & Tool Execution HUD
+                LangGraph State & Tool Execution HUD
               </div>
               <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[10px]">
-                LangGraph State Machine
+                Deterministic Policy Plane
               </Badge>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
               <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                <span className="text-[10px] uppercase text-slate-400">Intent</span>
-                <p className="mt-1 font-semibold text-cyan-300 truncate">{activeAgentHUD.intent}</p>
+                <span className="text-[10px] uppercase text-slate-400">Active Agent</span>
+                <p className="mt-1 font-semibold text-cyan-300 truncate">{activeAgentHUD.activeAgent}</p>
               </div>
               <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
                 <span className="text-[10px] uppercase text-slate-400">Sentiment</span>
@@ -501,18 +740,18 @@ export function LiveCallCenterSimulator() {
               </div>
               <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
                 <span className="text-[10px] uppercase text-slate-400">Active Tool</span>
-                <p className="mt-1 font-semibold text-violet-300 truncate">crm.lookup()</p>
+                <p className="mt-1 font-semibold text-violet-300 truncate">{activeAgentHUD.lastTool}()</p>
               </div>
             </div>
           </div>
 
           {/* Dual-Channel Live Transcript Box */}
-          <div className="flex flex-col h-[380px] rounded-3xl border border-white/10 bg-slate-950/90 p-5 shadow-2xl">
+          <div className="flex flex-col h-[420px] rounded-3xl border border-white/10 bg-slate-950/90 p-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                 Live Dual-Channel Speech Transcript
               </span>
-              <span className="text-xs text-slate-400">{transcript.length} turns recorded</span>
+              <span className="text-xs text-slate-400">{transcript.length} conversational turns</span>
             </div>
 
             {/* Message Stream */}
@@ -522,13 +761,13 @@ export function LiveCallCenterSimulator() {
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
                     {turn.speaker === "caller" ? (
                       <>
-                        <span>Caller (+1 555-234-5678)</span>
+                        <span>Caller (Live Microphone / WebRTC)</span>
                         <User className="h-3 w-3 text-cyan-400" />
                       </>
                     ) : (
                       <>
                         <Bot className="h-3 w-3 text-purple-400" />
-                        <span className="text-purple-300">{activeScenario.name} (AI Agent)</span>
+                        <span className="text-purple-300">{activeScenario.name} (AI Specialist)</span>
                       </>
                     )}
                   </div>
@@ -562,6 +801,29 @@ export function LiveCallCenterSimulator() {
                   >
                     {turn.text}
                   </div>
+
+                  {/* Interactive Site Navigation Action Card */}
+                  {turn.navigation && (
+                    <div className="mt-2 max-w-[85%] rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-cyan-950/60 to-blue-950/60 p-3 shadow-lg shadow-cyan-950/30">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <Compass className="h-4 w-4 text-cyan-400 shrink-0 animate-spin-slow" />
+                          <div>
+                            <p className="text-xs font-semibold text-white">{turn.navigation.title}</p>
+                            {turn.navigation.description && (
+                              <p className="text-[11px] text-slate-300 mt-0.5">{turn.navigation.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <Button asChild size="sm" className="h-8 rounded-xl bg-cyan-500 px-3 text-xs font-semibold text-black hover:bg-cyan-400 shrink-0">
+                          <Link href={turn.navigation.href}>
+                            Visit Page
+                            <ExternalLink className="ml-1.5 h-3 w-3" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -580,7 +842,7 @@ export function LiveCallCenterSimulator() {
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Type a message to speak to the AI agent..."
+                placeholder="Ask about Omniweb services, pricing, or say 'Take me to Shopify'..."
                 className="h-11 flex-1 rounded-xl border border-white/10 bg-slate-900 px-4 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
               />
               <Button
