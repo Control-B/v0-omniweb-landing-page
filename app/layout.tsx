@@ -167,6 +167,7 @@ export default function RootLayout({
                   }}
                 />
               </>
+            )
             const effectivePublishableKey = hasValidClerk ? publishableKey : 'pk_test_bW9jay1jbGVyay1rZXktZm9yLWJ1aWxkLXRlc3RpbmctcHVycG9zZXMk'
 
             return (
