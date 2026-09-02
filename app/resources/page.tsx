@@ -87,11 +87,11 @@ const resourceCategories = [
 ]
 
 const popularArticles = [
-  { title: "How AI voice agents reduce missed revenue after hours", category: "Voice", accent: "text-cyan-400" },
-  { title: "What to automate first in your sales funnel", category: "Strategy", accent: "text-violet-400" },
-  { title: "The fastest way to qualify leads without adding headcount", category: "Automation", accent: "text-emerald-400" },
-  { title: "Why response time is the #1 conversion factor in 2026", category: "Data", accent: "text-amber-400" },
-  { title: "Building an AI-first sales process from scratch", category: "Playbook", accent: "text-rose-400" },
+  { title: "How AI voice agents reduce missed revenue after hours", category: "Voice", accent: "text-cyan-400", href: "/resources/case-studies" },
+  { title: "What to automate first in your sales funnel", category: "Strategy", accent: "text-violet-400", href: "/resources/blog" },
+  { title: "The fastest way to qualify leads without adding headcount", category: "Automation", accent: "text-emerald-400", href: "/resources/guides" },
+  { title: "Why response time is the #1 conversion factor in 2026", category: "Data", accent: "text-amber-400", href: "/resources/docs" },
+  { title: "Building an AI-first sales process from scratch", category: "Playbook", accent: "text-rose-400", href: "/resources/tutorials" },
 ]
 
 const stats = [
@@ -499,10 +499,12 @@ export default function ResourcesPage() {
               </div>
               <Button
                 variant="outline"
+                asChild
                 className="shrink-0 rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => dispatchAssistantOpen("voice")}
               >
-                Try Live Demo <ArrowRight className="ml-2 h-4 w-4" />
+                <Link href="/demo">
+                  Try Live Demo <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
             </div>
             <div className="grid gap-4">
@@ -513,13 +515,17 @@ export default function ResourcesPage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.3, delay: i * 0.05 }}
-                  className="group flex items-center justify-between rounded-2xl border border-white/10 bg-[#08101d] px-6 py-5 transition-all hover:border-white/20 hover:bg-white/[0.04]"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className={`text-xs font-semibold uppercase tracking-wider ${article.accent}`}>{article.category}</span>
-                    <span className="text-sm font-medium text-white">{article.title}</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-white/30 group-hover:text-cyan-400 transition-colors" />
+                  <Link
+                    href={article.href}
+                    className="group flex items-center justify-between rounded-2xl border border-white/10 bg-[#08101d] px-6 py-5 transition-all hover:border-white/20 hover:bg-white/[0.04]"
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className={`text-xs font-semibold uppercase tracking-wider ${article.accent}`}>{article.category}</span>
+                      <span className="text-sm font-medium text-white group-hover:text-cyan-300 transition-colors">{article.title}</span>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-white/30 group-hover:text-cyan-400 transition-colors" />
+                  </Link>
                 </motion.div>
               ))}
             </div>

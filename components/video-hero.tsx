@@ -132,10 +132,12 @@ export function VideoHero({ youtubeId = "Dz2_7Em3VXo" }: VideoHeroProps) {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button
               size="lg"
+              asChild
               className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400"
-              onClick={() => dispatchAssistantOpen("voice")}
             >
-              Talk to AI
+              <Link href="/demo">
+                Talk to AI
+              </Link>
             </Button>
             <Button size="lg" asChild className="rounded-full bg-white text-slate-950 hover:bg-slate-100">
               <Link href="/get-started">

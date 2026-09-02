@@ -1,6 +1,7 @@
 import "server-only"
 
 import { auth, currentUser } from "@clerk/nextjs/server"
+import { getSession } from "@/lib/auth/engine"
 import { getTenantBillingStatus } from "@/lib/saas/billing"
 import { buildWidgetEmbedCode, ensureDefaultAgentConfig, ensureDefaultTelephonyConfig, getTenantByClerkUserId, updateTenantById, upsertTenantByClerkUserId } from "@/lib/saas/store"
 import type { DashboardSnapshot, TenantStatus } from "@/lib/saas/types"
@@ -12,6 +13,37 @@ export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
   const { userId } = await auth()
 
   if (!userId) {
+    // Check if user is authenticated via engine JWT cookie (omniweb_token)
+    const session = await getSession().catch(() => null)
+    if (session?.user) {
+      const u = session.user
+      const plan = (u.plan as any) || "starter"
+      return {
+        isSignedIn: true,
+        onboardingCompleted: true,
+        trialStartedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        trialEndsAt: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+        subscriptionStartedAt: new Date().toISOString(),
+        subscriptionEndsAt: null,
+        daysLeft: 6,
+        subscriptionStatus: "trialing",
+        canAccessDashboard: true,
+        canAccessFeatures: true,
+        isTrialActive: true,
+        isExpired: false,
+        shouldRedirectToOnboarding: false,
+        shouldRedirectToPricing: false,
+        plan: plan,
+        tenantId: u.client_id,
+        businessName: u.name || "My Business",
+        industry: "general",
+        websiteDomain: null,
+        clerkUserId: null,
+        email: u.email,
+        firstName: u.first_name || u.name || "Omniweb User",
+      }
+    }
+
     return {
       isSignedIn: false,
       onboardingCompleted: false,

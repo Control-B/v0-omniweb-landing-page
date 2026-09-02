@@ -8,6 +8,7 @@ import {
   ArrowRight,
   BarChart3,
   CalendarCheck,
+  Check,
   CheckCircle2,
   ChevronRight,
   MessageSquare,
@@ -789,6 +790,129 @@ function FinalCta({ content, accentClassName, gradientFrom, gradientTo }: { cont
   )
 }
 
+function PricingTiersSection({ accentClassName }: { accentClassName: string }) {
+  const tiers = [
+    {
+      name: "Starter Tier",
+      price: "$149",
+      period: "/month",
+      desc: "For small teams and local businesses beginning with autonomous AI answering.",
+      features: [
+        "1,200 AI Conversations / month",
+        "Sub-250ms LiveKit WebRTC Voice",
+        "Single Agent (Receptionist & FAQs)",
+        "Standard Business Hours Telephony",
+        "Knowledge Base (Up to 25 sources)",
+        "Email Support (24h SLA)",
+      ],
+      planKey: "starter",
+      recommended: false,
+    },
+    {
+      name: "Growth / Pro Tier",
+      price: "$299",
+      period: "/month",
+      desc: "Best for scaling companies needing multi-agent swarms and 24/7 priority routing.",
+      features: [
+        "5,000 AI Conversations / month",
+        "Deepgram Nova-3 + Gemini 2.0 Flash",
+        "Multi-Agent Swarm (Sales, Support, Booking)",
+        "24/7 Inbound & Outbound Calling",
+        "Unlimited Knowledge Base (pgvector RAG)",
+        "CRM Sync (HubSpot, Salesforce, Zapier)",
+        "Priority Support (< 2h SLA)",
+      ],
+      planKey: "standard",
+      recommended: true,
+    },
+    {
+      name: "Scale / Enterprise Tier",
+      price: "$499",
+      period: "/month",
+      desc: "For high-volume contact centers requiring custom tooling, supervisor barge-in, and SLAs.",
+      features: [
+        "15,000 AI Conversations / month",
+        "Dedicated Voice Nodes & Custom Brand Voice",
+        "Full 8-Agent Swarm with Bounded Logic",
+        "Supervisor War Room & Live Barge-In",
+        "Bi-directional API & Database Tools",
+        "Dedicated Solution Architect & 99.99% SLA",
+      ],
+      planKey: "business",
+      recommended: false,
+    },
+  ]
+
+  return (
+    <section className="px-4 py-16 sm:px-6 lg:px-8 border-y border-white/10 bg-white/[0.02]">
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center mb-12">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-400">Sample Pricing Plans</p>
+          <h2 className="mt-3 text-3xl font-extrabold text-white sm:text-4xl">Transparent Plans That Scale With You</h2>
+          <p className="mt-3 text-sm text-slate-300 max-w-xl mx-auto">No hidden fees, no per-seat licenses. Pay for actual conversation volume with a 7-day risk-free trial.</p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          {tiers.map((tier) => (
+            <div
+              key={tier.name}
+              className={`relative flex flex-col justify-between rounded-[2rem] p-7 transition-all ${
+                tier.recommended
+                  ? "border-2 border-cyan-500/60 bg-[linear-gradient(180deg,rgba(13,24,46,0.92),rgba(8,15,31,0.92))] shadow-[0_0_50px_rgba(6,182,212,0.18)] ring-1 ring-cyan-400/30"
+                  : "border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,34,0.85),rgba(6,11,22,0.85))] shadow-xl shadow-black/40 hover:border-white/20"
+              }`}
+            >
+              {tier.recommended && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-600 px-4 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-500/25">
+                    <Sparkles className="h-3 w-3" /> Recommended
+                  </span>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-2xl font-bold text-white tracking-tight">{tier.name}</h3>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-white">{tier.price}</span>
+                  <span className="text-xs text-slate-400">{tier.period}</span>
+                </div>
+                <p className="mt-3 text-xs leading-relaxed text-slate-300">{tier.desc}</p>
+
+                <div className="mt-6 border-t border-white/10 pt-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3">Key Capabilities:</p>
+                  <ul className="space-y-2.5 text-xs text-slate-200">
+                    {tier.features.map((feat) => (
+                      <li key={feat} className="flex items-start gap-2">
+                        <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-400" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-white/10">
+                <Button
+                  asChild
+                  className={`w-full h-11 rounded-xl text-xs font-bold uppercase tracking-wider ${
+                    tier.recommended
+                      ? "bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 text-white shadow-md shadow-cyan-500/30 hover:from-cyan-400 hover:to-purple-500"
+                      : "bg-white/10 text-white hover:bg-white/20 border border-white/15"
+                  }`}
+                >
+                  <Link href={`/get-started?plan=${tier.planKey}`}>
+                    Select {tier.name.split(" ")[0]} <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function MarketingPageShell({
   sectionLabel,
   content,
@@ -817,6 +941,7 @@ function MarketingPageShell({
       <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#050a12] text-white">
         <HeroSection content={content} pattern={pattern} accentClassName={accentClassName} gradientFrom={gradientFrom} image={visuals.primaryImage} visualLabel={visuals.visualLabel} />
         <StatsBar stats={stats} accentClassName={accentClassName} />
+        {sectionLabel === "PRICING" ? <PricingTiersSection accentClassName={accentClassName} /> : null}
         <IndustryMarquee accentClassName={accentClassName} videos={visuals.marqueeVideos} />
         {pattern === "feature-highlight" ? (
           <>

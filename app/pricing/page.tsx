@@ -7,10 +7,12 @@ export default async function PricingPage() {
   const status = await getCurrentUserTenantStatus()
 
   return (
-    <div className="min-h-dvh bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.12),transparent_24%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_30%),linear-gradient(180deg,#f8fbff_0%,#eef4ff_52%,#f8fbff_100%)] text-slate-900">
+    <div className="relative flex min-h-dvh flex-col overflow-x-hidden bg-[#050a12] text-white">
+      <div className="pointer-events-none absolute inset-0 kling-canvas" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.24] kling-grid-overlay" />
       <Header />
 
-      <main className="pt-20">
+      <main className="relative flex-1 pt-16">
         <PricingPageContent
           isSignedIn={status.isSignedIn}
           onboardingCompleted={status.onboardingCompleted}

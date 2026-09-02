@@ -20,6 +20,10 @@ import {
   Camera,
   GraduationCap,
   Building2,
+  X,
+  Sparkles,
+  Bot,
+  PhoneCall,
 } from "lucide-react"
 
 /* ── Data ──────────────────────────────────────────────────────── */
@@ -91,6 +95,7 @@ const processSteps = [
 
 export default function TemplatesPage() {
   const [activeFilter, setActiveFilter] = useState("All")
+  const [previewTemplate, setPreviewTemplate] = useState<(typeof templates)[0] | null>(null)
 
   const filtered = activeFilter === "All" ? templates : templates.filter((t) => t.category === activeFilter)
 
@@ -182,10 +187,15 @@ export default function TemplatesPage() {
                         ))}
                       </ul>
                       <div className="flex gap-3">
-                        <Button size="sm" asChild className="flex-1 rounded-lg bg-white/10 text-xs text-white hover:bg-white/20">
-                          <Link href="/get-started">Use Template</Link>
+                        <Button size="sm" asChild className="flex-1 rounded-lg bg-blue-600 text-xs font-semibold text-white hover:bg-blue-500">
+                          <Link href={`/get-started?template=${encodeURIComponent(template.title)}`}>Use Template</Link>
                         </Button>
-                        <Button size="sm" variant="outline" className="rounded-lg border-white/10 text-xs text-white/60 hover:bg-white/5 hover:text-white">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setPreviewTemplate(template)}
+                          className="rounded-lg border-white/10 bg-white/5 text-xs text-white/80 hover:bg-white/10 hover:text-white"
+                        >
                           Preview
                         </Button>
                       </div>
@@ -279,6 +289,114 @@ export default function TemplatesPage() {
             </div>
           </motion.div>
         </section>
+
+        {/* ── Interactive Template Preview Modal ───────────────── */}
+        <AnimatePresence>
+          {previewTemplate && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setPreviewTemplate(null)}
+                className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              />
+
+              {/* Modal Card */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/15 bg-[#0a1224] p-6 text-white shadow-2xl sm:p-8"
+              >
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setPreviewTemplate(null)}
+                  className="absolute right-5 top-5 rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:bg-white/10 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+
+                {/* Header */}
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs font-bold uppercase tracking-widest ${previewTemplate.accent}`}>
+                    {previewTemplate.category}
+                  </span>
+                  <span className="text-slate-500">•</span>
+                  <span className="flex items-center gap-1 text-xs text-amber-400">
+                    <Star className="h-3.5 w-3.5 fill-amber-400" /> {previewTemplate.rating}
+                  </span>
+                </div>
+
+                <h3 className="mt-2 text-2xl font-extrabold sm:text-3xl">{previewTemplate.title}</h3>
+                <p className="mt-2 text-sm text-slate-300">{previewTemplate.description}</p>
+
+                {/* Preview Banner */}
+                <div className="relative mt-6 aspect-video w-full overflow-hidden rounded-2xl border border-white/10">
+                  <Image
+                    src={previewTemplate.image}
+                    alt={previewTemplate.title}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a1224] via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full border border-white/15 bg-black/60 px-3.5 py-1 text-xs backdrop-blur-md">
+                    <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+                    <span>AI Engine Pre-Configured</span>
+                  </div>
+                </div>
+
+                {/* Grid Details */}
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs">
+                    <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-cyan-300">
+                      <Bot className="h-4 w-4" /> AI Persona &amp; Routing
+                    </div>
+                    <ul className="mt-3 space-y-2 text-slate-300">
+                      <li>• Sub-250ms LiveKit WebRTC Voice Answering</li>
+                      <li>• Pre-trained knowledge base structure</li>
+                      <li>• Automated after-hours dispatch rules</li>
+                    </ul>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs">
+                    <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-emerald-400">
+                      <PhoneCall className="h-4 w-4" /> Included Conversion Tools
+                    </div>
+                    <ul className="mt-3 space-y-2 text-slate-300">
+                      <li>• 1-Click Calendar Booking &amp; Reminder SMS</li>
+                      <li>• Instant CRM Lead Ingestion (HubSpot / Zapier)</li>
+                      <li>• Automated Lost Call Voicemail Recovery</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                  <Button
+                    variant="outline"
+                    asChild
+                    className="h-11 rounded-xl border-white/15 bg-white/5 text-xs font-semibold text-white hover:bg-white/10"
+                  >
+                    <Link href="/demo">
+                      Test Live Call Center Demo
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    className="h-11 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-blue-500/25 hover:from-blue-500 hover:to-cyan-400"
+                  >
+                    <Link href={`/get-started?template=${encodeURIComponent(previewTemplate.title)}`}>
+                      Deploy With This Template <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </main>
       <Footer />

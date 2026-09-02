@@ -44,20 +44,24 @@ export function AIWidget({
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button
             size="lg"
+            asChild
             className="rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white hover:from-cyan-400 hover:via-blue-500 hover:to-purple-400"
-            onClick={() => dispatchAssistantOpen(primaryMode)}
           >
-            <Mic className="mr-2 h-4 w-4" />
-            {primaryLabel}
+            <Link href="/demo">
+              <Mic className="mr-2 h-4 w-4" />
+              {primaryLabel}
+            </Link>
           </Button>
           <Button
             size="lg"
             variant="outline"
+            asChild
             className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10"
-            onClick={() => dispatchAssistantOpen(secondaryMode)}
           >
-            <Bot className="mr-2 h-4 w-4" />
-            Chat with AI
+            <Link href="/demo?mode=chat">
+              <Bot className="mr-2 h-4 w-4" />
+              Chat with AI
+            </Link>
           </Button>
           <Button size="lg" asChild className="rounded-full bg-blue-600 text-white hover:bg-blue-500">
             <Link href={ctaHref}>

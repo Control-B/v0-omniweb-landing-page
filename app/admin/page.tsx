@@ -43,7 +43,7 @@ export default function AdminAuthPage() {
           setError("This account does not have admin access. Use the regular sign-in page.")
           return
         }
-        router.push("/")
+        router.push("/admin/dashboard")
       } else {
         // Signup — call engine directly with admin code
         const res = await fetch(`${ENGINE_URL}/api/auth/admin-signup`, {
@@ -66,7 +66,7 @@ export default function AdminAuthPage() {
           setError("Account created but login failed. Try signing in.")
           return
         }
-        router.push("/")
+        router.push("/admin/dashboard")
       }
     } catch {
       setError("Network error. Please try again.")
