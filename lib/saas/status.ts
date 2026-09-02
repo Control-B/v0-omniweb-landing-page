@@ -10,7 +10,13 @@ import { readWorkspaceMetadata } from "@/lib/saas/workspace-metadata"
 const TRIAL_LENGTH_MS = 7 * 24 * 60 * 60 * 1000
 
 export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
-  const { userId } = await auth()
+  let userId: string | null = null
+  try {
+    const clerkAuth = await auth()
+    userId = clerkAuth?.userId ?? null
+  } catch {
+    userId = null
+  }
 
   if (!userId) {
     // Check if user is authenticated via engine JWT cookie (omniweb_token)
@@ -70,7 +76,12 @@ export async function getCurrentUserTenantStatus(): Promise<TenantStatus> {
     }
   }
 
-  const user = await currentUser()
+  let user: any = null
+  try {
+    user = await currentUser()
+  } catch {
+    user = null
+  }
   let tenant = await getTenantByClerkUserId(userId)
 
   if (!tenant) {
