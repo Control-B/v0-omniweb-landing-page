@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { PlanSelectionGrid } from "@/components/saas/plan-selection-grid"
 import { PRICING_INDUSTRY_OPTIONS, getPricingContent, normalizeIndustry } from "@/lib/saas/billing"
+import { Button } from "@/components/ui/button"
 import type { PlanType, SubscriptionStatus } from "@/lib/saas/types"
 
 type PricingPageContentProps = {
