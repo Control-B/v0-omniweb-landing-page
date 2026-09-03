@@ -8,6 +8,11 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import {
+  IndustryVoiceSamplePlayer,
+  IndustryRoiCalculator,
+  IndustryQualificationWorkflow,
+} from "@/components/solutions/solutions-interactive-suite"
+import {
   ArrowRight,
   ShoppingCart,
   Briefcase,
@@ -808,6 +813,27 @@ export default function SolutionsPage() {
         </section>
 
         <SystemsShowcaseSection />
+
+        {/* ── Industry Voice Previews ── */}
+        <section className="relative px-4 py-20 lg:px-8 border-b border-[#1e293b]/50 bg-[#050a14]">
+          <div className="mx-auto max-w-[1400px]">
+            <IndustryVoiceSamplePlayer />
+          </div>
+        </section>
+
+        {/* ── Industry ROI Calculator ── */}
+        <section className="relative px-4 py-20 lg:px-8 border-b border-[#1e293b]/50 bg-[#070e1c]">
+          <div className="mx-auto max-w-[1400px]">
+            <IndustryRoiCalculator />
+          </div>
+        </section>
+
+        {/* ── Deterministic Qualification Workflows ── */}
+        <section className="relative px-4 py-20 lg:px-8 border-b border-[#1e293b]/50 bg-[#050a14]">
+          <div className="mx-auto max-w-[1400px]">
+            <IndustryQualificationWorkflow />
+          </div>
+        </section>
 
         {/* ── Stats ──────────────────────────────────────────────────── */}
         <section className="bg-white/[0.02] px-4 py-16 lg:px-8 border-b border-[#1e293b]/50">

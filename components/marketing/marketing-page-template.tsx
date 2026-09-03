@@ -23,6 +23,11 @@ import { PageLayout } from "@/components/page-layout"
 import { Button } from "@/components/ui/button"
 import { FAQAccordion } from "@/components/marketing/page-sections"
 import { AssistantOpenButton } from "@/components/assistant-open-button"
+import {
+  IndustryVoiceSamplePlayer,
+  IndustryRoiCalculator,
+  IndustryQualificationWorkflow,
+} from "@/components/solutions/solutions-interactive-suite"
 
 type CTA = { label: string; href: string }
 
@@ -913,6 +918,22 @@ function PricingTiersSection({ accentClassName }: { accentClassName: string }) {
   )
 }
 
+function SolutionsSuiteSection() {
+  return (
+    <section className="space-y-12 px-4 py-16 lg:px-8 border-t border-b border-white/10 bg-[#050a14]">
+      <div className="mx-auto max-w-[1300px]">
+        <IndustryVoiceSamplePlayer />
+      </div>
+      <div className="mx-auto max-w-[1300px]">
+        <IndustryRoiCalculator />
+      </div>
+      <div className="mx-auto max-w-[1300px]">
+        <IndustryQualificationWorkflow />
+      </div>
+    </section>
+  )
+}
+
 function MarketingPageShell({
   sectionLabel,
   content,
@@ -942,6 +963,7 @@ function MarketingPageShell({
         <HeroSection content={content} pattern={pattern} accentClassName={accentClassName} gradientFrom={gradientFrom} image={visuals.primaryImage} visualLabel={visuals.visualLabel} />
         <StatsBar stats={stats} accentClassName={accentClassName} />
         {sectionLabel === "PRICING" ? <PricingTiersSection accentClassName={accentClassName} /> : null}
+        {sectionLabel === "SOLUTIONS" ? <SolutionsSuiteSection /> : null}
         <IndustryMarquee accentClassName={accentClassName} videos={visuals.marqueeVideos} />
         {pattern === "feature-highlight" ? (
           <>
