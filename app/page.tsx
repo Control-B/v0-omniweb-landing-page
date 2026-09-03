@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Bot, Briefcase, MessageSquare, PhoneCall, ShoppingCart, Wrench } from "lucide-react"
+import { Bot, Briefcase, MessageSquare, PhoneCall, ShoppingCart, Wrench } from "lucide-react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { FeatureCard } from "@/components/feature-card"
@@ -189,27 +189,6 @@ export default function Home() {
             <p className="site-section-copy mx-auto mt-5 max-w-3xl">
               Video gets attention. AI captures intent. Automation keeps follow-up moving. Omniweb combines all three into one system your business can launch in days, not months.
             </p>
-            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button
-                size="lg"
-                asChild
-                className="h-12 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 px-8 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-purple-500"
-              >
-                <Link href="/get-started">
-                  Start Your Setup <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                asChild
-                className="h-12 rounded-full border-white/20 bg-white/5 px-8 text-sm font-semibold text-white hover:bg-white/10"
-              >
-                <Link href="/pricing">
-                  Explore Sample Pricing
-                </Link>
-              </Button>
-            </div>
           </div>
         </section>
       </main>
