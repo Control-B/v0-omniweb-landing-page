@@ -44,6 +44,23 @@ export function Header() {
 
         {/* Desktop Navigation - Centered */}
         <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2 py-1.5 lg:flex">
+          <Link
+            href="/"
+            scroll={true}
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+              }
+            }}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-all",
+              pathname === "/"
+                ? "bg-white/10 text-white"
+                : "text-foreground/70 hover:bg-white/5 hover:text-foreground",
+            )}
+          >
+            Home
+          </Link>
           {navItems.map((item) => (
             <div
               key={item.label}
@@ -181,7 +198,27 @@ export function Header() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="absolute left-0 right-0 top-16 border-b border-border/40 bg-[#050a12]/95 backdrop-blur-xl lg:hidden">
-          <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto px-4 py-4">
+          <nav className="max-h-[calc(100dvh-4rem)] overflow-y-auto px-4 py-4 space-y-2">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] transition hover:bg-white/[0.04]">
+              <div className="flex items-center px-4 py-3">
+                <Link
+                  href="/"
+                  scroll={true}
+                  className={cn(
+                    "flex-1 rounded-xl px-2 py-1.5 text-sm font-medium transition-colors",
+                    pathname === "/" ? "bg-white/10 text-white" : "text-foreground/80 hover:text-foreground",
+                  )}
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    if (typeof window !== "undefined") {
+                      window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+                    }
+                  }}
+                >
+                  Home
+                </Link>
+              </div>
+            </div>
             {navItems.map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.02] transition hover:bg-white/[0.04]">
                 <div className="flex items-center gap-2 px-4 py-3">

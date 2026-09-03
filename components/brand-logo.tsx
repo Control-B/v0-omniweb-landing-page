@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -36,7 +38,16 @@ export function OmniwebLogo({
   sublabelClassName,
 }: OmniwebLogoProps) {
   return (
-    <Link href={href} className={cn("flex items-center gap-3", className)}>
+    <Link
+      href={href}
+      scroll={true}
+      onClick={() => {
+        if (typeof window !== "undefined") {
+          window.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+        }
+      }}
+      className={cn("flex items-center gap-3", className)}
+    >
       <OmniwebMark />
       <span className="min-w-0">
         <span className={cn("block text-xl font-bold tracking-tight text-cyan-200", textClassName)}>{label}</span>

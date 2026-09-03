@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import { dark } from '@clerk/themes'
 import Script from 'next/script'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ScrollToTopOnNavigation } from '@/components/scroll-to-top'
 import './globals.css'
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
@@ -135,6 +136,7 @@ export default function RootLayout({
                 } as any}
                 afterSignOutUrl="/"
               >
+                <ScrollToTopOnNavigation />
                 {children}
               </ClerkProvider>
             )
