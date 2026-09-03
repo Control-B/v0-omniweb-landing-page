@@ -184,8 +184,8 @@ export function IndustryVoiceSamplePlayer() {
   }, [isPlaying])
 
   return (
-    <div className="rounded-[2.5rem] border border-white/10 bg-[#08101f]/90 p-8 sm:p-12 shadow-2xl backdrop-blur-2xl">
-      <div className="text-center max-w-3xl mx-auto mb-10">
+    <div className="rounded-3xl sm:rounded-[2.5rem] border border-white/10 bg-[#08101f]/90 p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-2xl">
+      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-4 py-1 text-xs font-bold uppercase tracking-widest text-cyan-300">
           <Headphones className="h-3.5 w-3.5" />
           Ultra-Low Latency Voice Preview
@@ -224,8 +224,8 @@ export function IndustryVoiceSamplePlayer() {
       </div>
 
       {/* Active Voice Player Card */}
-      <div className={`rounded-2xl border ${activeVoice.borderColor} bg-gradient-to-br ${activeVoice.bgGradient} p-6 sm:p-8`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+      <div className={`rounded-2xl border ${activeVoice.borderColor} bg-gradient-to-br ${activeVoice.bgGradient} p-4 sm:p-6 lg:p-8`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 sm:pb-6 border-b border-white/10">
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-xl font-bold text-white">{activeVoice.voiceName} Voice Agent</h3>
@@ -236,9 +236,9 @@ export function IndustryVoiceSamplePlayer() {
             <p className="mt-1 text-xs text-slate-300">{activeVoice.tone}</p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto">
             {/* Waveform Animation */}
-            <div className="flex items-center gap-1 h-8 px-3 rounded-lg bg-black/40 border border-white/10">
+            <div className="flex items-center gap-1 h-9 px-2.5 sm:px-3 rounded-lg bg-black/40 border border-white/10">
               {[40, 75, 95, 60, 85, 45, 90, 65, 30, 80].map((height, i) => (
                 <div
                   key={i}
@@ -295,8 +295,8 @@ export function IndustryVoiceSamplePlayer() {
         </div>
 
         {/* Proven Industry KPIs */}
-        <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-xl border border-white/5 bg-black/30 p-3">
+        <div className="mt-6 pt-5 sm:pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-center">
+          <div className="rounded-xl border border-white/5 bg-black/30 p-2.5 sm:p-3">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Speed to Answer</p>
             <p className="mt-1 text-base font-extrabold text-white">{activeVoice.metrics.pickupTime}</p>
           </div>
@@ -337,8 +337,8 @@ export function IndustryRoiCalculator() {
   const roiMultiple = (monthlyRevenueGain / omniwebMonthlyCost).toFixed(1)
 
   return (
-    <div className="rounded-[2.5rem] border border-white/10 bg-[#08101f]/90 p-8 sm:p-12 shadow-2xl backdrop-blur-2xl">
-      <div className="text-center max-w-3xl mx-auto mb-10">
+    <div className="rounded-3xl sm:rounded-[2.5rem] border border-white/10 bg-[#08101f]/90 p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-2xl">
+      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1 text-xs font-bold uppercase tracking-widest text-emerald-300">
           <Calculator className="h-3.5 w-3.5" />
           Industry ROI Calculator
@@ -476,8 +476,8 @@ export function IndustryQualificationWorkflow() {
   const [selectedWorkflow, setSelectedWorkflow] = useState(QUALIFICATION_WORKFLOWS[0])
 
   return (
-    <div className="rounded-[2.5rem] border border-white/10 bg-[#08101f]/90 p-8 sm:p-12 shadow-2xl backdrop-blur-2xl">
-      <div className="text-center max-w-3xl mx-auto mb-10">
+    <div className="rounded-3xl sm:rounded-[2.5rem] border border-white/10 bg-[#08101f]/90 p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-2xl">
+      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
         <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/10 px-4 py-1 text-xs font-bold uppercase tracking-widest text-purple-300">
           <Workflow className="h-3.5 w-3.5" />
           Deterministic Execution Logic

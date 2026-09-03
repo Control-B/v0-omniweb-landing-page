@@ -24,7 +24,7 @@ export function CallCenterRoiCalculator() {
   const percentageSavings = Math.round((monthlySavings / humanMonthlyCost) * 100)
 
   return (
-    <div className="rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-slate-950/95 to-[#081020]/95 p-6 shadow-2xl backdrop-blur-2xl lg:p-10">
+    <div className="rounded-2xl sm:rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-slate-950/95 to-[#081020]/95 p-4 sm:p-6 lg:p-10 shadow-2xl backdrop-blur-2xl">
       <div className="mx-auto max-w-3xl text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">
           <Calculator className="h-3.5 w-3.5" />
@@ -38,9 +38,9 @@ export function CallCenterRoiCalculator() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-12 lg:items-center">
+      <div className="mt-8 sm:mt-10 grid gap-6 sm:gap-8 lg:grid-cols-12 lg:items-center">
         {/* Sliders Input Column (6 cols) */}
-        <div className="space-y-6 lg:col-span-6 rounded-3xl border border-white/10 bg-slate-900/60 p-6">
+        <div className="space-y-6 lg:col-span-6 rounded-2xl sm:rounded-3xl border border-white/10 bg-slate-900/60 p-4 sm:p-6">
           <div>
             <div className="flex items-center justify-between text-sm">
               <span className="font-semibold text-white">Human Agent Seats Replaced</span>
@@ -105,7 +105,7 @@ export function CallCenterRoiCalculator() {
         </div>
 
         {/* Calculated Output Card (6 cols) */}
-        <div className="lg:col-span-6 rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-950/90 to-cyan-950/40 p-8 shadow-2xl">
+        <div className="lg:col-span-6 rounded-2xl sm:rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-slate-950/90 to-cyan-950/40 p-4 sm:p-8 shadow-2xl">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Projected Savings</span>
             <Badge className="bg-emerald-500 text-black font-bold">{percentageSavings}% Cost Cut</Badge>

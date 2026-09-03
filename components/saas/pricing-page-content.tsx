@@ -260,8 +260,8 @@ export function PricingPageContent({
       </section>
 
       {/* ── Interactive ROI Cost Calculator ─────────────────────── */}
-      <section className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl rounded-[2rem] border border-white/10 bg-[#08101f]/90 p-8 lg:p-12 shadow-2xl backdrop-blur-xl">
+      <section className="px-3 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl rounded-2xl sm:rounded-[2rem] border border-white/10 bg-[#08101f]/90 p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-xl">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-emerald-300">
               <Calculator className="h-3.5 w-3.5" />
@@ -367,8 +367,8 @@ export function PricingPageContent({
       </section>
 
       {/* ── Feature Comparison Matrix ───────────────────────────── */}
-      <section className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl rounded-[2rem] border border-white/10 bg-[#08101f]/90 p-8 lg:p-12 shadow-2xl backdrop-blur-xl">
+      <section className="px-3 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl rounded-2xl sm:rounded-[2rem] border border-white/10 bg-[#08101f]/90 p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-xl">
           <div className="text-center max-w-3xl mx-auto mb-12">
             <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
               Compare Plan Capabilities Side-by-Side
@@ -413,8 +413,8 @@ export function PricingPageContent({
       </section>
 
       {/* ── FAQ Section ─────────────────────────────────────────── */}
-      <section id="faq" className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl rounded-[2rem] border border-white/10 bg-[#08101f]/90 p-8 lg:p-12 shadow-2xl backdrop-blur-xl">
+      <section id="faq" className="px-3 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl rounded-2xl sm:rounded-[2rem] border border-white/10 bg-[#08101f]/90 p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-xl">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-400">
               <HelpCircle className="h-4 w-4" /> Frequently Asked Questions

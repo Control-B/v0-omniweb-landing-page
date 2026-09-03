@@ -595,7 +595,7 @@ export function LiveCallCenterSimulator() {
   }
 
   return (
-    <div className="rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-slate-950/95 via-[#060c18]/95 to-slate-950/95 p-6 shadow-2xl shadow-black/80 backdrop-blur-2xl lg:p-8">
+    <div className="rounded-2xl sm:rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-slate-950/95 via-[#060c18]/95 to-slate-950/95 p-3.5 sm:p-6 lg:p-8 shadow-2xl shadow-black/80 backdrop-blur-2xl">
       {/* Header Bar */}
       <div className="flex flex-col gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
@@ -683,7 +683,7 @@ export function LiveCallCenterSimulator() {
         {/* Left Column: Softphone Console & Audio Waveform (5 cols) */}
         <div className="space-y-6 lg:col-span-5">
           {/* Audio Visualizer & Call Status Card */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/90 p-6 shadow-xl">
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-slate-900/90 p-4 sm:p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`relative flex h-12 w-12 items-center justify-center rounded-2xl border transition-all ${
@@ -856,8 +856,8 @@ export function LiveCallCenterSimulator() {
           </div>
 
           {/* Dual-Channel Live Transcript Box */}
-          <div className="flex flex-col h-[440px] rounded-3xl border border-white/10 bg-slate-950/90 p-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex flex-col h-[440px] rounded-2xl sm:rounded-3xl border border-white/10 bg-slate-950/90 p-3.5 sm:p-5 shadow-2xl">
+            <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                   Live Dual-Channel Speech Transcript
@@ -988,7 +988,7 @@ export function LiveCallCenterSimulator() {
                 onChange={(e) => setCustomInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Ask about Omniweb services, pricing, or say 'Take me to Shopify'..."
-                className="h-11 flex-1 rounded-xl border border-white/10 bg-slate-900 px-4 text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+                className="h-11 flex-1 rounded-xl border border-white/10 bg-slate-900 px-3.5 sm:px-4 text-base sm:text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
               />
               <Button
                 onClick={() => handleSendMessage()}
