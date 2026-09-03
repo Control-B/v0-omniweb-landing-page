@@ -181,7 +181,8 @@ export function LiveCallCenterSimulator() {
   const [supervisorMode, setSupervisorMode] = useState<"monitor" | "whisper" | "barge">("monitor")
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const recognitionRef = useRef<any>(null)
-  const transcriptEndRef = useRef<HTMLDivElement | null>(null)
+  const transcriptContainerRef = useRef<HTMLDivElement | null>(null)
+  const hasUserInteractedRef = useRef(false)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
 
   // Natural Human Studio Speech Synthesis (Deepgram Aura / ElevenLabs)
@@ -244,9 +245,18 @@ export function LiveCallCenterSimulator() {
     }
   }
 
-  // Scroll transcript to bottom on new turns
+  // Scroll transcript container internally on new turns (never scrolls page window)
   useEffect(() => {
-    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (!hasUserInteractedRef.current) {
+      if (transcript.length > 1 || isThinking) {
+        hasUserInteractedRef.current = true
+      } else {
+        return
+      }
+    }
+    if (transcriptContainerRef.current) {
+      transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight
+    }
   }, [transcript, isThinking])
 
   // Reactive Waveform Simulation
@@ -890,7 +900,7 @@ export function LiveCallCenterSimulator() {
             </div>
 
             {/* Message Stream */}
-            <div className="mt-4 flex-1 space-y-4 overflow-y-auto pr-2">
+            <div ref={transcriptContainerRef} className="mt-4 flex-1 space-y-4 overflow-y-auto pr-2">
               {transcript.map((turn, idx) => (
                 <div key={idx} className={`flex flex-col ${turn.speaker === "caller" ? "items-end" : "items-start"}`}>
                   <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
@@ -968,7 +978,6 @@ export function LiveCallCenterSimulator() {
                   <span>Agent is reasoning and executing tools...</span>
                 </div>
               )}
-              <div ref={transcriptEndRef} />
             </div>
 
             {/* Text Input Row for testing */}
