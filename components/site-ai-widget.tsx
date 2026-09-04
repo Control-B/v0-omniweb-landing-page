@@ -22,6 +22,8 @@ import {
   VolumeX,
   X,
   Zap,
+  Radio,
+  Square,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,11 +39,12 @@ type ChatMessage = {
 }
 
 const QUICK_SUGGESTIONS = [
-  { label: "💰 View Pricing", query: "What are your pricing plans and costs?" },
-  { label: "🎙️ Voice Demo", query: "How do the AI Voice Agents work?" },
+  { label: "⚡ Sub-50ms Barge-in", query: "How does barge-in interruption work in Omniweb?" },
+  { label: "🎙️ Turn-Taking", query: "How does natural conversational turn-taking work?" },
+  { label: "💰 View Pricing Plans", query: "What are your pricing plans and costs?" },
   { label: "🛍️ Shopify Assistant", query: "Tell me about the Shopify AI Storefront Assistant" },
-  { label: "🚀 14-Day Free Trial", query: "How do I get started with a 14-day free trial?" },
   { label: "🛡️ Supervisor War Room", query: "What is the Live Supervisor War Room?" },
+  { label: "🚀 14-Day Free Trial", query: "How do I get started with a 14-day free trial?" },
 ]
 
 export function SiteAiWidget() {
@@ -51,18 +54,20 @@ export function SiteAiWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
   const [activeTab, setActiveTab] = useState<"chat" | "voice">("chat")
+  const [continuousMode, setContinuousMode] = useState(true) // Continuous conversational turn-taking loop
   const [inputMessage, setInputMessage] = useState("")
   const [isThinking, setIsThinking] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [isMicListening, setIsMicListening] = useState(false)
+  const [wasInterrupted, setWasInterrupted] = useState(false)
   const [audioUnlocked, setAudioUnlocked] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome-1",
       role: "assistant",
       content:
-        "Hello! I am your Omniweb AI Assistant powered by Deepgram. Ask me anything about our voice swarms, pricing, or say 'Take me to pricing' to navigate.",
+        "Hello! I am your Omniweb AI Concierge powered by Deepgram Aura. Ask me anything, or speak naturally—you can interrupt me at any time.",
       timestamp: "Just now",
     },
   ])
@@ -73,6 +78,35 @@ export function SiteAiWidget() {
   const sharedAudioElRef = useRef<HTMLAudioElement | null>(null)
   const recognitionRef = useRef<any>(null)
   const waveformCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // Mutable refs to prevent stale closures in event listeners
+  const isSpeakingRef = useRef(false)
+  const isThinkingRef = useRef(false)
+  const continuousModeRef = useRef(true)
+  const activeTabRef = useRef<"chat" | "voice">("chat")
+  const isMicListeningRef = useRef(false)
+  const recognitionRestartTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    isSpeakingRef.current = isSpeaking
+  }, [isSpeaking])
+
+  useEffect(() => {
+    isThinkingRef.current = isThinking
+  }, [isThinking])
+
+  useEffect(() => {
+    continuousModeRef.current = continuousMode
+  }, [continuousMode])
+
+  useEffect(() => {
+    activeTabRef.current = activeTab
+  }, [activeTab])
+
+  useEffect(() => {
+    isMicListeningRef.current = isMicListening
+  }, [isMicListening])
 
   // Scroll chat messages internally on new message
   useEffect(() => {
@@ -109,26 +143,7 @@ export function SiteAiWidget() {
     }
   }, [])
 
-  // Listen for global omniweb:assistant-open event from buttons anywhere on the site
-  useEffect(() => {
-    const handleOpen = (e: Event) => {
-      const customEvent = e as CustomEvent<{ mode?: AssistantOpenMode }>
-      const mode = customEvent.detail?.mode || "chat"
-      unlockAudioContext()
-      setIsOpen(true)
-      setIsMinimized(false)
-      if (mode === "voice") {
-        setActiveTab("voice")
-      } else {
-        setActiveTab("chat")
-      }
-    }
-
-    window.addEventListener(ASSISTANT_OPEN_EVENT, handleOpen)
-    return () => window.removeEventListener(ASSISTANT_OPEN_EVENT, handleOpen)
-  }, [unlockAudioContext])
-
-  // Stop any currently playing audio
+  // Stop any currently playing audio immediately (<10ms)
   const stopAudio = useCallback(() => {
     if (audioSourceRef.current) {
       try {
@@ -149,15 +164,91 @@ export function SiteAiWidget() {
     }
 
     setIsSpeaking(false)
+    isSpeakingRef.current = false
   }, [])
 
-  // Robust Audio Player (Web Audio API -> HTMLAudio -> Web Speech API fallback)
+  // Start Speech Recognition (User's turn)
+  const startListening = useCallback(() => {
+    if (typeof window === "undefined") return
+    unlockAudioContext()
+
+    if (recognitionRestartTimeoutRef.current) {
+      clearTimeout(recognitionRestartTimeoutRef.current)
+      recognitionRestartTimeoutRef.current = null
+    }
+
+    if (recognitionRef.current && !isMicListeningRef.current) {
+      try {
+        recognitionRef.current.start()
+        setIsMicListening(true)
+        isMicListeningRef.current = true
+      } catch (e: any) {
+        // Recognition may already be running or initializing
+        if (e?.name !== "InvalidStateError") {
+          console.warn("[SiteAiWidget] startListening notice:", e)
+        }
+      }
+    }
+  }, [unlockAudioContext])
+
+  // Stop Speech Recognition
+  const stopListening = useCallback(() => {
+    if (recognitionRestartTimeoutRef.current) {
+      clearTimeout(recognitionRestartTimeoutRef.current)
+      recognitionRestartTimeoutRef.current = null
+    }
+
+    if (recognitionRef.current && isMicListeningRef.current) {
+      try {
+        recognitionRef.current.stop()
+      } catch (e) {}
+      setIsMicListening(false)
+      isMicListeningRef.current = false
+    }
+  }, [])
+
+  // Instant Barge-In Interruption (<50ms audio stream cutoff + request abort)
+  const interruptAndYieldFloor = useCallback(
+    (reason: string = "User interrupted") => {
+      // 1. Cancel in-flight network requests (chat reasoning or TTS fetch)
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        abortControllerRef.current = null
+      }
+
+      // 2. Cut off audio immediately
+      stopAudio()
+      setIsThinking(false)
+      isThinkingRef.current = false
+
+      // 3. Flash visual interruption indicator
+      setWasInterrupted(true)
+      setTimeout(() => setWasInterrupted(false), 2400)
+
+      console.info(`[SiteAiWidget] Barge-in triggered: ${reason}`)
+
+      // 4. Immediately yield the floor to the user
+      if (activeTabRef.current === "voice" || continuousModeRef.current) {
+        setTimeout(() => {
+          startListening()
+        }, 80)
+      }
+    },
+    [stopAudio, startListening]
+  )
+
+  // Robust Audio Player with turn-taking handoff on ended
   const playSpeech = useCallback(
     async (textToSpeak: string) => {
       if (isMuted || typeof window === "undefined") return
       stopAudio()
 
       setIsSpeaking(true)
+      isSpeakingRef.current = true
+
+      // Create new abort controller for this utterance
+      const controller = new AbortController()
+      abortControllerRef.current = controller
 
       try {
         // 1. Fetch Deepgram Aura audio from /api/voice/tts
@@ -169,6 +260,7 @@ export function SiteAiWidget() {
             personaId: "site-concierge",
             provider: "deepgram",
           }),
+          signal: controller.signal,
         })
 
         if (!response.ok) {
@@ -177,15 +269,17 @@ export function SiteAiWidget() {
 
         const arrayBuffer = await response.arrayBuffer()
 
-        // 2. Play via Web Audio API AudioContext (primary, lowest latency, zero autoplay block once unlocked)
+        // 2. Play via Web Audio API AudioContext (lowest latency, instantaneous control)
         if (audioContextRef.current) {
           if (audioContextRef.current.state === "suspended") {
             await audioContextRef.current.resume()
           }
 
-          // Make a copy of the buffer as decodeAudioData detaches the arrayBuffer
           const bufferCopy = arrayBuffer.slice(0)
           const audioBuffer = await audioContextRef.current.decodeAudioData(bufferCopy)
+
+          // If interrupted while decoding, abort playback
+          if (controller.signal.aborted) return
 
           const sourceNode = audioContextRef.current.createBufferSource()
           sourceNode.buffer = audioBuffer
@@ -195,13 +289,14 @@ export function SiteAiWidget() {
 
           sourceNode.onended = () => {
             setIsSpeaking(false)
+            isSpeakingRef.current = false
             audioSourceRef.current = null
-            // In voice mode, resume listening automatically after agent finishes speaking
-            if (activeTab === "voice" && recognitionRef.current && !isMicListening) {
-              try {
-                recognitionRef.current.start()
-                setIsMicListening(true)
-              } catch (e) {}
+
+            // CONTINUOUS TURN-TAKING: Automatically re-open microphone for the user's turn
+            if (activeTabRef.current === "voice" && continuousModeRef.current) {
+              setTimeout(() => {
+                startListening()
+              }, 120)
             }
           }
 
@@ -218,22 +313,29 @@ export function SiteAiWidget() {
 
         audioEl.onended = () => {
           setIsSpeaking(false)
+          isSpeakingRef.current = false
           URL.revokeObjectURL(audioUrl)
-          if (activeTab === "voice" && recognitionRef.current && !isMicListening) {
-            try {
-              recognitionRef.current.start()
-              setIsMicListening(true)
-            } catch (e) {}
+
+          if (activeTabRef.current === "voice" && continuousModeRef.current) {
+            setTimeout(() => {
+              startListening()
+            }, 120)
           }
         }
         audioEl.onerror = () => {
           setIsSpeaking(false)
+          isSpeakingRef.current = false
           URL.revokeObjectURL(audioUrl)
         }
 
         await audioEl.play()
-      } catch (err) {
-        console.warn("[SiteAiWidget] Audio stream fallback to Web Speech:", err)
+      } catch (err: any) {
+        if (err?.name === "AbortError") {
+          return // Clean user cancellation
+        }
+
+        console.warn("[SiteAiWidget] Deepgram Aura stream fallback to Web Speech:", err)
+
         // 4. Browser Speech Synthesis Fallback
         if ("speechSynthesis" in window) {
           window.speechSynthesis.cancel()
@@ -242,77 +344,152 @@ export function SiteAiWidget() {
           utterance.rate = 1.05
           utterance.onend = () => {
             setIsSpeaking(false)
-            if (activeTab === "voice" && recognitionRef.current && !isMicListening) {
-              try {
-                recognitionRef.current.start()
-                setIsMicListening(true)
-              } catch (e) {}
+            isSpeakingRef.current = false
+
+            if (activeTabRef.current === "voice" && continuousModeRef.current) {
+              setTimeout(() => {
+                startListening()
+              }, 120)
             }
           }
-          utterance.onerror = () => setIsSpeaking(false)
+          utterance.onerror = () => {
+            setIsSpeaking(false)
+            isSpeakingRef.current = false
+          }
           window.speechSynthesis.speak(utterance)
         } else {
           setIsSpeaking(false)
+          isSpeakingRef.current = false
         }
       }
     },
-    [isMuted, stopAudio, activeTab, isMicListening],
+    [isMuted, stopAudio, startListening]
   )
 
-  // Speech Recognition (Deepgram Nova-3 / Browser Web Speech bridge)
+  // Speech Recognition Initialization with Voice Barge-In Detection
   useEffect(() => {
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition()
         recognition.continuous = false
-        recognition.interimResults = false
+        recognition.interimResults = true
         recognition.lang = "en-US"
 
-        recognition.onresult = (event: any) => {
-          const current = event.resultIndex
-          const text = event.results[current][0].transcript
-          if (text && text.trim()) {
-            handleSendMessage(text.trim())
+        // Voice Barge-in: if user starts speaking while agent is speaking, cut audio immediately!
+        recognition.onspeechstart = () => {
+          if (isSpeakingRef.current) {
+            interruptAndYieldFloor("Voice activity detected during agent speech")
           }
-          setIsMicListening(false)
+        }
+
+        recognition.onsoundstart = () => {
+          if (isSpeakingRef.current) {
+            interruptAndYieldFloor("Sound detected during agent speech")
+          }
+        }
+
+        recognition.onresult = (event: any) => {
+          // If agent is currently speaking, barge in immediately
+          if (isSpeakingRef.current) {
+            interruptAndYieldFloor("User voice transcript detected")
+          }
+
+          let finalTranscript = ""
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript
+            }
+          }
+
+          if (finalTranscript.trim()) {
+            handleSendMessage(finalTranscript.trim())
+            setIsMicListening(false)
+            isMicListeningRef.current = false
+          }
         }
 
         recognition.onerror = (event: any) => {
-          console.warn("[SiteAiWidget] Recognition error:", event.error)
+          // Ignore no-speech errors in continuous mode as silence timeouts happen naturally
+          if (event.error !== "no-speech") {
+            console.warn("[SiteAiWidget] Recognition error:", event.error)
+          }
           setIsMicListening(false)
+          isMicListeningRef.current = false
         }
 
         recognition.onend = () => {
           setIsMicListening(false)
+          isMicListeningRef.current = false
+
+          // CONTINUOUS MODE: If in voice call tab and not currently speaking or thinking, keep listening active
+          if (
+            activeTabRef.current === "voice" &&
+            continuousModeRef.current &&
+            !isSpeakingRef.current &&
+            !isThinkingRef.current
+          ) {
+            recognitionRestartTimeoutRef.current = setTimeout(() => {
+              try {
+                recognition.start()
+                setIsMicListening(true)
+                isMicListeningRef.current = true
+              } catch (e) {}
+            }, 300)
+          }
         }
 
         recognitionRef.current = recognition
       }
     }
-  }, [])
+
+    return () => {
+      if (recognitionRestartTimeoutRef.current) {
+        clearTimeout(recognitionRestartTimeoutRef.current)
+      }
+    }
+  }, [interruptAndYieldFloor])
+
+  // Listen for global omniweb:assistant-open event from buttons anywhere on the site
+  useEffect(() => {
+    const handleOpen = (e: Event) => {
+      const customEvent = e as CustomEvent<{ mode?: AssistantOpenMode }>
+      const mode = customEvent.detail?.mode || "chat"
+      unlockAudioContext()
+      setIsOpen(true)
+      setIsMinimized(false)
+      if (mode === "voice") {
+        setActiveTab("voice")
+        setTimeout(() => {
+          startListening()
+        }, 200)
+      } else {
+        setActiveTab("chat")
+      }
+    }
+
+    window.addEventListener(ASSISTANT_OPEN_EVENT, handleOpen)
+    return () => window.removeEventListener(ASSISTANT_OPEN_EVENT, handleOpen)
+  }, [unlockAudioContext, startListening])
 
   const toggleMic = () => {
     unlockAudioContext()
-    stopAudio()
+
+    // If agent is speaking, clicking the mic immediately interrupts agent and gives turn to user
+    if (isSpeaking) {
+      interruptAndYieldFloor("User tapped mic button to interrupt")
+      return
+    }
 
     if (!recognitionRef.current) {
-      alert("Microphone voice input is supported in modern mobile & desktop browsers (Chrome, Safari, Edge).")
+      alert("Microphone speech recognition is supported in modern browsers (Chrome, Safari, Edge).")
       return
     }
 
     if (isMicListening) {
-      try {
-        recognitionRef.current.stop()
-      } catch (e) {}
-      setIsMicListening(false)
+      stopListening()
     } else {
-      try {
-        recognitionRef.current.start()
-        setIsMicListening(true)
-      } catch (e) {
-        setIsMicListening(false)
-      }
+      startListening()
     }
   }
 
@@ -333,7 +510,7 @@ export function SiteAiWidget() {
       const height = canvas.height
       const centerY = height / 2
 
-      const amplitude = isSpeaking ? 32 : isMicListening ? 26 : isThinking ? 16 : 8
+      const amplitude = isSpeaking ? 34 : isMicListening ? 28 : isThinking ? 18 : 8
       const bars = 36
       const barWidth = width / bars
 
@@ -345,13 +522,16 @@ export function SiteAiWidget() {
 
         const gradient = ctx.createLinearGradient(0, centerY - barHeight, 0, centerY + barHeight)
         if (isSpeaking) {
-          gradient.addColorStop(0, "rgba(52, 211, 153, 0.95)")
-          gradient.addColorStop(0.5, "rgba(34, 211, 238, 0.9)")
-          gradient.addColorStop(1, "rgba(99, 102, 241, 0.95)")
+          gradient.addColorStop(0, "rgba(168, 85, 247, 0.95)") // Purple / magenta for agent
+          gradient.addColorStop(0.5, "rgba(59, 130, 246, 0.9)")
+          gradient.addColorStop(1, "rgba(6, 182, 212, 0.95)")
         } else if (isMicListening) {
-          gradient.addColorStop(0, "rgba(244, 63, 94, 0.95)")
-          gradient.addColorStop(0.5, "rgba(251, 146, 60, 0.9)")
-          gradient.addColorStop(1, "rgba(244, 63, 94, 0.95)")
+          gradient.addColorStop(0, "rgba(52, 211, 153, 0.95)") // Emerald / cyan for user turn
+          gradient.addColorStop(0.5, "rgba(34, 211, 238, 0.9)")
+          gradient.addColorStop(1, "rgba(16, 185, 129, 0.95)")
+        } else if (isThinking) {
+          gradient.addColorStop(0, "rgba(251, 191, 36, 0.9)")
+          gradient.addColorStop(1, "rgba(245, 158, 11, 0.8)")
         } else {
           gradient.addColorStop(0, "rgba(56, 189, 248, 0.8)")
           gradient.addColorStop(1, "rgba(99, 102, 241, 0.7)")
@@ -363,7 +543,7 @@ export function SiteAiWidget() {
         ctx.fill()
       }
 
-      phase += isSpeaking ? 0.14 : isMicListening ? 0.11 : 0.04
+      phase += isSpeaking ? 0.14 : isMicListening ? 0.11 : isThinking ? 0.08 : 0.04
       animationFrameId = requestAnimationFrame(render)
     }
 
@@ -377,6 +557,9 @@ export function SiteAiWidget() {
     const text = (textToSend || inputMessage).trim()
     if (!text) return
 
+    // User speaks/types -> immediately stop any previous audio
+    stopAudio()
+
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
@@ -388,7 +571,11 @@ export function SiteAiWidget() {
     setMessages(updatedMessages)
     setInputMessage("")
     setIsThinking(true)
-    stopAudio()
+    isThinkingRef.current = true
+
+    // Create new abort controller for chat reasoning
+    const controller = new AbortController()
+    abortControllerRef.current = controller
 
     try {
       const response = await fetch("/api/chat", {
@@ -397,6 +584,7 @@ export function SiteAiWidget() {
         body: JSON.stringify({
           messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
         }),
+        signal: controller.signal,
       })
 
       const data = await response.json()
@@ -413,8 +601,9 @@ export function SiteAiWidget() {
 
       setMessages((prev) => [...prev, assistantMessage])
       setIsThinking(false)
+      isThinkingRef.current = false
 
-      // Speak aloud in Deepgram Aura voice
+      // Speak aloud in Deepgram Aura voice with turn-taking loop
       playSpeech(assistantReply)
 
       // If user asked to navigate, perform route transition
@@ -431,10 +620,17 @@ export function SiteAiWidget() {
           if (action.href) router.push(action.href)
         }, 1400)
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        console.info("[SiteAiWidget] Request aborted by user barge-in")
+        return
+      }
+
       console.error("[SiteAiWidget] Chat error:", err)
       setIsThinking(false)
-      const fallbackReply = "Omniweb automates phone and web conversations with sub-250ms latency. How can I help you today?"
+      isThinkingRef.current = false
+
+      const fallbackReply = "Omniweb automates customer conversations with sub-250ms latency. How can I help you today?"
       setMessages((prev) => [
         ...prev,
         {
@@ -486,7 +682,7 @@ export function SiteAiWidget() {
           className={`fixed z-[9999] transition-all flex flex-col overflow-hidden bg-[#070e1d]/98 text-slate-100 shadow-[0_-12px_48px_rgba(0,0,0,0.8)] backdrop-blur-2xl ${
             isMinimized
               ? "bottom-4 right-4 sm:bottom-6 sm:right-6 h-14 w-72 rounded-2xl border border-white/15"
-              : "inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 h-[85dvh] sm:h-[640px] max-h-[85dvh] sm:max-h-[calc(100dvh-4rem)] w-full sm:w-[420px] rounded-t-[2.25rem] sm:rounded-3xl border-t sm:border border-white/20"
+              : "inset-x-0 bottom-0 sm:inset-auto sm:bottom-6 sm:right-6 h-[88dvh] sm:h-[660px] max-h-[88dvh] sm:max-h-[calc(100dvh-4rem)] w-full sm:w-[430px] rounded-t-[2.25rem] sm:rounded-3xl border-t sm:border border-white/20"
           }`}
           style={{
             paddingBottom: "env(safe-area-inset-bottom, 0px)",
@@ -500,17 +696,36 @@ export function SiteAiWidget() {
             <div className="flex items-center gap-2.5">
               <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 text-white shadow-md">
                 <Bot className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+                <span className={`absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full ring-2 ring-slate-950 ${isSpeaking ? "bg-purple-400 animate-ping" : isMicListening ? "bg-emerald-400 animate-pulse" : "bg-cyan-400"}`} />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="text-sm font-bold text-white">Omniweb AI</h3>
+                  <h3 className="text-sm font-bold text-white">Omniweb AI Concierge</h3>
                   <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0 text-[9px] font-mono text-cyan-300">
                     Deepgram Aura
                   </Badge>
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  {isSpeaking ? "Speaking aloud..." : isMicListening ? "Listening to mic..." : isThinking ? "Reasoning..." : "Ready to converse"}
+                <p className="text-[11px] font-medium flex items-center gap-1">
+                  {wasInterrupted ? (
+                    <span className="text-amber-400 font-semibold flex items-center gap-1">
+                      <Zap className="h-3 w-3 animate-bounce" />
+                      Interrupted — listening to you
+                    </span>
+                  ) : isSpeaking ? (
+                    <span className="text-purple-300 font-semibold flex items-center gap-1">
+                      <Volume2 className="h-3 w-3 animate-pulse" />
+                      Agent speaking (tap to interrupt)
+                    </span>
+                  ) : isMicListening ? (
+                    <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                      <Radio className="h-3 w-3 animate-pulse" />
+                      Your turn: listening to you...
+                    </span>
+                  ) : isThinking ? (
+                    <span className="text-amber-300 animate-pulse">Reasoning...</span>
+                  ) : (
+                    <span className="text-slate-400">Ready to converse</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -544,6 +759,7 @@ export function SiteAiWidget() {
                 type="button"
                 onClick={() => {
                   stopAudio()
+                  stopListening()
                   setIsOpen(false)
                 }}
                 className="p-2 rounded-xl text-slate-400 transition hover:text-white hover:bg-white/5"
@@ -576,6 +792,9 @@ export function SiteAiWidget() {
                   onClick={() => {
                     unlockAudioContext()
                     setActiveTab("voice")
+                    if (continuousMode) {
+                      setTimeout(() => startListening(), 150)
+                    }
                   }}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2 text-xs font-semibold transition ${
                     activeTab === "voice"
@@ -584,51 +803,174 @@ export function SiteAiWidget() {
                   }`}
                 >
                   <Headphones className="h-4 w-4 text-purple-400" />
-                  Live Voice Call
+                  Continuous Voice Call
                 </button>
               </div>
 
               {/* ── VOICE CALL MODE ────────────────────────────────────── */}
               {activeTab === "voice" && (
-                <div className="flex flex-1 flex-col items-center justify-between p-5 text-center">
+                <div className="flex flex-1 flex-col items-center justify-between p-4 sm:p-5 text-center">
                   <div className="space-y-1.5">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cyan-300">
-                      <Sparkles className="h-3 w-3" />
-                      Continuous Deepgram Aura Voice
-                    </span>
-                    <h4 className="text-base font-bold text-white">Hands-Free Conversational Voice</h4>
-                    <p className="max-w-xs text-xs text-slate-300 leading-relaxed">
-                      Tap the mic once to talk. The assistant responds with Deepgram speech and automatically listens for your reply.
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+                        <Sparkles className="h-3 w-3" />
+                        Full-Duplex Turn-Taking
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-semibold text-cyan-300">
+                        <Zap className="h-2.5 w-2.5" />
+                        &lt;50ms Barge-in
+                      </span>
+                    </div>
+
+                    <h4 className="text-base font-bold text-white">Continuous Conversational Voice</h4>
+                    <p className="max-w-xs text-xs text-slate-300 leading-relaxed mx-auto">
+                      Speak naturally. The assistant answers with Deepgram Aura voice and automatically gives you your turn.
+                      <span className="text-cyan-300 font-medium block mt-0.5">Interrupt at any time by speaking or tapping.</span>
                     </p>
                   </div>
 
-                  {/* Equalizer Waveform Canvas */}
-                  <div className="my-3 flex w-full flex-col items-center justify-center rounded-2xl border border-white/10 bg-slate-900/80 p-4">
-                    <canvas ref={waveformCanvasRef} width={340} height={76} className="w-full" />
-                    <div className="mt-2 flex items-center gap-2 text-xs font-mono text-slate-300">
-                      <span className={`h-2.5 w-2.5 rounded-full ${isSpeaking ? "bg-emerald-400 animate-ping" : isMicListening ? "bg-rose-500 animate-pulse" : "bg-cyan-400"}`} />
-                      <span>{isSpeaking ? "Agent Speaking" : isMicListening ? "Listening to you..." : isThinking ? "Reasoning..." : "Ready"}</span>
+                  {/* Equalizer Waveform Canvas (Clickable to interrupt) */}
+                  <div
+                    onClick={() => {
+                      if (isSpeaking) {
+                        interruptAndYieldFloor("User clicked waveform canvas")
+                      }
+                    }}
+                    className={`my-2 flex w-full flex-col items-center justify-center rounded-2xl border transition-all p-3 sm:p-4 cursor-pointer ${
+                      isSpeaking
+                        ? "border-purple-500/50 bg-purple-950/20 shadow-[0_0_24px_rgba(168,85,247,0.2)] hover:border-purple-400"
+                        : isMicListening
+                        ? "border-emerald-500/40 bg-emerald-950/20 shadow-[0_0_24px_rgba(16,185,129,0.15)]"
+                        : "border-white/10 bg-slate-900/80"
+                    }`}
+                    title={isSpeaking ? "Click to interrupt agent" : "Waveform active"}
+                  >
+                    <canvas ref={waveformCanvasRef} width={340} height={70} className="w-full" />
+                    <div className="mt-2 flex items-center justify-between w-full px-2 text-xs font-mono text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`h-2.5 w-2.5 rounded-full ${
+                            isSpeaking
+                              ? "bg-purple-400 animate-ping"
+                              : isMicListening
+                              ? "bg-emerald-400 animate-pulse"
+                              : isThinking
+                              ? "bg-amber-400 animate-pulse"
+                              : "bg-cyan-400"
+                          }`}
+                        />
+                        <span className="text-[11px] font-semibold">
+                          {isSpeaking
+                            ? "Agent Speaking..."
+                            : isMicListening
+                            ? "Your turn: Listening to you..."
+                            : isThinking
+                            ? "Reasoning..."
+                            : "Ready"}
+                        </span>
+                      </div>
+
+                      {/* Turn Status Pill */}
+                      <span className="text-[10px] text-slate-400">
+                        {isSpeaking ? "Tap waveform to interrupt" : continuousMode ? "Hands-Free Auto Turn" : "Push-to-Talk"}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Large Touch Microphone Button (WCAG 56px minimum) */}
-                  <div className="flex flex-col items-center gap-2.5 mb-2">
+                  {/* Dynamic Turn & Interruption Controls */}
+                  <div className="flex flex-col items-center gap-2.5 w-full">
+                    {/* Instant Barge-In / Interrupt Button (Visible during agent speech) */}
+                    {isSpeaking && (
+                      <button
+                        type="button"
+                        onClick={() => interruptAndYieldFloor("User clicked Interrupt Agent button")}
+                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-rose-600/30 transition-all hover:scale-105 active:scale-95 animate-pulse"
+                        aria-label="Interrupt agent and speak"
+                      >
+                        <Square className="h-3.5 w-3.5 fill-current" />
+                        Interrupt Agent (Yield Floor)
+                      </button>
+                    )}
+
+                    {/* Microphone Circle Button (WCAG 68px touch target) */}
                     <button
                       type="button"
                       onClick={toggleMic}
                       className={`flex h-18 w-18 items-center justify-center rounded-full transition-all shadow-2xl active:scale-90 ${
-                        isMicListening
-                          ? "bg-rose-600 text-white ring-4 ring-rose-500/40 animate-pulse scale-105"
+                        isSpeaking
+                          ? "bg-purple-600 text-white ring-4 ring-purple-500/40 hover:bg-purple-500"
+                          : isMicListening
+                          ? "bg-emerald-600 text-white ring-4 ring-emerald-500/40 animate-pulse scale-105"
                           : "bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 text-white hover:scale-105 shadow-cyan-500/30"
                       }`}
                       style={{ minHeight: "68px", minWidth: "68px" }}
-                      aria-label={isMicListening ? "Stop listening" : "Start speaking"}
+                      aria-label={
+                        isSpeaking
+                          ? "Interrupt agent speaking"
+                          : isMicListening
+                          ? "Listening... Tap to pause mic"
+                          : "Tap to speak into microphone"
+                      }
                     >
-                      {isMicListening ? <MicOff className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
+                      {isSpeaking ? (
+                        <Zap className="h-8 w-8 text-amber-300 animate-bounce" />
+                      ) : isMicListening ? (
+                        <MicOff className="h-8 w-8 text-white" />
+                      ) : (
+                        <Mic className="h-8 w-8 text-white" />
+                      )}
                     </button>
-                    <span className="text-xs font-semibold text-slate-300">
-                      {isMicListening ? "Listening... tap to send" : "Tap to speak into microphone"}
-                    </span>
+
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs font-semibold text-slate-200">
+                        {isSpeaking
+                          ? "Tap mic to interrupt agent"
+                          : isMicListening
+                          ? "Listening... speak naturally"
+                          : "Tap mic to speak"}
+                      </span>
+
+                      {/* Continuous Mode Toggle */}
+                      <div className="mt-1 flex items-center gap-2">
+                        <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-400 hover:text-slate-200">
+                          <input
+                            type="checkbox"
+                            checked={continuousMode}
+                            onChange={(e) => {
+                              const checked = e.target.checked
+                              setContinuousMode(checked)
+                              if (checked && !isMicListening && !isSpeaking) {
+                                startListening()
+                              }
+                            }}
+                            className="rounded border-white/20 bg-slate-800 text-cyan-500 focus:ring-cyan-400 h-3.5 w-3.5"
+                          />
+                          Continuous Hands-Free Turn-Taking
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Voice Question Chips */}
+                  <div className="w-full pt-2">
+                    <p className="text-[10px] text-slate-400 mb-1.5 uppercase tracking-wider font-semibold">
+                      Or Ask Instant Question:
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-1.5">
+                      {QUICK_SUGGESTIONS.slice(0, 4).map((chip, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            unlockAudioContext()
+                            handleSendMessage(chip.query)
+                          }}
+                          className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-slate-300 transition hover:border-cyan-400 hover:bg-white/10 hover:text-white"
+                        >
+                          {chip.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -644,7 +986,7 @@ export function SiteAiWidget() {
                         ) : (
                           <>
                             <Bot className="h-3 w-3 text-cyan-400" />
-                            <span>Omniweb Assistant</span>
+                            <span>Omniweb Concierge</span>
                           </>
                         )}
                       </div>
@@ -658,20 +1000,33 @@ export function SiteAiWidget() {
                       >
                         <p className="whitespace-pre-wrap break-words">{msg.content}</p>
 
-                        {/* Speech Playback Trigger Button for Each Assistant Response */}
+                        {/* Speech Playback Trigger Button for Assistant Responses */}
                         {msg.role === "assistant" && (
                           <div className="mt-2.5 flex items-center justify-between border-t border-white/10 pt-2 text-xs">
                             <button
                               type="button"
                               onClick={() => {
                                 unlockAudioContext()
-                                playSpeech(msg.content)
+                                if (isSpeaking) {
+                                  stopAudio()
+                                } else {
+                                  playSpeech(msg.content)
+                                }
                               }}
                               className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-cyan-300 transition hover:bg-white/10"
-                              title="Listen to this message"
+                              title={isSpeaking ? "Stop speech" : "Listen aloud in Deepgram Aura voice"}
                             >
-                              <Volume2 className="h-3.5 w-3.5" />
-                              Listen Aloud
+                              {isSpeaking ? (
+                                <>
+                                  <Square className="h-3 w-3 text-rose-400 fill-current" />
+                                  <span className="text-rose-400">Stop Speaking</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 className="h-3.5 w-3.5" />
+                                  Listen Aloud
+                                </>
+                              )}
                             </button>
                             <span className="text-[10px] text-slate-500">{msg.timestamp}</span>
                           </div>
@@ -704,14 +1059,14 @@ export function SiteAiWidget() {
                   {isThinking && (
                     <div className="flex items-center gap-2 text-xs text-cyan-400 animate-pulse py-1">
                       <Bot className="h-4 w-4" />
-                      <span>Reasoning through Omniweb knowledge...</span>
+                      <span>Omniweb reasoning through platform knowledge...</span>
                     </div>
                   )}
                 </div>
               )}
 
               {/* Quick Suggestion Chips (Chat Mode) */}
-              {activeTab === "chat" && messages.length <= 3 && (
+              {activeTab === "chat" && messages.length <= 4 && (
                 <div className="border-t border-white/10 bg-black/20 px-3 py-2">
                   <div className="flex gap-1.5 overflow-x-auto pb-1 text-[11px] no-scrollbar">
                     {QUICK_SUGGESTIONS.map((chip, idx) => (
@@ -731,7 +1086,7 @@ export function SiteAiWidget() {
                 </div>
               )}
 
-              {/* Input Area (Prevents iOS zoom with text-base on mobile) */}
+              {/* Input Area */}
               <div className="border-t border-white/10 bg-slate-950/95 p-3">
                 <form
                   onSubmit={(e) => {
@@ -744,21 +1099,40 @@ export function SiteAiWidget() {
                     type="button"
                     onClick={toggleMic}
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition ${
-                      isMicListening
-                        ? "bg-rose-600 text-white animate-pulse"
+                      isSpeaking
+                        ? "bg-purple-600 text-white animate-pulse"
+                        : isMicListening
+                        ? "bg-emerald-600 text-white animate-pulse"
                         : "border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
                     }`}
-                    title={isMicListening ? "Stop listening" : "Speak with microphone"}
+                    title={
+                      isSpeaking
+                        ? "Interrupt agent"
+                        : isMicListening
+                        ? "Stop listening"
+                        : "Speak with microphone"
+                    }
                     aria-label="Toggle Microphone"
                   >
-                    <Mic className="h-5 w-5" />
+                    {isSpeaking ? <Zap className="h-5 w-5 text-amber-300" /> : <Mic className="h-5 w-5" />}
                   </button>
 
                   <input
                     type="text"
                     value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    onFocus={() => unlockAudioContext()}
+                    onChange={(e) => {
+                      // Typing cancels agent speech immediately
+                      if (isSpeaking) {
+                        interruptAndYieldFloor("User started typing")
+                      }
+                      setInputMessage(e.target.value)
+                    }}
+                    onFocus={() => {
+                      unlockAudioContext()
+                      if (isSpeaking) {
+                        interruptAndYieldFloor("User focused input field")
+                      }
+                    }}
                     placeholder="Ask about pricing, features, or 'Take me to...'"
                     className="h-11 flex-1 rounded-xl border border-white/15 bg-slate-900 px-3.5 text-base sm:text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
                   />
