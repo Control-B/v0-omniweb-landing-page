@@ -33,6 +33,11 @@ omniweb.ai, www.omniweb.ai, omniweb.com, www.omniweb.com, {$DOMAIN_NAME:136.114.
         -Server
     }
 
+    # Forward GitHub CI/CD Webhooks to host receiver
+    handle /webhooks/* {
+        reverse_proxy host.docker.internal:9000
+    }
+
     # Forward API routes to FastAPI Backend
     handle /api/engine/* {
         uri strip_prefix /api/engine
@@ -67,6 +72,11 @@ http://136.114.167.50, https://136.114.167.50 {
         Permissions-Policy "camera=(), microphone=(self), geolocation=()"
         Cross-Origin-Opener-Policy "same-origin-allow-popups"
         -Server
+    }
+
+    # Forward GitHub CI/CD Webhooks to host receiver
+    handle /webhooks/* {
+        reverse_proxy host.docker.internal:9000
     }
 
     handle /api/engine/* {
