@@ -140,8 +140,8 @@ export default function Home() {
         <ScrollingMarqueeSection />
 
         {/* ── Live Autonomous Contact Center Simulator Section ── */}
-        <section id="simulator" className="site-section-shell relative overflow-hidden bg-[#040812]">
-          <div className="site-shell relative z-10 space-y-12">
+        <section id="simulator" className="site-section-shell relative w-full max-w-full overflow-hidden bg-[#040812]">
+          <div className="site-shell relative z-10 space-y-8 sm:space-y-12 w-full max-w-full min-w-0 overflow-hidden">
             <LiveCallCenterSimulator />
             <CallCenterRoiCalculator />
           </div>

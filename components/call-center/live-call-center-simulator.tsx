@@ -595,7 +595,7 @@ export function LiveCallCenterSimulator() {
   }
 
   return (
-    <div className="rounded-2xl sm:rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-slate-950/95 via-[#060c18]/95 to-slate-950/95 p-3.5 sm:p-6 lg:p-8 shadow-2xl shadow-black/80 backdrop-blur-2xl">
+    <div className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-[2.5rem] border border-white/15 bg-gradient-to-b from-slate-950/95 via-[#060c18]/95 to-slate-950/95 p-3.5 sm:p-6 lg:p-8 shadow-2xl shadow-black/80 backdrop-blur-2xl">
       {/* Header Bar */}
       <div className="flex flex-col gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
