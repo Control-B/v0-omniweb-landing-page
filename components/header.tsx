@@ -191,28 +191,28 @@ export function Header() {
 
                   {/* Expanded Submenu on Tap */}
                   {hasSubItems && isOpen && (
-                    <div className="border-t border-white/10 bg-black/40 px-3 py-3 space-y-1.5">
+                    <div className="border-t border-white/10 bg-black/40 px-3.5 py-3 space-y-2">
                       <Link
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-between rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3.5 py-2.5 text-xs font-bold text-cyan-300 transition hover:bg-cyan-500/20"
+                        className="flex items-center justify-between rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-3 text-sm font-semibold text-cyan-300 transition hover:bg-cyan-500/20"
                       >
                         <span>Explore All {item.label}</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
 
-                      <div className="grid grid-cols-1 gap-1 pt-1">
+                      <div className="grid grid-cols-1 gap-1.5 pt-1">
                         {item.items?.map((subItem) => (
                           <Link
                             key={`${subItem.href}-${subItem.label}`}
                             href={subItem.href}
                             onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-300 transition hover:bg-white/10 hover:text-white"
+                            className="flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm text-slate-200 transition hover:bg-white/10 hover:text-white"
                           >
-                            <span className={cn("inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border", subItem.iconChipClassName)}>
-                              <subItem.icon className={cn("h-3.5 w-3.5", subItem.iconClassName)} />
+                            <span className={cn("inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border", subItem.iconChipClassName)}>
+                              <subItem.icon className={cn("h-4 w-4", subItem.iconClassName)} />
                             </span>
-                            <span className="font-medium text-xs text-slate-200">{subItem.label}</span>
+                            <span className="font-medium text-sm text-slate-200">{subItem.label}</span>
                           </Link>
                         ))}
                       </div>
@@ -227,7 +227,7 @@ export function Header() {
               <Button
                 size="lg"
                 asChild
-                className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 font-bold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-purple-400"
+                className="w-full rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-base font-bold text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-purple-400 h-12"
               >
                 <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>
                   Get Started Free
@@ -239,7 +239,7 @@ export function Header() {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="h-11 rounded-xl border-white/15 bg-white/5 font-semibold text-white hover:bg-white/10"
+                  className="h-11 rounded-xl border-white/15 bg-white/5 text-sm sm:text-base font-semibold text-white hover:bg-white/10"
                 >
                   <Link href="/signin" onClick={() => setMobileMenuOpen(false)}>
                     Sign In
@@ -249,7 +249,7 @@ export function Header() {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="h-11 rounded-xl border-white/15 bg-white/5 font-semibold text-white hover:bg-white/10"
+                  className="h-11 rounded-xl border-white/15 bg-white/5 text-sm sm:text-base font-semibold text-white hover:bg-white/10"
                 >
                   <a href="tel:+18666233331">Call Us</a>
                 </Button>

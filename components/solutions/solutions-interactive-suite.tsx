@@ -296,17 +296,17 @@ export function IndustryVoiceSamplePlayer() {
 
         {/* Proven Industry KPIs */}
         <div className="mt-6 pt-5 sm:pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-center">
-          <div className="rounded-xl border border-white/5 bg-black/30 p-2.5 sm:p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Speed to Answer</p>
-            <p className="mt-1 text-base font-extrabold text-white">{activeVoice.metrics.pickupTime}</p>
+          <div className="rounded-xl border border-white/5 bg-black/30 p-3 sm:p-3.5">
+            <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400">Speed to Answer</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-white">{activeVoice.metrics.pickupTime}</p>
           </div>
-          <div className="rounded-xl border border-white/5 bg-black/30 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Qualification Accuracy</p>
-            <p className="mt-1 text-base font-extrabold text-emerald-400">{activeVoice.metrics.qualificationAccuracy}</p>
+          <div className="rounded-xl border border-white/5 bg-black/30 p-3 sm:p-3.5">
+            <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400">Qualification Accuracy</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-emerald-400">{activeVoice.metrics.qualificationAccuracy}</p>
           </div>
-          <div className="rounded-xl border border-white/5 bg-black/30 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Conversion Impact</p>
-            <p className="mt-1 text-base font-extrabold text-cyan-300">{activeVoice.metrics.bookedRate}</p>
+          <div className="rounded-xl border border-white/5 bg-black/30 p-3 sm:p-3.5">
+            <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400">Conversion Impact</p>
+            <p className="mt-1 text-lg sm:text-xl font-extrabold text-cyan-300">{activeVoice.metrics.bookedRate}</p>
           </div>
         </div>
       </div>
@@ -375,10 +375,10 @@ export function IndustryRoiCalculator() {
           {/* Slider 1: Monthly Calls / Inquiries */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <span className="text-sm font-bold uppercase tracking-wider text-slate-200">
                 Monthly Inbound Calls &amp; Chats:
               </span>
-              <span className="text-lg font-extrabold text-cyan-400">{monthlyVolume.toLocaleString()}</span>
+              <span className="text-lg sm:text-xl font-extrabold text-cyan-400">{monthlyVolume.toLocaleString()}</span>
             </div>
             <input
               type="range"
@@ -394,10 +394,10 @@ export function IndustryRoiCalculator() {
           {/* Slider 2: Average Ticket / Deal Size */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <span className="text-sm font-bold uppercase tracking-wider text-slate-200">
                 Average Value per Closed Deal / Order:
               </span>
-              <span className="text-lg font-extrabold text-emerald-400">${ticketSize.toLocaleString()}</span>
+              <span className="text-lg sm:text-xl font-extrabold text-emerald-400">${ticketSize.toLocaleString()}</span>
             </div>
             <input
               type="range"
@@ -413,10 +413,10 @@ export function IndustryRoiCalculator() {
           {/* Slider 3: Expected Conversion Lift */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <span className="text-sm font-bold uppercase tracking-wider text-slate-200">
                 Missed Lead Recovery Rate:
               </span>
-              <span className="text-lg font-extrabold text-purple-400">+{liftRate}%</span>
+              <span className="text-lg sm:text-xl font-extrabold text-purple-400">+{liftRate}%</span>
             </div>
             <input
               type="range"
@@ -523,8 +523,8 @@ export function IndustryQualificationWorkflow() {
               </span>
               {idx < 3 && <ChevronRight className="hidden lg:block h-4 w-4 text-slate-500" />}
             </div>
-            <h4 className="text-sm font-bold text-white">{s.title}</h4>
-            <p className="mt-2 text-xs leading-relaxed text-slate-300">{s.desc}</p>
+            <h4 className="text-base font-bold text-white">{s.title}</h4>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">{s.desc}</p>
           </div>
         ))}
       </div>
