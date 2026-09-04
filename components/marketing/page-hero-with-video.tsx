@@ -217,7 +217,7 @@ export function PageHeroWithVideo({
   return (
     <section id={id} className={cn(
       "relative overflow-hidden border-b border-white/10 bg-[#050a12]",
-      size === "large" && "min-h-dvh"
+      size === "large" && "lg:min-h-dvh"
     )}>
       {/* ─── FULL-SCREEN VIDEO BACKGROUND (large hero only) ─── */}
       {size === "large" && isLargeDesktop && (
@@ -269,7 +269,7 @@ export function PageHeroWithVideo({
         className={cn(
           "relative z-10",
           size === "large"
-            ? "flex min-h-dvh flex-col px-6 pb-12 pt-24 lg:justify-end lg:px-12 lg:pb-16 lg:pt-32"
+            ? "flex flex-col px-4 sm:px-6 pb-8 pt-20 lg:min-h-dvh lg:justify-end lg:px-12 lg:pb-16 lg:pt-32"
             : "mx-auto grid max-w-7xl gap-8 overflow-x-clip px-4 py-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,34rem)] lg:items-center lg:gap-12 lg:px-8 lg:py-20"
         )}
       >

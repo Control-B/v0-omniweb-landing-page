@@ -132,7 +132,6 @@ export default function Home() {
           primaryAction={{ label: "Start Your Setup", href: "/get-started", variant: "primary" }}
           secondaryAction={{ label: "Try Live Demo", href: "/demo", variant: "secondary" }}
           badges={["24/7 lead response", "< 60s follow-up speed", "30+ hrs manual work saved"]}
-          note="Video introduces the system first, then the AI assistant helps visitors take the next step."
         />
 
         <GlobeShowcaseSection />
