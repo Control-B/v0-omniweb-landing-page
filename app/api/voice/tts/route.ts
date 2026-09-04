@@ -21,6 +21,22 @@ const VOICE_MAP: Record<string, { deepgram: string; elevenlabs: string }> = {
     deepgram: "aura-luna-en", // Crisp, professional, rapid dispatch
     elevenlabs: "cgSgspJ2msm6clMCkdW9", // Jessica (ElevenLabs)
   },
+  "contractor": {
+    deepgram: "aura-orion-en", // Decisive, professional male contractor voice
+    elevenlabs: "JBFqnCBsd6RMkjVDRZzb",
+  },
+  "ecommerce": {
+    deepgram: "aura-luna-en", // Upbeat, consultative female voice
+    elevenlabs: "cgSgspJ2msm6clMCkdW9",
+  },
+  "healthcare": {
+    deepgram: "aura-asteria-en", // Empathetic, reassuring clinical intake
+    elevenlabs: "21m00Tcm4TlvDq8ikWAM",
+  },
+  "legal": {
+    deepgram: "aura-zeus-en", // Authoritative, confidential intake specialist
+    elevenlabs: "TxGEqnHWrfWFTfGW9XjX",
+  },
 }
 
 export async function POST(req: NextRequest) {

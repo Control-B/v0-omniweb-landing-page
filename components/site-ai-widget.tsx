@@ -583,6 +583,7 @@ export function SiteAiWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: updatedMessages.map((m) => ({ role: m.role, content: m.content })),
+          personaId: "site-concierge",
         }),
         signal: controller.signal,
       })

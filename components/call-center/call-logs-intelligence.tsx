@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   Activity,
   Bot,
@@ -92,6 +92,81 @@ export function CallLogsIntelligence() {
   const [logs, setLogs] = useState<CallLogRecord[]>(SAMPLE_CALL_LOGS)
   const [selectedLog, setSelectedLog] = useState<CallLogRecord>(SAMPLE_CALL_LOGS[0])
   const [isPlaying, setIsPlaying] = useState(false)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  const stopAudio = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    if (audioSourceRef.current) {
+      try {
+        audioSourceRef.current.stop()
+      } catch (e) {}
+      audioSourceRef.current = null
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsPlaying(false)
+  }
+
+  const togglePlayRecording = async () => {
+    if (isPlaying) {
+      stopAudio()
+      return
+    }
+
+    stopAudio()
+    setIsPlaying(true)
+
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    try {
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext
+      if (AudioCtxClass && !audioContextRef.current) {
+        audioContextRef.current = new AudioCtxClass()
+      }
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume()
+      }
+
+      const personaId = selectedLog.agent.includes("Alex") ? "billing-investigation" : "high-ticket-closer"
+      const textToSpeak = `Call summary for ${selectedLog.callerName}. ${selectedLog.summary}`
+
+      const res = await fetch("/api/voice/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: textToSpeak, personaId, provider: "deepgram" }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok) throw new Error(`TTS HTTP error: ${res.status}`)
+
+      const arrayBuffer = await res.arrayBuffer()
+      if (audioContextRef.current) {
+        const bufferCopy = arrayBuffer.slice(0)
+        const audioBuffer = await audioContextRef.current.decodeAudioData(bufferCopy)
+        if (controller.signal.aborted) return
+
+        const source = audioContextRef.current.createBufferSource()
+        source.buffer = audioBuffer
+        source.connect(audioContextRef.current.destination)
+        audioSourceRef.current = source
+        source.onended = () => {
+          setIsPlaying(false)
+          audioSourceRef.current = null
+        }
+        source.start(0)
+      }
+    } catch (err: any) {
+      if (err?.name === "AbortError") return
+      setIsPlaying(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -111,7 +186,10 @@ export function CallLogsIntelligence() {
             return (
               <div
                 key={log.id}
-                onClick={() => setSelectedLog(log)}
+                onClick={() => {
+                  stopAudio()
+                  setSelectedLog(log)
+                }}
                 className={`rounded-2xl border p-4 transition-all cursor-pointer ${
                   isSelected
                     ? "border-cyan-400/60 bg-cyan-950/20 shadow-lg shadow-cyan-500/10"
@@ -123,15 +201,6 @@ export function CallLogsIntelligence() {
                   <span className="font-mono text-xs text-slate-400">{log.duration}</span>
                 </div>
                 <div className="mt-1 flex items-center justify-between text-xs">
-                  <span className="text-slate-400">{log.callerNumber}</span>
-                  <span className="text-amber-400 font-mono flex items-center gap-1">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    {log.csat}
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center gap-2 text-[11px]">
-                  <span className="rounded bg-black/40 px-2 py-0.5 text-cyan-300 font-medium">{log.intent}</span>
-                  <span className="text-slate-500">•</span>
                   <span className="text-slate-400">{log.timestamp}</span>
                 </div>
               </div>
@@ -165,18 +234,18 @@ export function CallLogsIntelligence() {
                   <span
                     key={i}
                     style={{ height: `${Math.max(6, Math.sin(i * 0.3) * 28 + 6)}px` }}
-                    className="flex-1 rounded-full bg-cyan-500/60 hover:bg-cyan-400 transition"
+                    className={`flex-1 rounded-full transition ${isPlaying ? "bg-cyan-400 animate-pulse" : "bg-cyan-500/60"}`}
                   />
                 ))}
               </div>
               <div className="mt-3 flex items-center justify-center gap-3">
                 <Button
                   size="sm"
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="rounded-full bg-cyan-500 text-black font-semibold hover:bg-cyan-400"
+                  onClick={togglePlayRecording}
+                  className={`rounded-full font-semibold transition ${isPlaying ? "bg-rose-600 hover:bg-rose-500 text-white" : "bg-cyan-500 text-black hover:bg-cyan-400"}`}
                 >
                   {isPlaying ? <Pause className="mr-1.5 h-4 w-4" /> : <Play className="mr-1.5 h-4 w-4" />}
-                  {isPlaying ? "Pause Recording" : "Play Recording"}
+                  {isPlaying ? "Pause Recording (Interrupt)" : "Play Recording"}
                 </Button>
               </div>
             </div>

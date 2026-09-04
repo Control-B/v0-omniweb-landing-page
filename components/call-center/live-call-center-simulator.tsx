@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import {
   Activity,
@@ -32,6 +32,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  Square,
   Tag,
   User,
   Volume2,
@@ -164,6 +165,7 @@ export function LiveCallCenterSimulator() {
   const [isMuted, setIsMuted] = useState(false)
   const [isMicListening, setIsMicListening] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
+  const [wasInterrupted, setWasInterrupted] = useState(false)
   const [copiedTranscript, setCopiedTranscript] = useState(false)
   const [transcript, setTranscript] = useState<PersonaScenario["sampleDialogue"]>(SCENARIOS[0].sampleDialogue)
   const [customInput, setCustomInput] = useState("")
@@ -179,71 +181,249 @@ export function LiveCallCenterSimulator() {
     turnLatency: "185ms",
   })
   const [supervisorMode, setSupervisorMode] = useState<"monitor" | "whisper" | "barge">("monitor")
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const recognitionRef = useRef<any>(null)
   const transcriptContainerRef = useRef<HTMLDivElement | null>(null)
   const hasUserInteractedRef = useRef(false)
   const currentAudioRef = useRef<HTMLAudioElement | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-  // Natural Human Studio Speech Synthesis (Deepgram Aura / ElevenLabs)
-  const speakAloud = async (textToSpeak: string) => {
+  const isSpeakingRef = useRef(false)
+  const callStateRef = useRef<"idle" | "connecting" | "active" | "ended">("idle")
+  const isMicListeningRef = useRef(false)
+  const activeScenarioRef = useRef(activeScenario)
+
+  useEffect(() => {
+    isSpeakingRef.current = isSpeaking
+  }, [isSpeaking])
+
+  useEffect(() => {
+    callStateRef.current = callState
+  }, [callState])
+
+  useEffect(() => {
+    isMicListeningRef.current = isMicListening
+  }, [isMicListening])
+
+  useEffect(() => {
+    activeScenarioRef.current = activeScenario
+  }, [activeScenario])
+
+  // Unlock AudioContext for lowest latency playback
+  const unlockAudio = useCallback(() => {
     if (typeof window === "undefined") return
+    try {
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext
+      if (AudioCtxClass && !audioContextRef.current) {
+        audioContextRef.current = new AudioCtxClass()
+      }
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        audioContextRef.current.resume().catch(() => {})
+      }
+    } catch (e) {}
+  }, [])
 
-    // Stop any existing audio stream
+  // Immediate Audio Cutoff (<10ms) for Barge-in Interruption
+  const stopAudioImmediate = useCallback(() => {
+    // 1. Abort in-flight network requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+
+    // 2. Stop Web Audio Buffer Source
+    if (audioSourceRef.current) {
+      try {
+        audioSourceRef.current.stop()
+      } catch (e) {}
+      audioSourceRef.current = null
+    }
+
+    // 3. Stop HTMLAudio element
     if (currentAudioRef.current) {
-      currentAudioRef.current.pause()
-      currentAudioRef.current.src = ""
+      try {
+        currentAudioRef.current.pause()
+        currentAudioRef.current.currentTime = 0
+      } catch (e) {}
       currentAudioRef.current = null
     }
 
-    setIsSpeaking(true)
+    // 4. Cancel Speech Synthesis
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel()
+    }
 
-    try {
-      const res = await fetch("/api/voice/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: textToSpeak,
-          personaId: activeScenario.id,
-          provider: voiceProvider,
-        }),
-      })
+    setIsSpeaking(false)
+    isSpeakingRef.current = false
+  }, [])
 
-      if (!res.ok) {
-        throw new Error(`TTS HTTP error ${res.status}`)
-      }
-
-      const blob = await res.blob()
-      const audioUrl = URL.createObjectURL(blob)
-      const audio = new Audio(audioUrl)
-      currentAudioRef.current = audio
-
-      audio.onplay = () => setIsSpeaking(true)
-      audio.onended = () => {
-        setIsSpeaking(false)
-        URL.revokeObjectURL(audioUrl)
-      }
-      audio.onerror = () => {
-        setIsSpeaking(false)
-        URL.revokeObjectURL(audioUrl)
-      }
-
-      await audio.play()
-    } catch (err) {
-      console.warn("Studio Neural TTS stream fallback:", err)
-      // Browser Web Speech fallback only if network offline
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel()
-        const utterance = new SpeechSynthesisUtterance(textToSpeak)
-        utterance.rate = 1.05
-        utterance.onend = () => setIsSpeaking(false)
-        utterance.onerror = () => setIsSpeaking(false)
-        window.speechSynthesis.speak(utterance)
-      } else {
-        setIsSpeaking(false)
+  // Start speech recognition listening for caller turn
+  const startListening = useCallback(() => {
+    if (typeof window === "undefined") return
+    unlockAudio()
+    if (recognitionRef.current && !isMicListeningRef.current) {
+      try {
+        recognitionRef.current.start()
+        setIsMicListening(true)
+        isMicListeningRef.current = true
+      } catch (e: any) {
+        if (e?.name !== "InvalidStateError") {
+          console.warn("[Simulator] startListening error:", e)
+        }
       }
     }
-  }
+  }, [unlockAudio])
+
+  // Stop speech recognition
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current && isMicListeningRef.current) {
+      try {
+        recognitionRef.current.stop()
+      } catch (e) {}
+      setIsMicListening(false)
+      isMicListeningRef.current = false
+    }
+  }, [])
+
+  // Instant Barge-In Interruption Handler
+  const interruptAgent = useCallback(
+    (reason: string = "User interrupted agent") => {
+      stopAudioImmediate()
+      setIsThinking(false)
+      setWasInterrupted(true)
+      setTimeout(() => setWasInterrupted(false), 2400)
+      console.info(`[Simulator Barge-In] ${reason}`)
+
+      // If call is active, immediately yield the floor to caller
+      if (callStateRef.current === "active") {
+        setTimeout(() => {
+          startListening()
+        }, 80)
+      }
+    },
+    [stopAudioImmediate, startListening]
+  )
+
+  // Natural Human Studio Speech Synthesis with Automatic Turn-Taking
+  const speakAloud = useCallback(
+    async (textToSpeak: string) => {
+      if (typeof window === "undefined" || isMuted) return
+      stopAudioImmediate()
+
+      setIsSpeaking(true)
+      isSpeakingRef.current = true
+
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+
+      try {
+        const res = await fetch("/api/voice/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: textToSpeak,
+            personaId: activeScenarioRef.current.id,
+            provider: voiceProvider,
+          }),
+          signal: controller.signal,
+        })
+
+        if (!res.ok) {
+          throw new Error(`TTS HTTP error ${res.status}`)
+        }
+
+        const arrayBuffer = await res.arrayBuffer()
+
+        // Web Audio API playback for lowest latency and instant cutoff
+        if (audioContextRef.current) {
+          if (audioContextRef.current.state === "suspended") {
+            await audioContextRef.current.resume()
+          }
+
+          const bufferCopy = arrayBuffer.slice(0)
+          const audioBuffer = await audioContextRef.current.decodeAudioData(bufferCopy)
+
+          if (controller.signal.aborted) return
+
+          const sourceNode = audioContextRef.current.createBufferSource()
+          sourceNode.buffer = audioBuffer
+          sourceNode.connect(audioContextRef.current.destination)
+          audioSourceRef.current = sourceNode
+
+          sourceNode.onended = () => {
+            setIsSpeaking(false)
+            isSpeakingRef.current = false
+            audioSourceRef.current = null
+
+            // AUTOMATIC TURN-TAKING: Yield turn to caller when agent finishes speaking
+            if (callStateRef.current === "active") {
+              setTimeout(() => {
+                startListening()
+              }, 120)
+            }
+          }
+
+          sourceNode.start(0)
+          return
+        }
+
+        // HTMLAudio Fallback
+        const blob = new Blob([arrayBuffer], { type: "audio/mpeg" })
+        const audioUrl = URL.createObjectURL(blob)
+        const audio = new Audio(audioUrl)
+        currentAudioRef.current = audio
+
+        audio.onended = () => {
+          setIsSpeaking(false)
+          isSpeakingRef.current = false
+          URL.revokeObjectURL(audioUrl)
+
+          if (callStateRef.current === "active") {
+            setTimeout(() => {
+              startListening()
+            }, 120)
+          }
+        }
+        audio.onerror = () => {
+          setIsSpeaking(false)
+          isSpeakingRef.current = false
+          URL.revokeObjectURL(audioUrl)
+        }
+
+        await audio.play()
+      } catch (err: any) {
+        if (err?.name === "AbortError") return
+
+        console.warn("[Simulator] Studio Neural TTS stream fallback to Web Speech:", err)
+        if ("speechSynthesis" in window) {
+          window.speechSynthesis.cancel()
+          const utterance = new SpeechSynthesisUtterance(textToSpeak)
+          utterance.rate = 1.05
+          utterance.onend = () => {
+            setIsSpeaking(false)
+            isSpeakingRef.current = false
+            if (callStateRef.current === "active") {
+              setTimeout(() => {
+                startListening()
+              }, 120)
+            }
+          }
+          utterance.onerror = () => {
+            setIsSpeaking(false)
+            isSpeakingRef.current = false
+          }
+          window.speechSynthesis.speak(utterance)
+        } else {
+          setIsSpeaking(false)
+          isSpeakingRef.current = false
+        }
+      }
+    },
+    [isMuted, stopAudioImmediate, voiceProvider, startListening]
+  )
 
   // Scroll transcript container internally on new turns (never scrolls page window)
   useEffect(() => {
@@ -259,7 +439,7 @@ export function LiveCallCenterSimulator() {
     }
   }, [transcript, isThinking])
 
-  // Reactive Waveform Simulation
+  // Reactive Waveform Simulation (Clickable to interrupt)
   useEffect(() => {
     let animationFrameId: number
     const canvas = canvasRef.current
@@ -275,7 +455,8 @@ export function LiveCallCenterSimulator() {
       const height = canvas.height
       const centerY = height / 2
 
-      const amplitude = callState === "active" ? (isSpeaking ? 36 : isMicListening ? 28 : isThinking ? 18 : 10) : 4
+      const amplitude =
+        callState === "active" ? (isSpeaking ? 36 : isMicListening ? 28 : isThinking ? 18 : 10) : 4
       const bars = 48
       const barWidth = width / bars
 
@@ -288,9 +469,13 @@ export function LiveCallCenterSimulator() {
         const gradient = ctx.createLinearGradient(0, centerY - barHeight, 0, centerY + barHeight)
         if (callState === "active") {
           if (isSpeaking) {
-            gradient.addColorStop(0, "rgba(52, 211, 153, 0.95)")
+            gradient.addColorStop(0, "rgba(168, 85, 247, 0.95)") // Magenta/purple for agent
+            gradient.addColorStop(0.5, "rgba(59, 130, 246, 0.9)")
+            gradient.addColorStop(1, "rgba(34, 211, 238, 0.95)")
+          } else if (isMicListening) {
+            gradient.addColorStop(0, "rgba(52, 211, 153, 0.95)") // Emerald/cyan for caller turn
             gradient.addColorStop(0.5, "rgba(34, 211, 238, 0.9)")
-            gradient.addColorStop(1, "rgba(59, 130, 246, 0.95)")
+            gradient.addColorStop(1, "rgba(16, 185, 129, 0.95)")
           } else {
             gradient.addColorStop(0, "rgba(34, 211, 238, 0.9)")
             gradient.addColorStop(0.5, "rgba(139, 92, 246, 0.9)")
@@ -307,7 +492,7 @@ export function LiveCallCenterSimulator() {
         ctx.fill()
       }
 
-      phase += callState === "active" ? (isSpeaking ? 0.14 : 0.07) : 0.02
+      phase += callState === "active" ? (isSpeaking ? 0.14 : isMicListening ? 0.11 : 0.07) : 0.02
       animationFrameId = requestAnimationFrame(render)
     }
 
@@ -315,7 +500,7 @@ export function LiveCallCenterSimulator() {
     return () => cancelAnimationFrame(animationFrameId)
   }, [callState, isThinking, isMicListening, isSpeaking])
 
-  // Setup Browser Speech Recognition (Deepgram / WebSpeech bridge)
+  // Setup Browser Speech Recognition with Voice Activity Barge-In
   useEffect(() => {
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -325,7 +510,24 @@ export function LiveCallCenterSimulator() {
         recognition.interimResults = false
         recognition.lang = "en-US"
 
+        // Voice Barge-In: if user speaks while agent is speaking, cut audio immediately!
+        recognition.onspeechstart = () => {
+          if (isSpeakingRef.current) {
+            interruptAgent("Caller voice speech detected during playback")
+          }
+        }
+
+        recognition.onsoundstart = () => {
+          if (isSpeakingRef.current) {
+            interruptAgent("Caller sound detected during playback")
+          }
+        }
+
         recognition.onresult = (event: any) => {
+          if (isSpeakingRef.current) {
+            interruptAgent("Voice transcript arrived during playback")
+          }
+
           const current = event.resultIndex
           const text = event.results[current][0].transcript
           if (text && text.trim()) {
@@ -334,83 +536,71 @@ export function LiveCallCenterSimulator() {
         }
 
         recognition.onerror = (event: any) => {
-          console.warn("[SpeechRecognition] error:", event.error)
+          if (event.error !== "no-speech") {
+            console.warn("[Simulator SpeechRecognition] error:", event.error)
+          }
           setIsMicListening(false)
+          isMicListeningRef.current = false
+        }
+
+        recognition.onend = () => {
+          setIsMicListening(false)
+          isMicListeningRef.current = false
         }
 
         recognitionRef.current = recognition
       }
     }
-  }, [])
+  }, [interruptAgent])
 
   const handleStartCall = () => {
-    setCallState("connecting")
-    setTimeout(() => {
-      setCallState("active")
-      const greetingTurn = {
-        speaker: "agent" as const,
-        thought: `NLU Intent: session_start. Loaded ${activeScenario.title} profile (Deepgram Aura / ElevenLabs Studio voice).`,
-        text: activeScenario.greeting,
-      }
-      setTranscript([greetingTurn])
-      // Speak the studio-grade greeting aloud!
-      speakAloud(activeScenario.greeting)
-    }, 500)
+    unlockAudio()
+    setCallState("active")
+    const greetingTurn = {
+      speaker: "agent" as const,
+      thought: `NLU Intent: session_start. Loaded ${activeScenario.title} profile.`,
+      text: activeScenario.greeting,
+    }
+    setTranscript([greetingTurn])
+    speakAloud(activeScenario.greeting)
   }
 
   const handleEndCall = () => {
     setCallState("ended")
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause()
-      currentAudioRef.current = null
-    }
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel()
-    }
-    setIsSpeaking(false)
-    if (recognitionRef.current && isMicListening) {
-      try {
-        recognitionRef.current.stop()
-      } catch (e) {}
-      setIsMicListening(false)
-    }
+    stopAudioImmediate()
+    stopListening()
   }
 
   const toggleMicListening = () => {
+    unlockAudio()
+
+    // If agent is speaking, clicking mic interrupts agent immediately
+    if (isSpeaking) {
+      interruptAgent("Caller tapped mic button to interrupt")
+      return
+    }
+
     if (!recognitionRef.current) {
       alert("Microphone recognition is supported in modern browsers like Chrome, Edge, and Safari.")
       return
     }
 
     if (isMicListening) {
-      try {
-        recognitionRef.current.stop()
-      } catch (e) {}
-      setIsMicListening(false)
+      stopListening()
     } else {
       if (callState !== "active") {
         setCallState("active")
         speakAloud(activeScenario.greeting)
       }
-      try {
-        recognitionRef.current.start()
-        setIsMicListening(true)
-      } catch (e) {
-        setIsMicListening(false)
-      }
+      startListening()
     }
   }
 
   const handleSelectScenario = (scenario: PersonaScenario) => {
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause()
-      currentAudioRef.current = null
-    }
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel()
-    }
-    setIsSpeaking(false)
+    stopAudioImmediate()
+    stopListening()
     setActiveScenario(scenario)
+
     const initialTurn = {
       speaker: "agent" as const,
       thought: `NLU Intent: session_start. Switched to ${scenario.title}.`,
@@ -433,7 +623,9 @@ export function LiveCallCenterSimulator() {
     const formatted = transcript
       .map((t) => {
         const speakerName = t.speaker === "caller" ? "CALLER" : `${activeScenario.name} (AI)`
-        const toolStr = t.toolCall ? `\n[Tool Executed: ${t.toolCall.name} -> ${JSON.stringify(t.toolCall.result)}]` : ""
+        const toolStr = t.toolCall
+          ? `\n[Tool Executed: ${t.toolCall.name} -> ${JSON.stringify(t.toolCall.result)}]`
+          : ""
         return `${speakerName}: ${t.text}${toolStr}`
       })
       .join("\n\n")
@@ -462,18 +654,14 @@ export function LiveCallCenterSimulator() {
     URL.revokeObjectURL(url)
   }
 
-  const handleSendMessage = (textToSend?: string) => {
-    const text = textToSend || customInput
-    if (!text.trim()) return
+  // Dynamic Question Answering & Intelligent Tool Execution via /api/chat
+  const handleSendMessage = async (textToSend?: string) => {
+    unlockAudio()
+    const text = (textToSend || customInput).trim()
+    if (!text) return
 
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause()
-      currentAudioRef.current = null
-    }
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel()
-    }
-    setIsSpeaking(false)
+    // Stop previous audio immediately
+    stopAudioImmediate()
 
     setCallState("active")
     const newTurns: PersonaScenario["sampleDialogue"] = [
@@ -484,114 +672,77 @@ export function LiveCallCenterSimulator() {
     setCustomInput("")
     setIsThinking(true)
 
-    // Simulate AI Agent Reasoning, Deepgram transcription, and Navigation tool execution
-    setTimeout(() => {
-      setIsThinking(false)
-      let agentTurn: PersonaScenario["sampleDialogue"][0]
-      const textLower = text.toLowerCase()
+    const controller = new AbortController()
+    abortControllerRef.current = controller
 
-      if (textLower.includes("price") || textLower.includes("pricing") || textLower.includes("cost") || textLower.includes("plan")) {
-        agentTurn = {
-          speaker: "agent",
-          thought: "NLU Intent: pricing_inquiry. Invoking navigate_site for '/pricing' and search_knowledge for tier specifications.",
-          toolCall: {
-            name: "navigate_site",
-            params: { query: "pricing", category: "Pricing" },
-            result: { matched_route: "/pricing", recommended_path: "/pricing", title: "Platform Pricing & Plans" },
-          },
-          navigation: {
-            title: "View Pricing Plans ($49 / $149 / Enterprise)",
-            href: "/pricing",
-            description: "Transparent per-seat and usage pricing with 14-day free trial.",
-          },
-          text: "Our plans are designed for teams of all sizes: Starter is $49 a month for 500 minutes, Pro Growth is $149 a month with multi-agent swarms and the live War Room, and Enterprise starts at $499 for dedicated SIP trunks and custom RAG. You can click the link in the transcript to view the full pricing table!",
-        }
-      } else if (textLower.includes("shopify") || textLower.includes("ecommerce") || textLower.includes("store") || textLower.includes("cart")) {
-        agentTurn = {
-          speaker: "agent",
-          thought: "NLU Intent: shopify_solution_query. Calling navigate_site tool for '/solutions/shopify-ai-assistant'.",
-          toolCall: {
-            name: "navigate_site",
-            params: { query: "shopify-ai-assistant", category: "Solutions" },
-            result: { matched_route: "/solutions/shopify-ai-assistant", title: "Shopify AI Store Assistant" },
-          },
-          navigation: {
-            title: "Shopify AI Storefront Assistant",
-            href: "/solutions/shopify-ai-assistant",
-            description: "Product catalog sync, sizing advice, and autonomous abandoned cart recovery.",
-          },
-          text: "Omniweb's Shopify AI Assistant directly indexes your product catalog, provides instant sizing and availability answers, and recovers abandoned carts on your checkout flow. I've linked the full walkthrough below!",
-        }
-      } else if (textLower.includes("war room") || textLower.includes("call center") || textLower.includes("dashboard") || textLower.includes("monitor") || textLower.includes("queue")) {
-        agentTurn = {
-          speaker: "agent",
-          thought: "NLU Intent: war_room_navigation. Calling navigate_site for '/dashboard/call-center'.",
-          toolCall: {
-            name: "navigate_site",
-            params: { query: "call center war room", category: "Dashboard" },
-            result: { matched_route: "/dashboard/call-center", title: "Live Call Center War Room" },
-          },
-          navigation: {
-            title: "Open Live Call Center War Room",
-            href: "/dashboard/call-center",
-            description: "Monitor live agent swarms, queue depths, and supervisor approval tickets.",
-          },
-          text: "You can access our real-time Live Call Center War Room at /dashboard/call-center. It features active swarm telemetry, live queue depth metrics, whisper coaching, and one-click barge-in takeover!",
-        }
-      } else if (textLower.includes("book") || textLower.includes("appointment") || textLower.includes("schedule") || textLower.includes("demo")) {
-        agentTurn = {
-          speaker: "agent",
-          thought: "NLU Intent: appointment_booking. Invoking check_availability and book_appointment tool contracts.",
-          toolCall: {
-            name: "book_appointment",
-            params: { appointment_date: "Next Tuesday", appointment_time: "2:00 PM EST", topic: "Omniweb Architecture Walkthrough" },
-            result: { booking_id: "cal_84920", confirmed_time: "Next Tuesday at 2:00 PM EST", calendar_invite_sent: true },
-          },
-          navigation: {
-            title: "Appointment Booking Confirmed",
-            href: "/features/appointment-scheduling",
-            description: "Review automated calendar sync and SMS confirmation sequences.",
-          },
-          text: "I have confirmed and reserved an executive architecture briefing for next Tuesday at 2:00 PM EST. Calendar invites and preparation context have been sent to your email!",
-        }
-      } else if (textLower.includes("services") || textLower.includes("what can you do") || textLower.includes("features") || textLower.includes("overview")) {
-        agentTurn = {
-          speaker: "agent",
-          thought: "NLU Intent: services_catalog_discovery. Searching knowledge base and generating deep-link overview.",
-          toolCall: {
-            name: "search_knowledge",
-            params: { query: "Omniweb platform capabilities and services", top_k: 3 },
-            result: { total_found: 7, top_features: ["LiveKit Voice Swarms", "LangGraph Workflow State", "Lead Automation", "Shopify Assistant"] },
-          },
-          navigation: {
-            title: "Explore All Platform Features",
-            href: "/features",
-            description: "Voice agents, chat assistants, CRM integration, and outbound dialers.",
-          },
-          text: "Omniweb delivers 7 core services: 1) Autonomous Inbound & Outbound AI Voice Swarms via LiveKit OSS, 2) 24/7 Web Chat Assistants, 3) High-Intent Lead Automation, 4) Two-Way Calendar Booking, 5) Outbound Campaign Power Dialer, 6) Shopify Storefront AI, and 7) Live Supervisor War Room with Human-in-the-Loop approval.",
-        }
-      } else {
-        agentTurn = {
-          speaker: "agent",
-          thought: "NLU Intent: general_site_guidance. Searching tenant knowledge base (pgvector) and navigating site directory.",
-          toolCall: {
-            name: "navigate_site",
-            params: { query: text },
-            result: { total_matched: 3, top_recommendation: "/demo" },
-          },
-          navigation: {
-            title: "Explore Live Agentic Lab",
-            href: "/demo",
-            description: "Interactive voice swarms, execution graph inspector, and ROI calculator.",
-          },
-          text: "Omniweb AI provides sub-250ms conversational turn latency, 99.8% first-contact resolution, and native tool execution with full CRM synchronization. Let me know which area you'd like to explore!",
-        }
+    try {
+      // Send real conversational turn to /api/chat with persona context
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: newTurns.map((t) => ({
+            role: t.speaker === "caller" ? "user" : "assistant",
+            content: t.text,
+          })),
+          personaId: activeScenario.id,
+        }),
+        signal: controller.signal,
+      })
+
+      const data = await res.json()
+      const reply =
+        data.reply ||
+        "Omniweb AI provides sub-250ms conversational turn latency and native tool execution with full CRM synchronization."
+
+      setIsThinking(false)
+
+      const agentTurn: PersonaScenario["sampleDialogue"][0] = {
+        speaker: "agent",
+        thought:
+          data.thought ||
+          `NLU Intent: conversational_reasoning. Processed query for ${activeScenario.name}.`,
+        toolCall: data.toolCall || {
+          name: data.action ? "navigate_site" : "search_knowledge",
+          params: { query: text },
+          result: { success: true, matched_route: data.action?.href || "/demo" },
+        },
+        navigation: data.action
+          ? {
+              title: data.action.label,
+              href: data.action.href,
+              description: data.action.summary || "Direct platform route.",
+            }
+          : undefined,
+        text: reply,
       }
 
       setTranscript([...newTurns, agentTurn])
-      // Speak the human studio audio aloud!
-      speakAloud(agentTurn.text)
-    }, 850)
+
+      // Update HUD telemetry
+      setActiveAgentHUD((prev) => ({
+        ...prev,
+        intent: data.thought?.split(".")[0]?.replace("NLU Intent: ", "") || "conversational_turn",
+        lastTool: agentTurn.toolCall?.name || "search_knowledge",
+      }))
+
+      // Speak aloud in persona voice with turn-taking handoff
+      speakAloud(reply)
+    } catch (err: any) {
+      if (err?.name === "AbortError") return
+
+      console.error("[Simulator] Error calling chat API:", err)
+      setIsThinking(false)
+      const fallbackText =
+        "Omniweb automates customer conversations with sub-250ms latency. How can I help you today?"
+      const agentTurn: PersonaScenario["sampleDialogue"][0] = {
+        speaker: "agent",
+        thought: "NLU Intent: conversational_fallback.",
+        text: fallbackText,
+      }
+      setTranscript([...newTurns, agentTurn])
+      speakAloud(fallbackText)
+    }
   }
 
   return (
@@ -607,7 +758,9 @@ export function LiveCallCenterSimulator() {
             Autonomous Contact Center & Site AI Concierge
           </h2>
           <p className="mt-1.5 text-sm sm:text-base text-slate-300">
-            Powered by <strong className="text-white">LiveKit OSS</strong> WebRTC media transport, <strong className="text-white">Deepgram Aura & Nova-3</strong> Studio Neural Voice, and <strong className="text-white">LangGraph</strong> multi-agent swarms.
+            Powered by <strong className="text-white">LiveKit OSS</strong> WebRTC media transport,{" "}
+            <strong className="text-white">Deepgram Aura & Nova-3</strong> Studio Neural Voice, and{" "}
+            <strong className="text-white">LangGraph</strong> multi-agent swarms.
           </p>
         </div>
 
@@ -636,7 +789,10 @@ export function LiveCallCenterSimulator() {
             </button>
           </div>
 
-          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 py-1.5 px-3 text-xs sm:text-sm font-medium">
+          <Badge
+            variant="outline"
+            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 py-1.5 px-3 text-xs sm:text-sm font-medium"
+          >
             <span className="mr-1.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             LiveKit OSS (WebRTC Active)
           </Badge>
@@ -646,7 +802,9 @@ export function LiveCallCenterSimulator() {
       {/* Persona / Scenario Selector */}
       <div className="mt-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <label className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">Select Specialist Persona & Scenario</label>
+          <label className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
+            Select Specialist Persona & Scenario
+          </label>
           <span className="text-xs sm:text-sm text-cyan-400 font-semibold">4 Active Swarms Available</span>
         </div>
         <div className="mt-3 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
@@ -663,7 +821,9 @@ export function LiveCallCenterSimulator() {
                 }`}
               >
                 <div className="flex w-full items-center justify-between gap-2">
-                  <span className="text-base sm:text-lg font-bold text-white tracking-tight">{scenario.name}</span>
+                  <span className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    {scenario.name}
+                  </span>
                   {isSelected ? (
                     <span className="h-3 w-3 shrink-0 rounded-full bg-cyan-400 ring-4 ring-cyan-400/25" />
                   ) : (
@@ -686,16 +846,28 @@ export function LiveCallCenterSimulator() {
           <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-slate-900/90 p-4 sm:p-6 shadow-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`relative flex h-12 w-12 items-center justify-center rounded-2xl border transition-all ${
-                  isSpeaking
-                    ? "border-emerald-400/50 bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-500/30 scale-105"
-                    : "border-cyan-400/30 bg-cyan-500/10 text-cyan-400 shadow-md"
-                }`}>
+                <div
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-2xl border transition-all ${
+                    isSpeaking
+                      ? "border-purple-400/50 bg-purple-500/20 text-purple-300 shadow-lg shadow-purple-500/30 scale-105"
+                      : isMicListening
+                      ? "border-emerald-400/50 bg-emerald-500/20 text-emerald-300 shadow-lg shadow-emerald-500/30"
+                      : "border-cyan-400/30 bg-cyan-500/10 text-cyan-400 shadow-md"
+                  }`}
+                >
                   <Bot className="h-6 w-6" />
                   {callState === "active" && (
                     <span className="absolute -right-1 -top-1 flex h-3.5 w-3.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-emerald-500" />
+                      <span
+                        className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                          isSpeaking ? "bg-purple-400" : isMicListening ? "bg-emerald-400" : "bg-cyan-400"
+                        }`}
+                      />
+                      <span
+                        className={`relative inline-flex h-3.5 w-3.5 rounded-full ${
+                          isSpeaking ? "bg-purple-500" : isMicListening ? "bg-emerald-500" : "bg-cyan-500"
+                        }`}
+                      />
                     </span>
                   )}
                 </div>
@@ -703,7 +875,7 @@ export function LiveCallCenterSimulator() {
                   <h3 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
                     {activeScenario.name}
                     {isSpeaking && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/20 px-2.5 py-0.5 text-xs font-semibold text-purple-300">
                         <Volume2 className="h-3.5 w-3.5 animate-pulse" />
                         Speaking
                       </span>
@@ -718,36 +890,91 @@ export function LiveCallCenterSimulator() {
               <div className="text-right">
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${
-                    callState === "active"
-                      ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40"
+                    wasInterrupted
+                      ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40"
+                      : callState === "active"
+                      ? isSpeaking
+                        ? "bg-purple-500/20 text-purple-300 ring-1 ring-purple-500/40"
+                        : "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40"
                       : callState === "connecting"
-                        ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40"
-                        : "bg-slate-800 text-slate-400"
+                      ? "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40"
+                      : "bg-slate-800 text-slate-400"
                   }`}
                 >
-                  <span className={`h-2 w-2 rounded-full ${callState === "active" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
-                  {callState === "active" ? "VOICE CALL LIVE" : callState === "connecting" ? "CONNECTING LIVEKIT..." : "IDLE"}
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      wasInterrupted
+                        ? "bg-amber-400 animate-bounce"
+                        : callState === "active"
+                        ? isSpeaking
+                          ? "bg-purple-400 animate-ping"
+                          : "bg-emerald-400 animate-pulse"
+                        : "bg-slate-500"
+                    }`}
+                  />
+                  {wasInterrupted
+                    ? "INTERRUPTED"
+                    : callState === "active"
+                    ? isSpeaking
+                      ? "AGENT SPEAKING"
+                      : "YOUR TURN (CALL LIVE)"
+                    : callState === "connecting"
+                    ? "CONNECTING LIVEKIT..."
+                    : "IDLE"}
                 </span>
               </div>
             </div>
 
-            {/* Reactive Waveform Canvas */}
-            <div className="mt-5 rounded-2xl border border-white/5 bg-slate-950/80 p-3">
+            {/* Reactive Waveform Canvas (Clickable to interrupt) */}
+            <div
+              onClick={() => {
+                if (isSpeaking) {
+                  interruptAgent("User clicked waveform canvas")
+                }
+              }}
+              className={`mt-5 rounded-2xl border transition-all p-3 cursor-pointer ${
+                isSpeaking
+                  ? "border-purple-500/40 bg-purple-950/20 shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:border-purple-400"
+                  : isMicListening
+                  ? "border-emerald-500/30 bg-emerald-950/20"
+                  : "border-white/5 bg-slate-950/80"
+              }`}
+              title={isSpeaking ? "Click to interrupt agent" : "Waveform active"}
+            >
               <canvas ref={canvasRef} width={380} height={70} className="w-full h-[70px]" />
               <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
                 <span className="flex items-center gap-1">
                   <Globe className="h-3.5 w-3.5 text-cyan-400" />
-                  LiveKit: {livekitMode === "oss" ? "OSS (localhost:7880)" : "Cloud"}
+                  LiveKit: {livekitMode === "oss" ? "OSS (WebRTC sub-250ms)" : "Cloud"}
                 </span>
                 <span className="flex items-center gap-1">
                   <Volume2 className="h-3.5 w-3.5 text-emerald-400" />
-                  Neural Voice: {isSpeaking ? "Deepgram Studio (Playing)" : isMicListening ? "Mic Active" : "Ready"}
+                  Neural Voice:{" "}
+                  {wasInterrupted
+                    ? "Interrupted — yielding floor"
+                    : isSpeaking
+                    ? "Deepgram Aura (tap to cut in)"
+                    : isMicListening
+                    ? "Mic Active (Your Turn)"
+                    : "Ready"}
                 </span>
               </div>
             </div>
 
             {/* Call Control Buttons & Live Mic Streaming */}
             <div className="mt-6 flex flex-col gap-3">
+              {/* Dynamic Instant Barge-In / Interrupt Button */}
+              {isSpeaking && (
+                <button
+                  type="button"
+                  onClick={() => interruptAgent("User clicked Interrupt Agent button")}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-600 to-amber-600 py-3 text-sm font-bold text-white shadow-xl shadow-rose-600/30 transition-all hover:scale-[1.02] active:scale-95 animate-pulse"
+                >
+                  <Square className="h-4 w-4 fill-current" />
+                  Interrupt Agent (Yield Floor to You)
+                </button>
+              )}
+
               <div className="flex items-center justify-center gap-3">
                 {callState !== "active" ? (
                   <Button
@@ -773,14 +1000,28 @@ export function LiveCallCenterSimulator() {
                       size="icon"
                       variant="outline"
                       onClick={toggleMicListening}
-                      title={isMicListening ? "Mute Microphone" : "Unmute / Speak into Mic"}
+                      title={
+                        isSpeaking
+                          ? "Interrupt agent"
+                          : isMicListening
+                          ? "Mute Microphone"
+                          : "Unmute / Speak into Mic"
+                      }
                       className={`h-12 w-12 rounded-2xl border-white/10 transition-all ${
-                        isMicListening
+                        isSpeaking
+                          ? "bg-purple-600 text-white animate-pulse"
+                          : isMicListening
                           ? "bg-emerald-500/20 text-emerald-300 ring-2 ring-emerald-400 animate-pulse"
                           : "bg-white/5 text-white hover:bg-white/10"
                       }`}
                     >
-                      {isMicListening ? <Mic className="h-5 w-5 text-emerald-400" /> : <MicOff className="h-5 w-5" />}
+                      {isSpeaking ? (
+                        <Zap className="h-5 w-5 text-amber-300 animate-bounce" />
+                      ) : isMicListening ? (
+                        <Mic className="h-5 w-5 text-emerald-400" />
+                      ) : (
+                        <MicOff className="h-5 w-5" />
+                      )}
                     </Button>
                   </>
                 )}
@@ -788,10 +1029,20 @@ export function LiveCallCenterSimulator() {
 
               {callState === "active" && (
                 <p className="text-center text-xs sm:text-sm text-slate-300">
-                  {isSpeaking ? (
-                    <span className="text-emerald-400 font-medium">🔊 Agent is speaking aloud in natural studio voice...</span>
+                  {wasInterrupted ? (
+                    <span className="text-amber-300 font-semibold flex items-center justify-center gap-1">
+                      <Zap className="h-3.5 w-3.5 animate-bounce" />
+                      Interrupted — listening to you now...
+                    </span>
+                  ) : isSpeaking ? (
+                    <span className="text-purple-300 font-medium">
+                      🔊 Agent is speaking... Speak or tap "Interrupt" anytime to cut in.
+                    </span>
                   ) : isMicListening ? (
-                    <span className="text-cyan-400 font-medium">🎤 Listening to your microphone... Speak anytime!</span>
+                    <span className="text-emerald-400 font-medium flex items-center justify-center gap-1.5">
+                      <Radio className="h-3.5 w-3.5 animate-pulse" />
+                      Your turn: Listening to microphone... Speak naturally!
+                    </span>
                   ) : (
                     <span>Click the microphone button to speak or use the suggested questions below.</span>
                   )}
@@ -960,7 +1211,11 @@ export function LiveCallCenterSimulator() {
                             )}
                           </div>
                         </div>
-                        <Button asChild size="sm" className="h-8 rounded-xl bg-cyan-500 px-3.5 text-xs sm:text-sm font-semibold text-black hover:bg-cyan-400 shrink-0">
+                        <Button
+                          asChild
+                          size="sm"
+                          className="h-8 rounded-xl bg-cyan-500 px-3.5 text-xs sm:text-sm font-semibold text-black hover:bg-cyan-400 shrink-0"
+                        >
                           <Link href={turn.navigation.href}>
                             Visit Page
                             <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
@@ -985,7 +1240,14 @@ export function LiveCallCenterSimulator() {
               <input
                 type="text"
                 value={customInput}
-                onChange={(e) => setCustomInput(e.target.value)}
+                onChange={(e) => {
+                  if (isSpeaking) interruptAgent("Caller started typing")
+                  setCustomInput(e.target.value)
+                }}
+                onFocus={() => {
+                  unlockAudio()
+                  if (isSpeaking) interruptAgent("Caller focused input box")
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                 placeholder="Ask about Omniweb services, pricing, or say 'Take me to Shopify'..."
                 className="h-11 flex-1 rounded-xl border border-white/10 bg-slate-900 px-3.5 sm:px-4 text-base sm:text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
@@ -1008,7 +1270,9 @@ export function LiveCallCenterSimulator() {
             <Headphones className="h-5 w-5 text-amber-400" />
             <div>
               <h4 className="text-base font-semibold text-white">Supervisor Intervention HUD</h4>
-              <p className="text-xs sm:text-sm text-slate-400">Live supervisor monitoring, whisper coaching, and warm transfer controls</p>
+              <p className="text-xs sm:text-sm text-slate-400">
+                Live supervisor monitoring, whisper coaching, and warm transfer controls
+              </p>
             </div>
           </div>
 
@@ -1017,7 +1281,11 @@ export function LiveCallCenterSimulator() {
               size="sm"
               variant={supervisorMode === "monitor" ? "default" : "outline"}
               onClick={() => setSupervisorMode("monitor")}
-              className={supervisorMode === "monitor" ? "bg-amber-500 text-black hover:bg-amber-400 text-xs sm:text-sm font-semibold" : "border-white/10 text-white text-xs sm:text-sm"}
+              className={
+                supervisorMode === "monitor"
+                  ? "bg-amber-500 text-black hover:bg-amber-400 text-xs sm:text-sm font-semibold"
+                  : "border-white/10 text-white text-xs sm:text-sm"
+              }
             >
               Listen-In (Silent)
             </Button>
@@ -1025,7 +1293,11 @@ export function LiveCallCenterSimulator() {
               size="sm"
               variant={supervisorMode === "whisper" ? "default" : "outline"}
               onClick={() => setSupervisorMode("whisper")}
-              className={supervisorMode === "whisper" ? "bg-cyan-500 text-black hover:bg-cyan-400 text-xs sm:text-sm font-semibold" : "border-white/10 text-white text-xs sm:text-sm"}
+              className={
+                supervisorMode === "whisper"
+                  ? "bg-cyan-500 text-black hover:bg-cyan-400 text-xs sm:text-sm font-semibold"
+                  : "border-white/10 text-white text-xs sm:text-sm"
+              }
             >
               Whisper Coach
             </Button>

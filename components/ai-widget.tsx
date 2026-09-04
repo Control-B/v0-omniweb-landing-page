@@ -291,6 +291,7 @@ export function AIWidget({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [{ role: "user", content: query }],
+          personaId: "site-concierge",
         }),
         signal: controller.signal,
       })

@@ -163,25 +163,197 @@ export const QUALIFICATION_WORKFLOWS = [
 export function IndustryVoiceSamplePlayer() {
   const [activeVoice, setActiveVoice] = useState(INDUSTRY_VOICE_SAMPLES[0])
   const [isPlaying, setIsPlaying] = useState(false)
-  const [progress, setProgress] = useState(0)
+  const [isThinking, setIsThinking] = useState(false)
+  const [userQuery, setUserQuery] = useState("")
+  const [specialistReply, setSpecialistReply] = useState<string | null>(null)
+  const [wasInterrupted, setWasInterrupted] = useState(false)
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            setIsPlaying(false)
-            return 0
-          }
-          return prev + 2
-        })
-      }, 100)
-    } else {
-      setProgress(0)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const sharedAudioElRef = useRef<HTMLAudioElement | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // Stop audio immediately (<10ms)
+  const stopAudio = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
     }
-    return () => clearInterval(interval)
-  }, [isPlaying])
+    if (audioSourceRef.current) {
+      try {
+        audioSourceRef.current.stop()
+      } catch (e) {}
+      audioSourceRef.current = null
+    }
+    if (sharedAudioElRef.current) {
+      try {
+        sharedAudioElRef.current.pause()
+        sharedAudioElRef.current.currentTime = 0
+      } catch (e) {}
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsPlaying(false)
+  }
+
+  const interrupt = (reason: string = "User interrupted voice sample") => {
+    stopAudio()
+    setIsThinking(false)
+    setWasInterrupted(true)
+    setTimeout(() => setWasInterrupted(false), 2400)
+    console.info(`[IndustryVoiceSamplePlayer] ${reason}`)
+  }
+
+  // Play audio via /api/voice/tts
+  const playAudio = async (textToSpeak: string) => {
+    if (typeof window === "undefined") return
+    stopAudio()
+    setIsPlaying(true)
+
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    try {
+      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext
+      if (AudioCtxClass && !audioContextRef.current) {
+        audioContextRef.current = new AudioCtxClass()
+      }
+      if (audioContextRef.current && audioContextRef.current.state === "suspended") {
+        await audioContextRef.current.resume()
+      }
+
+      const res = await fetch("/api/voice/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: textToSpeak,
+          personaId: activeVoice.id,
+          provider: "deepgram",
+        }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok) throw new Error(`TTS HTTP error: ${res.status}`)
+
+      const arrayBuffer = await res.arrayBuffer()
+
+      if (audioContextRef.current) {
+        const bufferCopy = arrayBuffer.slice(0)
+        const audioBuffer = await audioContextRef.current.decodeAudioData(bufferCopy)
+
+        if (controller.signal.aborted) return
+
+        const source = audioContextRef.current.createBufferSource()
+        source.buffer = audioBuffer
+        source.connect(audioContextRef.current.destination)
+        audioSourceRef.current = source
+        source.onended = () => {
+          setIsPlaying(false)
+          audioSourceRef.current = null
+        }
+        source.start(0)
+        return
+      }
+
+      // Fallback
+      const blob = new Blob([arrayBuffer], { type: "audio/mpeg" })
+      const url = URL.createObjectURL(blob)
+      const audio = sharedAudioElRef.current || new Audio()
+      sharedAudioElRef.current = audio
+      audio.src = url
+      audio.onended = () => {
+        setIsPlaying(false)
+        URL.revokeObjectURL(url)
+      }
+      await audio.play()
+    } catch (err: any) {
+      if (err?.name === "AbortError") return
+      console.warn("[IndustryVoiceSamplePlayer] TTS fallback to Web Speech:", err)
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel()
+        const utterance = new SpeechSynthesisUtterance(textToSpeak)
+        utterance.onend = () => setIsPlaying(false)
+        utterance.onerror = () => setIsPlaying(false)
+        window.speechSynthesis.speak(utterance)
+      } else {
+        setIsPlaying(false)
+      }
+    }
+  }
+
+  // Handle Play Sample Voice Button
+  const handleTogglePlaySample = () => {
+    if (isPlaying) {
+      interrupt("User paused sample")
+    } else {
+      // Speak AI's opening line
+      const openingLine = activeVoice.transcript[0]?.text || `Hello, thank you for reaching ${activeVoice.industry}. How may I help you?`
+      playAudio(openingLine)
+    }
+  }
+
+  // Handle live question test
+  const handleAskQuestion = async (queryText?: string) => {
+    const text = (queryText || userQuery).trim()
+    if (!text) return
+
+    stopAudio()
+    setUserQuery("")
+    setIsThinking(true)
+
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: text }],
+          personaId: activeVoice.id,
+        }),
+        signal: controller.signal,
+      })
+
+      const data = await res.json()
+      const reply = data.reply || "We are available 24/7 with immediate live answer times and zero robotic delays."
+      setSpecialistReply(reply)
+      setIsThinking(false)
+      playAudio(reply)
+    } catch (err: any) {
+      if (err?.name === "AbortError") return
+      setIsThinking(false)
+      const fallback = "We provide sub-250ms voice answers with zero robotic delays. How can I help you today?"
+      setSpecialistReply(fallback)
+      playAudio(fallback)
+    }
+  }
+
+  const QUICK_QUESTIONS_MAP: Record<string, string[]> = {
+    contractor: [
+      "Do you handle emergency roof leaks?",
+      "Is there a trip fee for an estimate?",
+      "Can you come out today?",
+    ],
+    ecommerce: [
+      "What is your return policy?",
+      "Does the wool coat run true to size?",
+      "Can I get a VIP discount code?",
+    ],
+    healthcare: [
+      "I have a severe toothache, can I be seen today?",
+      "Do you take Delta Dental?",
+      "Is this HIPAA compliant?",
+    ],
+    legal: [
+      "I was in a truck accident on the highway, what should I do?",
+      "What is your consultation fee?",
+      "Can I speak with Attorney Vance?",
+    ],
+  }
+
+  const currentQuestions = QUICK_QUESTIONS_MAP[activeVoice.id] || QUICK_QUESTIONS_MAP.contractor
 
   return (
     <div className="rounded-3xl sm:rounded-[2.5rem] border border-white/10 bg-[#08101f]/90 p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-2xl">
@@ -206,8 +378,9 @@ export function IndustryVoiceSamplePlayer() {
             <button
               key={sample.id}
               onClick={() => {
+                stopAudio()
                 setActiveVoice(sample)
-                setIsPlaying(false)
+                setSpecialistReply(null)
               }}
               className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wider transition-all ${
                 isActive
@@ -237,8 +410,18 @@ export function IndustryVoiceSamplePlayer() {
           </div>
 
           <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 w-full sm:w-auto">
-            {/* Waveform Animation */}
-            <div className="flex items-center gap-1 h-9 px-2.5 sm:px-3 rounded-lg bg-black/40 border border-white/10">
+            {/* Waveform Animation (Clickable to interrupt) */}
+            <div
+              onClick={() => {
+                if (isPlaying) interrupt("User clicked waveform")
+              }}
+              className={`flex items-center gap-1 h-11 px-3 rounded-xl border cursor-pointer transition ${
+                isPlaying
+                  ? "bg-purple-950/40 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                  : "bg-black/40 border-white/10"
+              }`}
+              title={isPlaying ? "Click to interrupt audio" : "Audio ready"}
+            >
               {[40, 75, 95, 60, 85, 45, 90, 65, 30, 80].map((height, i) => (
                 <div
                   key={i}
@@ -246,23 +429,27 @@ export function IndustryVoiceSamplePlayer() {
                     isPlaying ? "bg-cyan-400 animate-pulse" : "bg-white/20"
                   }`}
                   style={{
-                    height: isPlaying ? `${Math.max(20, (height * (progress % 50)) / 25)}%` : "25%",
+                    height: isPlaying ? `${Math.max(25, height * 0.85)}%` : "25%",
                   }}
                 />
               ))}
             </div>
 
             <Button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="h-11 px-5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 font-bold uppercase tracking-wider text-xs text-white shadow-lg shadow-cyan-500/30 hover:from-cyan-400 hover:to-blue-500"
+              onClick={handleTogglePlaySample}
+              className={`h-11 px-5 rounded-xl font-bold uppercase tracking-wider text-xs text-white shadow-lg transition-all ${
+                isPlaying
+                  ? "bg-rose-600 hover:bg-rose-500 shadow-rose-600/30 animate-pulse"
+                  : "bg-gradient-to-r from-cyan-500 to-blue-600 shadow-cyan-500/30 hover:from-cyan-400 hover:to-blue-500"
+              }`}
             >
               {isPlaying ? (
                 <>
-                  <Pause className="mr-2 h-4 w-4" /> Pause Audio
+                  <Pause className="mr-2 h-4 w-4" /> Stop Audio (Interrupt)
                 </>
               ) : (
                 <>
-                  <Play className="mr-2 h-4 w-4 fill-white" /> Play Voice Sample
+                  <Play className="mr-2 h-4 w-4 fill-white" /> Hear {activeVoice.voiceName} Speak
                 </>
               )}
             </Button>
@@ -271,8 +458,15 @@ export function IndustryVoiceSamplePlayer() {
 
         {/* Live Call Dialogue Transcript */}
         <div className="mt-6 space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Live Call Interaction Transcript:</p>
-          <div className="space-y-2.5 max-h-60 overflow-y-auto pr-2">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Sample Call Interaction:</p>
+            {wasInterrupted && (
+              <span className="text-xs font-semibold text-amber-400 animate-bounce">
+                ⚡ Audio interrupted immediately
+              </span>
+            )}
+          </div>
+          <div className="space-y-2.5 max-h-52 overflow-y-auto pr-2">
             {activeVoice.transcript.map((line, idx) => {
               const isAi = line.speaker.startsWith("AI")
               return (
@@ -289,9 +483,85 @@ export function IndustryVoiceSamplePlayer() {
                   </span>
                   {line.text}
                 </div>
-              )
+              );
             })}
           </div>
+        </div>
+
+        {/* Interactive Live Q&A Box (Zero script reading, real questions) */}
+        <div className="mt-6 rounded-2xl border border-white/10 bg-black/40 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-cyan-400" />
+              <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                Ask {activeVoice.voiceName} a Live Question:
+              </h4>
+            </div>
+            <span className="text-[10px] uppercase font-semibold text-cyan-400">Deepgram Aura Voice</span>
+          </div>
+
+          {/* Quick Questions */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {currentQuestions.map((q, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => handleAskQuestion(q)}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 transition hover:border-cyan-400 hover:bg-white/10 hover:text-white"
+              >
+                "{q}"
+              </button>
+            ))}
+          </div>
+
+          {/* Question Input */}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={userQuery}
+              onChange={(e) => {
+                if (isPlaying) interrupt("User started typing question")
+                setUserQuery(e.target.value)
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleAskQuestion()}
+              placeholder={`Ask ${activeVoice.voiceName} any question about ${activeVoice.industry}...`}
+              className="h-10 flex-1 rounded-xl border border-white/15 bg-slate-900 px-3.5 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:border-cyan-400 focus:outline-none"
+            />
+            {isPlaying && (
+              <Button
+                type="button"
+                onClick={() => interrupt("User clicked stop")}
+                className="h-10 rounded-xl bg-rose-600 px-3 text-xs font-bold text-white hover:bg-rose-500"
+              >
+                Stop
+              </Button>
+            )}
+            <Button
+              type="button"
+              onClick={() => handleAskQuestion()}
+              disabled={isThinking || !userQuery.trim()}
+              className="h-10 rounded-xl bg-cyan-500 px-4 text-xs font-bold text-black hover:bg-cyan-400 disabled:opacity-40"
+            >
+              Ask Voice Agent
+            </Button>
+          </div>
+
+          {/* Live Specialist Answer Display */}
+          {specialistReply && (
+            <div className="mt-3 rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-3 text-xs sm:text-sm text-cyan-200 leading-relaxed">
+              <span className="font-bold text-white block mb-1">
+                {activeVoice.voiceName} (Speaking aloud):
+              </span>
+              {specialistReply}
+            </div>
+          )}
+
+          {isThinking && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-cyan-300 animate-pulse">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>{activeVoice.voiceName} is formulating dynamic response...</span>
+            </div>
+          )}
         </div>
 
         {/* Proven Industry KPIs */}
