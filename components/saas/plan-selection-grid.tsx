@@ -156,7 +156,7 @@ export function PlanSelectionGrid({
                 <div className="flex items-start justify-between gap-3 pt-1">
                   <div>
                     <h3 className="text-2xl font-bold text-white tracking-tight">{plan.name}</h3>
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-sm text-slate-300">
                       {plan.key === "starter" && "For fast-moving solo operators & local startups"}
                       {plan.key === "standard" && "For growing businesses scaling lead conversion"}
                       {plan.key === "business" && "For high-volume contact centers & enterprise brands"}
@@ -174,17 +174,17 @@ export function PlanSelectionGrid({
                 </div>
 
                 {billingInterval === "annual" && (
-                  <p className="mt-1 text-xs font-semibold text-emerald-400">
+                  <p className="mt-1 text-xs sm:text-sm font-semibold text-emerald-400">
                     Saves ${(monthlyPrice - displayPrice) * 12} per year
                   </p>
                 )}
 
-                <p className="mt-4 text-sm leading-relaxed text-slate-300">
+                <p className="mt-4 text-sm sm:text-base leading-relaxed text-slate-300">
                   {plan.description}
                 </p>
 
                 {/* Metric pill box */}
-                <div className="mt-6 space-y-2.5 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-xs">
+                <div className="mt-6 space-y-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-xs sm:text-sm">
                   <div className="flex items-center justify-between text-slate-300">
                     <span className="font-medium">AI Agent Architecture</span>
                     <span className="font-semibold text-white">{plan.aiAgent}</span>
@@ -209,13 +209,13 @@ export function PlanSelectionGrid({
 
                 {/* Features list */}
                 <div className="mt-6">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">
+                  <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-400 mb-3">
                     What&apos;s Included:
                   </p>
-                  <ul className="space-y-2.5 text-xs text-slate-200">
+                  <ul className="space-y-3 text-sm text-slate-200">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-start gap-2.5">
-                        <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-cyan-400" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" />
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -238,7 +238,7 @@ export function PlanSelectionGrid({
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : label}
                 </button>
-                <p className="mt-2 text-center text-[11px] text-slate-400">
+                <p className="mt-2 text-center text-xs sm:text-sm text-slate-400">
                   7-day risk-free trial • No credit card required to start
                 </p>
               </div>

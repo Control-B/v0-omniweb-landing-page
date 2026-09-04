@@ -96,13 +96,13 @@ export function FeatureCard({
         <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl border ${a.iconBg} ${a.iconText} transition-transform duration-300 group-hover:scale-110`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className={`mt-5 text-[11px] font-semibold uppercase tracking-[0.24em] ${a.label}`}>{benefit}</p>
-      <h3 className="mt-3 text-xl font-semibold text-white">{title}</h3>
-      <p className="mt-3 text-sm leading-7 text-slate-200/90">{summary}</p>
-      <ul className="mt-5 space-y-2 text-sm text-slate-100/90">
+      <p className={`mt-5 text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] ${a.label}`}>{benefit}</p>
+      <h3 className="mt-3 text-xl sm:text-2xl font-semibold text-white">{title}</h3>
+      <p className="mt-3 text-sm sm:text-base leading-relaxed text-slate-200/90">{summary}</p>
+      <ul className="mt-5 space-y-2.5 text-sm sm:text-base text-slate-100/90">
         {bullets.map((bullet) => (
           <li key={bullet} className="flex items-start gap-2">
-            <span className={`mt-2 h-1.5 w-1.5 rounded-full ${a.bullet}`} />
+            <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${a.bullet}`} />
             <span>{bullet}</span>
           </li>
         ))}
@@ -110,7 +110,7 @@ export function FeatureCard({
       <Button
         variant="ghost"
         asChild
-        className={`mt-5 px-0 ${a.link} hover:bg-transparent`}
+        className={`mt-5 px-0 ${a.link} hover:bg-transparent text-sm sm:text-base`}
       >
         <Link href={actionHref}>
           {actionLabel}

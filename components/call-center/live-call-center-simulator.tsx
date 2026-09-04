@@ -599,15 +599,15 @@ export function LiveCallCenterSimulator() {
       {/* Header Bar */}
       <div className="flex flex-col gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-1 text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300">
             <RadioTower className="h-3.5 w-3.5 animate-pulse text-cyan-400" />
             Live Voice Studio
           </div>
           <h2 className="mt-2.5 text-2xl font-bold tracking-tight text-white lg:text-3xl">
             Autonomous Contact Center & Site AI Concierge
           </h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Powered by <strong>LiveKit OSS</strong> WebRTC media transport, <strong>Deepgram Aura & Nova-3</strong> Studio Neural Voice, and <strong>LangGraph</strong> multi-agent swarms.
+          <p className="mt-1.5 text-sm sm:text-base text-slate-300">
+            Powered by <strong className="text-white">LiveKit OSS</strong> WebRTC media transport, <strong className="text-white">Deepgram Aura & Nova-3</strong> Studio Neural Voice, and <strong className="text-white">LangGraph</strong> multi-agent swarms.
           </p>
         </div>
 
@@ -616,7 +616,7 @@ export function LiveCallCenterSimulator() {
           <div className="flex items-center rounded-xl border border-white/10 bg-black/40 p-1">
             <button
               onClick={() => setVoiceProvider("deepgram")}
-              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition ${
                 voiceProvider === "deepgram"
                   ? "bg-cyan-500 text-black font-semibold shadow"
                   : "text-slate-400 hover:text-white"
@@ -626,7 +626,7 @@ export function LiveCallCenterSimulator() {
             </button>
             <button
               onClick={() => setVoiceProvider("elevenlabs")}
-              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+              className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition ${
                 voiceProvider === "elevenlabs"
                   ? "bg-purple-500 text-white font-semibold shadow"
                   : "text-slate-400 hover:text-white"
@@ -636,7 +636,7 @@ export function LiveCallCenterSimulator() {
             </button>
           </div>
 
-          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 py-1.5 px-3">
+          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 py-1.5 px-3 text-xs sm:text-sm font-medium">
             <span className="mr-1.5 h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             LiveKit OSS (WebRTC Active)
           </Badge>
@@ -645,33 +645,33 @@ export function LiveCallCenterSimulator() {
 
       {/* Persona / Scenario Selector */}
       <div className="mt-6">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Select Specialist Persona & Scenario</label>
-          <span className="text-xs text-cyan-400 font-medium">4 Active Swarms Available</span>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">Select Specialist Persona & Scenario</label>
+          <span className="text-xs sm:text-sm text-cyan-400 font-semibold">4 Active Swarms Available</span>
         </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           {SCENARIOS.map((scenario) => {
             const isSelected = scenario.id === activeScenario.id
             return (
               <button
                 key={scenario.id}
                 onClick={() => handleSelectScenario(scenario)}
-                className={`flex flex-col items-start rounded-2xl border p-4 text-left transition-all ${
+                className={`flex flex-col items-start rounded-2xl border p-4 sm:p-5 text-left transition-all ${
                   isSelected
-                    ? "border-cyan-400/60 bg-gradient-to-br from-cyan-500/15 via-blue-500/10 to-transparent shadow-lg shadow-cyan-500/10"
+                    ? "border-cyan-400/60 bg-gradient-to-br from-cyan-500/15 via-blue-500/10 to-transparent shadow-lg shadow-cyan-500/15"
                     : "border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]"
                 }`}
               >
-                <div className="flex w-full items-center justify-between">
-                  <span className="font-semibold text-white text-sm">{scenario.name}</span>
+                <div className="flex w-full items-center justify-between gap-2">
+                  <span className="text-base sm:text-lg font-bold text-white tracking-tight">{scenario.name}</span>
                   {isSelected ? (
-                    <span className="h-2.5 w-2.5 rounded-full bg-cyan-400 ring-4 ring-cyan-400/20" />
+                    <span className="h-3 w-3 shrink-0 rounded-full bg-cyan-400 ring-4 ring-cyan-400/25" />
                   ) : (
-                    <span className="h-2 w-2 rounded-full bg-white/20" />
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-white/25" />
                   )}
                 </div>
-                <span className="mt-0.5 text-xs text-cyan-300 font-medium">{scenario.title}</span>
-                <span className="mt-2 text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{scenario.description}</span>
+                <span className="mt-1 text-sm font-semibold text-cyan-300">{scenario.title}</span>
+                <span className="mt-2.5 text-sm leading-relaxed text-slate-300">{scenario.description}</span>
               </button>
             )
           })}
@@ -700,16 +700,16 @@ export function LiveCallCenterSimulator() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white flex items-center gap-1.5">
+                  <h3 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
                     {activeScenario.name}
                     {isSpeaking && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
-                        <Volume2 className="h-3 w-3 animate-pulse" />
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-300">
+                        <Volume2 className="h-3.5 w-3.5 animate-pulse" />
                         Speaking
                       </span>
                     )}
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs sm:text-sm text-slate-400">
                     {voiceProvider === "deepgram" ? activeScenario.voiceName : "ElevenLabs Turbo v2.5"}
                   </p>
                 </div>
@@ -717,7 +717,7 @@ export function LiveCallCenterSimulator() {
 
               <div className="text-right">
                 <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${
                     callState === "active"
                       ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/40"
                       : callState === "connecting"
@@ -725,7 +725,7 @@ export function LiveCallCenterSimulator() {
                         : "bg-slate-800 text-slate-400"
                   }`}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${callState === "active" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
+                  <span className={`h-2 w-2 rounded-full ${callState === "active" ? "bg-emerald-400 animate-pulse" : "bg-slate-500"}`} />
                   {callState === "active" ? "VOICE CALL LIVE" : callState === "connecting" ? "CONNECTING LIVEKIT..." : "IDLE"}
                 </span>
               </div>
@@ -734,13 +734,13 @@ export function LiveCallCenterSimulator() {
             {/* Reactive Waveform Canvas */}
             <div className="mt-5 rounded-2xl border border-white/5 bg-slate-950/80 p-3">
               <canvas ref={canvasRef} width={380} height={70} className="w-full h-[70px]" />
-              <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
                 <span className="flex items-center gap-1">
-                  <Globe className="h-3 w-3 text-cyan-400" />
+                  <Globe className="h-3.5 w-3.5 text-cyan-400" />
                   LiveKit: {livekitMode === "oss" ? "OSS (localhost:7880)" : "Cloud"}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Volume2 className="h-3 w-3 text-emerald-400" />
+                  <Volume2 className="h-3.5 w-3.5 text-emerald-400" />
                   Neural Voice: {isSpeaking ? "Deepgram Studio (Playing)" : isMicListening ? "Mic Active" : "Ready"}
                 </span>
               </div>
@@ -787,7 +787,7 @@ export function LiveCallCenterSimulator() {
               </div>
 
               {callState === "active" && (
-                <p className="text-center text-[11px] text-slate-400">
+                <p className="text-center text-xs sm:text-sm text-slate-300">
                   {isSpeaking ? (
                     <span className="text-emerald-400 font-medium">🔊 Agent is speaking aloud in natural studio voice...</span>
                   ) : isMicListening ? (
@@ -802,7 +802,7 @@ export function LiveCallCenterSimulator() {
 
           {/* Quick Scenario Suggested Prompts */}
           <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-5">
-            <h4 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+            <h4 className="flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">
               <Sparkles className="h-3.5 w-3.5" />
               Suggested Test Questions & Actions
             </h4>
@@ -811,10 +811,10 @@ export function LiveCallCenterSimulator() {
                 <button
                   key={i}
                   onClick={() => handleSendMessage(prompt)}
-                  className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] p-3 text-left text-xs text-slate-300 transition hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-white group"
+                  className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-white/[0.02] p-3 text-left text-sm text-slate-200 transition hover:border-cyan-400/30 hover:bg-cyan-500/10 hover:text-white group"
                 >
                   <span className="group-hover:text-cyan-200">"{prompt}"</span>
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500 group-hover:text-cyan-400" />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-slate-500 group-hover:text-cyan-400" />
                 </button>
               ))}
             </div>
@@ -826,31 +826,31 @@ export function LiveCallCenterSimulator() {
           {/* Agent Brain & Live Execution HUD */}
           <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-950/90 p-5 shadow-xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-purple-300">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-purple-300">
                 <Zap className="h-4 w-4 text-purple-400" />
                 LangGraph State & Tool Execution HUD
               </div>
-              <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[10px]">
+              <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-xs">
                 Deterministic Policy Plane
               </Badge>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
               <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                <span className="text-[10px] uppercase text-slate-400">Active Agent</span>
-                <p className="mt-1 font-semibold text-cyan-300 truncate">{activeAgentHUD.activeAgent}</p>
+                <span className="text-xs uppercase font-medium text-slate-400">Active Agent</span>
+                <p className="mt-1 text-sm font-semibold text-cyan-300 truncate">{activeAgentHUD.activeAgent}</p>
               </div>
               <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                <span className="text-[10px] uppercase text-slate-400">Sentiment</span>
-                <p className="mt-1 font-semibold text-emerald-300 capitalize">{activeAgentHUD.sentiment}</p>
+                <span className="text-xs uppercase font-medium text-slate-400">Sentiment</span>
+                <p className="mt-1 text-sm font-semibold text-emerald-300 capitalize">{activeAgentHUD.sentiment}</p>
               </div>
               <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                <span className="text-[10px] uppercase text-slate-400">Turn Latency</span>
-                <p className="mt-1 font-semibold text-amber-300">{activeScenario.latencyMs}ms</p>
+                <span className="text-xs uppercase font-medium text-slate-400">Turn Latency</span>
+                <p className="mt-1 text-sm font-semibold text-amber-300">{activeScenario.latencyMs}ms</p>
               </div>
               <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                <span className="text-[10px] uppercase text-slate-400">Active Tool</span>
-                <p className="mt-1 font-semibold text-violet-300 truncate">{activeAgentHUD.lastTool}()</p>
+                <span className="text-xs uppercase font-medium text-slate-400">Active Tool</span>
+                <p className="mt-1 text-sm font-semibold text-violet-300 truncate">{activeAgentHUD.lastTool}()</p>
               </div>
             </div>
           </div>
@@ -859,10 +859,10 @@ export function LiveCallCenterSimulator() {
           <div className="flex flex-col h-[440px] rounded-2xl sm:rounded-3xl border border-white/10 bg-slate-950/90 p-3.5 sm:p-5 shadow-2xl">
             <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
                   Live Dual-Channel Speech Transcript
                 </span>
-                <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-slate-300">
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-slate-300">
                   {transcript.length} turns
                 </span>
               </div>
@@ -873,16 +873,16 @@ export function LiveCallCenterSimulator() {
                   size="sm"
                   variant="outline"
                   onClick={handleCopyTranscript}
-                  className="h-7 rounded-lg border-white/10 bg-white/5 px-2.5 text-[11px] text-slate-300 hover:bg-white/10 hover:text-white"
+                  className="h-8 rounded-lg border-white/10 bg-white/5 px-3 text-xs text-slate-300 hover:bg-white/10 hover:text-white"
                 >
                   {copiedTranscript ? (
                     <>
-                      <Check className="mr-1 h-3 w-3 text-emerald-400" />
+                      <Check className="mr-1 h-3.5 w-3.5 text-emerald-400" />
                       Copied!
                     </>
                   ) : (
                     <>
-                      <Copy className="mr-1 h-3 w-3" />
+                      <Copy className="mr-1 h-3.5 w-3.5" />
                       Copy Transcript
                     </>
                   )}
@@ -891,9 +891,9 @@ export function LiveCallCenterSimulator() {
                   size="sm"
                   variant="outline"
                   onClick={handleDownloadTranscript}
-                  className="h-7 rounded-lg border-white/10 bg-white/5 px-2.5 text-[11px] text-slate-300 hover:bg-white/10 hover:text-white"
+                  className="h-8 rounded-lg border-white/10 bg-white/5 px-3 text-xs text-slate-300 hover:bg-white/10 hover:text-white"
                 >
-                  <Download className="mr-1 h-3 w-3" />
+                  <Download className="mr-1 h-3.5 w-3.5" />
                   JSON
                 </Button>
               </div>
@@ -903,15 +903,15 @@ export function LiveCallCenterSimulator() {
             <div ref={transcriptContainerRef} className="mt-4 flex-1 space-y-4 overflow-y-auto pr-2">
               {transcript.map((turn, idx) => (
                 <div key={idx} className={`flex flex-col ${turn.speaker === "caller" ? "items-end" : "items-start"}`}>
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mb-1">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-1">
                     {turn.speaker === "caller" ? (
                       <>
                         <span>Caller (Live Microphone / WebRTC)</span>
-                        <User className="h-3 w-3 text-cyan-400" />
+                        <User className="h-3.5 w-3.5 text-cyan-400" />
                       </>
                     ) : (
                       <>
-                        <Bot className="h-3 w-3 text-purple-400" />
+                        <Bot className="h-3.5 w-3.5 text-purple-400" />
                         <span className="text-purple-300">{activeScenario.name} (AI Specialist)</span>
                       </>
                     )}
@@ -919,15 +919,15 @@ export function LiveCallCenterSimulator() {
 
                   {/* Agent Internal Thought / Tool Calling Bubble */}
                   {turn.thought && (
-                    <div className="mb-1.5 max-w-[90%] rounded-xl border border-purple-500/20 bg-purple-950/40 p-2.5 text-[11px] text-purple-200">
-                      <div className="flex items-center gap-1 font-mono font-semibold text-purple-300">
-                        <Activity className="h-3 w-3" />
+                    <div className="mb-1.5 max-w-[90%] rounded-xl border border-purple-500/20 bg-purple-950/40 p-3 text-xs sm:text-sm text-purple-200">
+                      <div className="flex items-center gap-1.5 font-mono font-semibold text-purple-300">
+                        <Activity className="h-3.5 w-3.5" />
                         [Agent Brain Trace]
                       </div>
-                      <p className="mt-1 font-mono text-purple-200/90">{turn.thought}</p>
+                      <p className="mt-1 font-mono text-purple-200/90 leading-relaxed">{turn.thought}</p>
 
                       {turn.toolCall && (
-                        <div className="mt-2 rounded-lg bg-black/40 p-2 font-mono text-[10px]">
+                        <div className="mt-2 rounded-lg bg-black/40 p-2 font-mono text-xs">
                           <span className="text-cyan-400 font-semibold">➔ Tool Execution: {turn.toolCall.name}()</span>
                           <div className="text-slate-300 mt-0.5">Payload: {JSON.stringify(turn.toolCall.params)}</div>
                           <div className="text-emerald-400 mt-0.5">Output: {JSON.stringify(turn.toolCall.result)}</div>
@@ -938,7 +938,7 @@ export function LiveCallCenterSimulator() {
 
                   {/* Spoken Turn Bubble */}
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm sm:text-base leading-relaxed ${
                       turn.speaker === "caller"
                         ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-tr-none shadow-md shadow-cyan-600/20"
                         : "border border-white/10 bg-slate-900 text-slate-100 rounded-tl-none"
@@ -949,21 +949,21 @@ export function LiveCallCenterSimulator() {
 
                   {/* Interactive Site Navigation Action Card */}
                   {turn.navigation && (
-                    <div className="mt-2 max-w-[85%] rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-cyan-950/60 to-blue-950/60 p-3 shadow-lg shadow-cyan-950/30">
+                    <div className="mt-2 max-w-[85%] rounded-2xl border border-cyan-400/30 bg-gradient-to-r from-cyan-950/60 to-blue-950/60 p-3.5 shadow-lg shadow-cyan-950/30">
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <Compass className="h-4 w-4 text-cyan-400 shrink-0 animate-spin-slow" />
+                        <div className="flex items-center gap-2.5">
+                          <Compass className="h-5 w-5 text-cyan-400 shrink-0 animate-spin-slow" />
                           <div>
-                            <p className="text-xs font-semibold text-white">{turn.navigation.title}</p>
+                            <p className="text-sm font-semibold text-white">{turn.navigation.title}</p>
                             {turn.navigation.description && (
-                              <p className="text-[11px] text-slate-300 mt-0.5">{turn.navigation.description}</p>
+                              <p className="text-xs sm:text-sm text-slate-300 mt-0.5">{turn.navigation.description}</p>
                             )}
                           </div>
                         </div>
-                        <Button asChild size="sm" className="h-8 rounded-xl bg-cyan-500 px-3 text-xs font-semibold text-black hover:bg-cyan-400 shrink-0">
+                        <Button asChild size="sm" className="h-8 rounded-xl bg-cyan-500 px-3.5 text-xs sm:text-sm font-semibold text-black hover:bg-cyan-400 shrink-0">
                           <Link href={turn.navigation.href}>
                             Visit Page
-                            <ExternalLink className="ml-1.5 h-3 w-3" />
+                            <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
                           </Link>
                         </Button>
                       </div>
@@ -973,7 +973,7 @@ export function LiveCallCenterSimulator() {
               ))}
 
               {isThinking && (
-                <div className="flex items-center gap-2 text-xs text-cyan-400 animate-pulse py-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-cyan-400 animate-pulse py-2">
                   <Bot className="h-4 w-4" />
                   <span>Agent is reasoning and executing tools...</span>
                 </div>
@@ -1007,8 +1007,8 @@ export function LiveCallCenterSimulator() {
           <div className="flex items-center gap-3">
             <Headphones className="h-5 w-5 text-amber-400" />
             <div>
-              <h4 className="text-sm font-semibold text-white">Supervisor Intervention HUD</h4>
-              <p className="text-xs text-slate-400">Live supervisor monitoring, whisper coaching, and warm transfer controls</p>
+              <h4 className="text-base font-semibold text-white">Supervisor Intervention HUD</h4>
+              <p className="text-xs sm:text-sm text-slate-400">Live supervisor monitoring, whisper coaching, and warm transfer controls</p>
             </div>
           </div>
 
@@ -1017,7 +1017,7 @@ export function LiveCallCenterSimulator() {
               size="sm"
               variant={supervisorMode === "monitor" ? "default" : "outline"}
               onClick={() => setSupervisorMode("monitor")}
-              className={supervisorMode === "monitor" ? "bg-amber-500 text-black hover:bg-amber-400" : "border-white/10 text-white"}
+              className={supervisorMode === "monitor" ? "bg-amber-500 text-black hover:bg-amber-400 text-xs sm:text-sm font-semibold" : "border-white/10 text-white text-xs sm:text-sm"}
             >
               Listen-In (Silent)
             </Button>
@@ -1025,7 +1025,7 @@ export function LiveCallCenterSimulator() {
               size="sm"
               variant={supervisorMode === "whisper" ? "default" : "outline"}
               onClick={() => setSupervisorMode("whisper")}
-              className={supervisorMode === "whisper" ? "bg-cyan-500 text-black hover:bg-cyan-400" : "border-white/10 text-white"}
+              className={supervisorMode === "whisper" ? "bg-cyan-500 text-black hover:bg-cyan-400 text-xs sm:text-sm font-semibold" : "border-white/10 text-white text-xs sm:text-sm"}
             >
               Whisper Coach
             </Button>
@@ -1033,7 +1033,7 @@ export function LiveCallCenterSimulator() {
               size="sm"
               variant="destructive"
               onClick={() => alert("Barge-In Mode Activated: Supervisor audio unmuted to caller.")}
-              className="bg-rose-600 hover:bg-rose-500 text-white"
+              className="bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold"
             >
               Barge-In Takeover
             </Button>

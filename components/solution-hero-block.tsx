@@ -108,23 +108,23 @@ export function SolutionHeroBlock({
               {title}
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div>
-                <p className={`text-[11px] font-semibold uppercase tracking-[0.24em] ${a.label}`}>The Problem</p>
-                <p className="mt-2 text-lg leading-8 text-slate-100/90">{problem}</p>
+                <p className={`text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] ${a.label}`}>The Problem</p>
+                <p className="mt-2 text-base sm:text-lg leading-8 text-slate-100/90">{problem}</p>
               </div>
               <div>
-                <p className={`text-[11px] font-semibold uppercase tracking-[0.24em] ${a.label}`}>How Omniweb Solves It</p>
-                <p className="mt-2 text-lg leading-8 text-slate-100/90">{workflow}</p>
+                <p className={`text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] ${a.label}`}>How Omniweb Solves It</p>
+                <p className="mt-2 text-base sm:text-lg leading-8 text-slate-100/90">{workflow}</p>
               </div>
               <div>
-                <p className={`text-[11px] font-semibold uppercase tracking-[0.24em] ${a.label}`}>Expected Outcome</p>
-                <p className="mt-2 text-lg leading-8 text-slate-100/90">{outcome}</p>
+                <p className={`text-xs sm:text-sm font-semibold uppercase tracking-[0.24em] ${a.label}`}>Expected Outcome</p>
+                <p className="mt-2 text-base sm:text-lg leading-8 text-slate-100/90">{outcome}</p>
               </div>
             </div>
 
             <div className="mt-8">
-              <Button size="lg" asChild className="h-12 rounded-lg bg-[#3b82f6] px-6 text-[13px] font-bold uppercase tracking-wider text-white hover:bg-[#2563eb]">
+              <Button size="lg" asChild className="h-12 rounded-lg bg-[#3b82f6] px-6 text-sm sm:text-base font-bold uppercase tracking-wider text-white hover:bg-[#2563eb]">
                 <Link href={href}>
                   Get Started <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -173,8 +173,8 @@ export function SolutionHeroBlock({
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {stats.map((stat) => (
                   <div key={stat.label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-3 text-center backdrop-blur-sm">
-                    <div className={`text-xl font-bold ${a.statColor}`}>{stat.value}</div>
-                    <div className="mt-0.5 text-[11px] font-medium text-white/50">{stat.label}</div>
+                    <div className={`text-xl sm:text-2xl font-bold ${a.statColor}`}>{stat.value}</div>
+                    <div className="mt-0.5 text-xs sm:text-sm font-medium text-white/60">{stat.label}</div>
                   </div>
                 ))}
               </div>

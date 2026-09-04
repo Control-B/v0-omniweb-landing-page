@@ -326,7 +326,7 @@ export default function TemplatesPage() {
                   </span>
                   <span className="text-slate-500">•</span>
                   <span className="flex items-center gap-1 text-xs text-amber-400">
-                    <Star className="h-3.5 w-3.5 fill-amber-400" /> {previewTemplate.rating}
+                    <Star className="h-3.5 w-3.5 fill-amber-400" /> 4.9
                   </span>
                 </div>
 
