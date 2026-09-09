@@ -311,6 +311,10 @@ export function LiveCallCenterSimulator() {
   const speakAloud = useCallback(
     async (textToSpeak: string) => {
       if (typeof window === "undefined" || isMuted) return
+      // Stop any ongoing speech recognition before agent speaks to avoid overlap
+      if (isMicListeningRef.current) {
+        stopListening()
+      }
       stopAudioImmediate()
 
       setIsSpeaking(true)
@@ -422,7 +426,7 @@ export function LiveCallCenterSimulator() {
         }
       }
     },
-    [isMuted, stopAudioImmediate, voiceProvider, startListening]
+    [isMuted, stopAudioImmediate, stopListening, voiceProvider, startListening]
   )
 
   // Scroll transcript container internally on new turns (never scrolls page window)
