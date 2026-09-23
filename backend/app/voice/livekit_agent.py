@@ -44,7 +44,16 @@ class LiveKitContactCenterSession:
             caller_phone=caller_phone,
             caller_email=caller_email,
         )
+        self.case_id: str | None = None
         self.is_active = True
+        self.interrupted = False
+        self.interruption_count = 0
+
+    def attach_case(self, case_id: str) -> None:
+        """Attach an active case UUID to this live session."""
+        self.case_id = case_id
+        self.state["case_id"] = case_id
+        logger.info(f"[LiveKit Session {self.room_name}] Attached case {case_id}")
 
     async def on_user_speech_committed(self, transcribed_text: str) -> str:
         """Invoked when VAD commits a user speech turn."""
@@ -53,9 +62,11 @@ class LiveKitContactCenterSession:
             tenant_id=self.tenant_id,
             session_id=self.room_name,
             call_id=self.room_name,
-            channel=self.channel,
         ):
             logger.info(f"[LiveKit Session {self.room_name}] User Speech Turn: '{transcribed_text}'")
+
+            # Reset interruption state on new turn
+            self.interrupted = False
 
             # Append user message
             messages = [*self.state.get("messages", [])]
@@ -83,7 +94,38 @@ class LiveKitContactCenterSession:
 
     async def handle_interruption(self) -> None:
         """Invoked when the caller interrupts the AI during speech playback."""
-        logger.info(f"[LiveKit Session {self.room_name}] Interruption detected (Barge-in). Halting TTS playback.")
+        self.interrupted = True
+        self.interruption_count += 1
+        MetricTracker.record_turn_latency(
+            stage="barge_in_interruption",
+            duration_ms=0.0,
+            agent=self.state.get("active_agent"),
+            tenant_id=self.tenant_id,
+        )
+        logger.info(
+            f"[LiveKit Session {self.room_name}] Interruption detected (Barge-in count={self.interruption_count}). Halting TTS playback."
+        )
+
+    async def warm_transfer(self, destination: str) -> dict[str, Any]:
+        """Perform warm transfer to human specialist with full conversational packet."""
+        from app.voice.telephony_provider import get_telephony_provider
+        provider = get_telephony_provider("livekit")
+        context_packet = {
+            "case_id": self.case_id,
+            "session_id": self.room_name,
+            "caller_phone": self.caller_phone,
+            "caller_email": self.caller_email,
+            "active_agent": self.state.get("active_agent"),
+            "intent": self.state.get("intent"),
+            "sentiment": self.state.get("sentiment"),
+            "summary": self.state.get("conversation_summary"),
+        }
+        return await provider.transfer_call(
+            call_id=self.room_name,
+            destination_number=destination,
+            warm=True,
+            context_packet=context_packet,
+        )
 
     async def close_session(self) -> None:
         """Finalize session and trigger post-call persistence."""
