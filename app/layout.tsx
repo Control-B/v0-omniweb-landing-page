@@ -81,13 +81,6 @@ export default function RootLayout({
           as="image"
           fetchPriority="high"
         />
-        {/* Preload hero video so playback starts fast */}
-        <link
-          rel="preload"
-          href="/media/ai-conversion-pitch-web.mp4"
-          as="video"
-          type="video/mp4"
-        />
         {GTM_ID ? (
           <Script
             id="google-tag-manager"
