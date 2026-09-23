@@ -143,7 +143,104 @@ def create_initial_state(
         "tool_results": {},
         "errors": [],
         "response_text": None,
-        "suggested_actions": [],
         "started_at": now,
         "updated_at": now,
     }
+
+
+# ── CustomerOperationState (Production-Grade State Machine Schema) ──────────
+
+class CustomerOperationState(TypedDict):
+    """Explicit, auditable state machine schema for Customer Operations workflows."""
+
+    tenant_id: str
+    conversation_id: str
+    session_id: str
+    customer_id: str | None
+    channel: str  # PHONE, EMAIL, WEB_CHAT, SMS, API
+
+    # Classification & Intent
+    intent: str | None
+    confidence: float
+    active_agent: str
+    workflow: str | None
+    workflow_step: str | None
+    case_id: str | None
+
+    # Context & Memory
+    customer_context: dict[str, Any]
+    retrieved_context: list[dict[str, Any]]
+
+    # Operations & Governance
+    proposed_actions: list[dict[str, Any]]
+    completed_actions: list[dict[str, Any]]
+    pending_actions: list[dict[str, Any]]
+    approval_status: Literal[
+        "PROPOSED", "VALIDATED", "AWAITING_APPROVAL", "APPROVED", "REJECTED", "EXECUTING", "COMPLETED", "FAILED"
+    ] | None
+    escalation_status: Literal["NONE", "REQUESTED", "TRANSFERRED", "RESOLVED"] | None
+    tool_results: list[dict[str, Any]]
+    errors: list[str]
+    retry_count: int
+    trace_id: str | None
+
+    # Interaction & Transcript
+    messages: list[dict[str, Any]]
+    response_text: str | None
+
+    created_at: str
+    updated_at: str
+
+
+def create_customer_operation_state(
+    *,
+    tenant_id: str,
+    conversation_id: str | None = None,
+    session_id: str | None = None,
+    customer_id: str | None = None,
+    channel: str = "WEB_CHAT",
+    initial_message: str | None = None,
+    trace_id: str | None = None,
+) -> CustomerOperationState:
+    """Factory helper to construct an initial CustomerOperationState instance."""
+    now = utcnow()
+    conv_id = conversation_id or f"conv_{uuid.uuid4().hex[:12]}"
+    sess_id = session_id or f"sess_{uuid.uuid4().hex[:12]}"
+
+    messages: list[dict[str, Any]] = []
+    if initial_message:
+        messages.append({
+            "role": "user",
+            "content": initial_message,
+            "timestamp": now,
+        })
+
+    return {
+        "tenant_id": tenant_id,
+        "conversation_id": conv_id,
+        "session_id": sess_id,
+        "customer_id": customer_id,
+        "channel": channel,
+        "intent": None,
+        "confidence": 0.0,
+        "active_agent": "supervisor",
+        "workflow": None,
+        "workflow_step": "init",
+        "case_id": None,
+        "customer_context": {},
+        "retrieved_context": [],
+        "proposed_actions": [],
+        "completed_actions": [],
+        "pending_actions": [],
+        "approval_status": None,
+        "escalation_status": "NONE",
+        "tool_results": [],
+        "errors": [],
+        "retry_count": 0,
+        "trace_id": trace_id or f"tr_{uuid.uuid4().hex[:16]}",
+        "messages": messages,
+        "response_text": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+
