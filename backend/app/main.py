@@ -28,9 +28,11 @@ from app.api.routes import (
     agent,
     agent_config,
     analytics,
+    approvals,
     auth,
     automations,
     calls,
+    cases,
     chat,
     dashboard_sync,
     deepgram,
@@ -386,6 +388,8 @@ app.include_router(saas.public_router, prefix=API_PREFIX)
 app.include_router(subscribe.router, prefix=API_PREFIX)
 app.include_router(widget.router, prefix=API_PREFIX)
 app.include_router(webhooks.router, prefix=API_PREFIX)
+app.include_router(cases.router, prefix=API_PREFIX)
+app.include_router(approvals.router, prefix=API_PREFIX)
 app.include_router(widget.asset_router)
 
 # Admin API
