@@ -49,8 +49,8 @@ def execute_deployment(commit_sha: str, author: str, commit_msg: str):
         f"cd {REPO_DIR} && "
         f"git fetch origin main && "
         f"git reset --hard origin/main && "
-        f"docker compose -f docker-compose.gcp.yml build frontend && "
-        f"docker compose -f docker-compose.gcp.yml up -d --no-deps frontend"
+        f"docker compose -f docker-compose.gcp.yml build backend agent-worker frontend && "
+        f"docker compose -f docker-compose.gcp.yml up -d --no-deps backend agent-worker frontend"
     )
 
     try:
