@@ -105,7 +105,7 @@ The existing PostgreSQL schema (`backend/app/models/models.py`) contains 18 mode
 - Strong indexing across `client_id`, `created_at`, `phone_number`, and `status`.
 - Dedicated audit log table (`ToolCallLog`) and usage metering tables.
 
-**Gaps for Agentic Contact Center:**
+**Gaps for Agent Customer Service:**
 - Missing `Customer` / `Contact` master record (leads exist, but no persistent customer entity across interactions).
 - Missing `AgentExecution` and `WorkflowCheckpoint` tables for LangGraph state persistence.
 - Missing `Approval` entity for human-in-the-loop governance.

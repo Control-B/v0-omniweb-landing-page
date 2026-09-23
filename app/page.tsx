@@ -151,7 +151,7 @@ export default function Home() {
           <div className="site-shell relative z-10">
             <div className="mx-auto max-w-3xl text-center">
               <p className="site-eyebrow">Platform Capabilities</p>
-              <h2 className="site-h2 mt-4">Enterprise Agentic Contact Center</h2>
+              <h2 className="site-h2 mt-4">Enterprise Agent Customer Service</h2>
               <p className="site-section-copy mt-5 mx-auto max-w-2xl">
                 Every touchpoint is designed to answer in sub-250ms, execute deterministic business tools, and escalate safely with supervisor oversight.
               </p>

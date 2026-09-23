@@ -78,7 +78,26 @@ services:
       backend:
         condition: service_started
 
-  # ── 5. Next.js 16 Web Application Frontend ─────────────────────────────────
+  # ── 5. Auth Service (Keycloak) ─────────────────────────────────
+
+
+  # ── 6. Keycloak Identity Provider ─────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start-dev --http-enabled=true --hostname-strict=false
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: dev
+    ports:
+      - "127.0.0.1:8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── 6. Next.js 16 Web Application Frontend ─────────────────────────────────
   frontend:
     build:
       context: .

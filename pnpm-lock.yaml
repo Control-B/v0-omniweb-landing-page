@@ -143,6 +143,9 @@ importers:
       jose:
         specifier: ^6.2.10
         version: 6.2.10
+      keycloak-js:
+        specifier: ^26.2.4
+        version: 26.2.4
       livekit-client:
         specifier: ^2.18.0
         version: 2.18.0(@types/dom-mediacapture-record@1.0.22)
@@ -1675,6 +1678,9 @@ packages:
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
+
+  keycloak-js@26.2.4:
+    resolution: {integrity: sha512-PnXpR3ubETGOt0B/Qt2lxmPbkZr5bc3vlQsOqDoTPPQsZRp7JjhTKxlJ187uWh8qJhvBab6Gsjb06a8ayOPfuw==}
 
   lie@3.3.0:
     resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
@@ -3658,6 +3664,8 @@ snapshots:
   js-cookie@3.0.5: {}
 
   js-tokens@4.0.0: {}
+
+  keycloak-js@26.2.4: {}
 
   lie@3.3.0:
     dependencies:

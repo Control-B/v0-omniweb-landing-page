@@ -154,7 +154,7 @@ class Settings(BaseSettings):
     # ── Telephony limits ─────────────────────────────────────
     MAX_CALL_DURATION_SECONDS: int = 1800  # 30 min hard stop
 
-    # ── Agentic Contact Center Feature Flags ─────────────────
+    # ── Agent Customer Service Feature Flags ─────────────────
     ENABLE_LANGGRAPH: bool = True
     ENABLE_LIVEKIT: bool = True
     ENABLE_ADK: bool = True

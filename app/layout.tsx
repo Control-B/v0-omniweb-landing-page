@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Oswald, Roboto_Condensed } from 'next/font/google'
-import { ClerkProvider } from '@clerk/nextjs'
-import { dark } from '@clerk/themes'
+
 import Script from 'next/script'
+import { KeycloakProvider } from '@/components/KeycloakProvider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ScrollToTopOnNavigation } from '@/components/scroll-to-top'
 import { SiteAiWidget } from '@/components/site-ai-widget'
@@ -110,40 +110,19 @@ export default function RootLayout({
             />
           </noscript>
         ) : null}
-        <ThemeProvider attribute="data-theme" defaultTheme="default" enableSystem={false} themes={["default", "light", "dark"]}>
+        <KeycloakProvider>
+            <ThemeProvider attribute="data-theme" defaultTheme="default" enableSystem={false} themes={["default", "light", "dark"]}>
           {(() => {
-            const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || ''
-            const hasValidClerk = Boolean(
-              publishableKey &&
-              !publishableKey.includes('example.com') &&
-              publishableKey.startsWith('pk_') &&
-              !publishableKey.includes('pk_test_...') &&
-              !publishableKey.includes('pk_test_Y2xlcmsuY2xlcmsuZGV2JA')
-            )
-
-            const effectivePublishableKey = hasValidClerk ? publishableKey : 'pk_test_bW9jay1jbGVyay1rZXktZm9yLWJ1aWxkLXRlc3RpbmctcHVycG9zZXMk'
-
             return (
-              <ClerkProvider
-                publishableKey={effectivePublishableKey}
-                appearance={{
-                  baseTheme: dark,
-                  elements: {
-                    userButtonAvatarBox: 'w-8 h-8 ring-2 ring-cyan-500/30',
-                    userButtonPopoverCard: 'bg-[#0a1225] border border-white/[0.08] shadow-2xl rounded-2xl',
-                    userButtonPopoverActionButton: 'text-slate-300 hover:bg-white/[0.05] rounded-xl',
-                    userButtonPopoverFooter: 'hidden',
-                  },
-                } as any}
-                afterSignOutUrl="/"
-              >
+              <>
                 <ScrollToTopOnNavigation />
                 {children}
                 <SiteAiWidget />
-              </ClerkProvider>
+              </>
             )
           })()}
         </ThemeProvider>
+          </KeycloakProvider>
 
       </body>
     </html>

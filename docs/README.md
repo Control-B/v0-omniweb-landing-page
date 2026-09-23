@@ -1,13 +1,13 @@
 # Omniweb AI — Architecture & Engineering Documentation Hub
 
-Welcome to the central engineering documentation for **Omniweb AI Autonomous Contact Center**. This directory houses formal specifications, architectural decision records, migration roadmaps, and deployment runbooks.
+Welcome to the central engineering documentation for **Omniweb**Gaps for Agent Customer Service:**. This directory houses formal specifications, architectural decision records, migration roadmaps, and deployment runbooks.
 
 ---
 
 ## 📚 Documentation Index
 
 ### 1. Architecture Specifications
-- **[Target State Architecture (Approved)](./architecture/target-state.md)** — Comprehensive specification of the 4-plane agentic contact center, state schema (`ContactCenterState`), LiveKit voice transport, tool registry, and supervisor governance.
+- **[Target State Architecture (Approved)](./architecture/target-state.md)** — Comprehensive specification of the 4-plane agent customer service, state schema (`ContactCenterState`), LiveKit voice transport, tool registry, and supervisor governance.
 - **[Current State Assessment](./architecture/current-state.md)** — Technical inventory, legacy code assessment, database model review, and technical debt analysis.
 - **[Phased Migration Plan](./architecture/migration-plan.md)** — 11-phase incremental modernization strategy with feature flag definitions.
 

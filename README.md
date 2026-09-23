@@ -1,4 +1,4 @@
-# Omniweb AI — Enterprise Autonomous Voice & Agentic Contact Center
+# Omniweb AI — Enterprise Autonomous Voice \& Agent Customer Service
 
 <div align="center">
 

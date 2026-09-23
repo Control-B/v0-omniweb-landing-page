@@ -1,4 +1,4 @@
-"""Omniweb AI — Autonomous Agentic Contact Center Worker.
+"""Omniweb AI — Autonomous Agent Customer Service Worker.
 
 Production-grade LiveKit Agent Worker bridging WebRTC & SIP telephony
 into the LangGraph Stateful Orchestration Plane.
