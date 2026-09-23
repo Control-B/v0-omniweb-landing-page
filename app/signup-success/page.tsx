@@ -19,7 +19,7 @@ export default function SignUpSuccessPage() {
 
           <h2 className="text-2xl font-extrabold text-white sm:text-3xl">Verify Your Email</h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-300">
-            We sent a secure activation link to your email address. Please click the link to confirm your account and activate your AI contact center.
+            We sent a secure activation link to your email address. Please click the link to confirm your account and activate your AI customer service system.
           </p>
 
           <div className="mt-8 flex flex-col gap-3">

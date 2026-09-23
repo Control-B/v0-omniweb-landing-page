@@ -128,7 +128,7 @@ export default function AdminDashboardPage() {
                   Omniweb Platform Telemetry &amp; Fleet Overview
                 </h1>
                 <p className="mt-1 text-xs text-slate-400">
-                  Global autonomous call center nodes, LLM inference latency, and multi-tenant metrics.
+                  Global autonomous AI customer service nodes, LLM inference latency, and multi-tenant metrics.
                 </p>
               </div>
 

@@ -27,13 +27,13 @@ export function CallCenterRoiCalculator() {
       <div className="mx-auto max-w-3xl text-center px-2">
         <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">
           <Calculator className="h-3.5 w-3.5" />
-          Autonomous Contact Center ROI
+          AI Customer Service System ROI
         </div>
         <h3 className="mt-4 text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white break-words">
-          Calculate Your Contact Center Cost Reduction
+          Calculate Your Customer Service Cost Reduction
         </h3>
         <p className="mt-3 text-sm sm:text-base text-slate-300 max-w-xl mx-auto leading-relaxed">
-          Compare traditional human call center staffing costs with Omniweb's 24/7 Autonomous Agentic Swarms.
+          Compare traditional human support staffing costs with Omniweb's 24/7 Autonomous AI Customer Service System.
         </p>
       </div>
 
@@ -123,7 +123,7 @@ export function CallCenterRoiCalculator() {
 
           <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 border-t border-white/10 pt-5 sm:pt-6 w-full min-w-0">
             <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 min-w-0">
-              <span className="text-slate-400 font-semibold uppercase text-xs sm:text-sm">Human Call Center</span>
+              <span className="text-slate-400 font-semibold uppercase text-xs sm:text-sm">Traditional Support Team</span>
               <p className="mt-1 text-lg sm:text-xl font-bold text-rose-400 break-words">${humanMonthlyCost.toLocaleString()}/mo</p>
             </div>
             <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 min-w-0">
@@ -138,7 +138,7 @@ export function CallCenterRoiCalculator() {
             className="mt-6 w-full max-w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-cyan-500 font-bold text-black hover:from-emerald-400 hover:to-cyan-400 h-auto py-3.5 px-4 whitespace-normal text-center text-sm sm:text-base"
           >
             <Link href="/get-started" className="flex items-center justify-center gap-2">
-              <span>Deploy Your Autonomous Contact Center</span>
+              <span>Deploy Your AI Customer Service System</span>
               <ArrowRight className="h-4 w-4 shrink-0" />
             </Link>
           </Button>

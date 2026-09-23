@@ -72,7 +72,7 @@ export default function GetStartedPage() {
                 Get started with Omniweb
               </h1>
               <p className="mt-2 text-sm text-slate-400">
-                Deploy your autonomous AI contact center and voice agent
+                Deploy your autonomous AI customer service system
               </p>
             </div>
 

@@ -108,7 +108,7 @@ export const navItems: SiteNavItem[] = [
     label: "Features",
     href: "/features",
     items: [
-      item("Autonomous Contact Center", "/demo", "Sub-250ms voice swarms, LangGraph orchestration, and 24/7 autonomous dispatch.", RadioTower, "cyan"),
+      item("AI Customer Service System", "/demo", "Sub-250ms voice swarms, LangGraph orchestration, and 24/7 autonomous case resolution.", RadioTower, "cyan"),
       item("AI Voice Agents", "/features/ai-voice-agents", "Answer inbound calls, qualify intent, and book the next step 24/7.", Mic, "purple"),
       item("AI Chat Assistants", "/features/ai-chat-assistants", "Turn website traffic into live conversations that capture and convert.", MessageSquare, "rose"),
       item("Lead Automation", "/features/lead-automation", "Score, summarize, route, and follow up with every high-intent lead.", Workflow, "orange"),
@@ -123,7 +123,7 @@ export const navItems: SiteNavItem[] = [
     preview: {
       eyebrow: "Core platform",
       title: "Sell with voice swarms, chat, qualification, and workflow automation",
-      description: "Explore the Omniweb capabilities that turn AI into an autonomous contact center and revenue engine.",
+      description: "Explore the Omniweb capabilities that turn AI into an autonomous customer service system and operations engine.",
       href: "/demo",
       image: "/images/generated/templates-showcase.png",
     },

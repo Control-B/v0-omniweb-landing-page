@@ -77,7 +77,7 @@ export const SCENARIOS: PersonaScenario[] = [
       "What services does Omniweb AI offer for businesses?",
       "How much does the autonomous voice agent cost?",
       "Can you take me to the Shopify AI Storefront Assistant?",
-      "Where can I see the Live Call Center War Room and outbound dialer?",
+      "Where can I see the AI Customer Service Operations HUD and active cases?",
     ],
     sampleDialogue: [
       {
@@ -118,10 +118,10 @@ export const SCENARIOS: PersonaScenario[] = [
     avatarTone: "emerald",
     voiceName: "Deepgram Aura (Zeus Studio)",
     latencyMs: 195,
-    greeting: "Hi there! I'm Marcus Vance with Omniweb Enterprise Solutions. Are you looking to scale an inbound voice swarm or migrate an existing call center team?",
+    greeting: "Hi there! I'm Marcus Vance with Omniweb Enterprise Solutions. Are you looking to deploy an autonomous AI customer service system or scale your support operations?",
     description: "Qualifies high-intent inbound prospects, analyzes seat replacement ROI, and schedules executive product walkthroughs.",
     suggestedPrompts: [
-      "We operate a 50-person call center costing $180k/mo. How does Omniweb compare?",
+      "We operate a 50-person customer service team costing $180k/mo. How does Omniweb compare?",
       "Can we integrate Omniweb with Salesforce CRM and custom SIP trunks?",
       "I want to book an executive demo for our leadership team next Tuesday at 2pm.",
     ],
@@ -129,7 +129,7 @@ export const SCENARIOS: PersonaScenario[] = [
       {
         speaker: "agent",
         thought: "NLU Intent: session_start. Connected Enterprise ROI qualification model.",
-        text: "Hi there! I'm Marcus Vance with Omniweb Enterprise Solutions. Are you looking to scale an inbound voice swarm or migrate an existing call center team?",
+        text: "Hi there! I'm Marcus Vance with Omniweb Enterprise Solutions. Are you looking to deploy an autonomous AI customer service system or scale your support operations?",
       },
     ],
   },
@@ -759,7 +759,7 @@ export function LiveCallCenterSimulator() {
             Live Voice Studio
           </div>
           <h2 className="mt-2.5 text-2xl font-bold tracking-tight text-white lg:text-3xl">
-            Autonomous Contact Center & Site AI Concierge
+            Autonomous AI Customer Service System & Concierge
           </h2>
           <p className="mt-1.5 text-sm sm:text-base text-slate-300">
             Powered by <strong className="text-white">LiveKit OSS</strong> WebRTC media transport,{" "}

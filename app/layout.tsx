@@ -16,11 +16,11 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID?.trim() || null
 export const metadata: Metadata = {
   metadataBase: new URL('https://omniweb.ai'),
   title: {
-    default: 'Omniweb AI — AI-Powered Voice & Chat Agents for Every Business',
+    default: 'Omniweb AI — Autonomous AI Customer Service System & Operations Platform',
     template: '%s | Omniweb AI',
   },
-  description: 'Omniweb builds AI-powered voice and chat agents that answer calls, qualify leads, and book appointments 24/7. Built for contractors, professionals, and e-commerce brands.',
-  keywords: ['AI voice agent', 'AI chatbot', 'lead qualification', 'appointment booking', 'AI receptionist', 'business automation', 'Omniweb'],
+  description: 'Omniweb provides an autonomous AI customer service system that resolves cases, manages billing, automates scheduling, and executes enterprise workflows 24/7.',
+  keywords: ['AI customer service system', 'autonomous customer operations', 'AI voice swarms', 'case resolution', 'agentic AI platform', 'Omniweb'],
   authors: [{ name: 'Omniweb AI' }],
   creator: 'Omniweb AI',
   openGraph: {
@@ -28,21 +28,21 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://omniweb.ai',
     siteName: 'Omniweb AI',
-    title: 'Omniweb AI — AI-Powered Voice & Chat Agents for Every Business',
-    description: 'AI voice and chat agents that answer calls, qualify leads, and book appointments 24/7. Set up in minutes.',
+    title: 'Omniweb AI — Autonomous AI Customer Service System & Operations Platform',
+    description: 'Omniweb provides an autonomous AI customer service system that resolves cases, manages billing, automates scheduling, and executes enterprise workflows 24/7.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Omniweb AI Platform',
+        alt: 'Omniweb AI Customer Service Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Omniweb AI — AI Voice & Chat Agents',
-    description: 'AI agents that answer calls, qualify leads, and book appointments 24/7.',
+    title: 'Omniweb AI — Autonomous AI Customer Service System',
+    description: 'Autonomous AI customer service system and agentic operations platform that resolves cases and executes workflows 24/7.',
     images: ['/og-image.png'],
   },
   robots: {

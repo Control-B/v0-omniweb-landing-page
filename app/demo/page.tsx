@@ -38,10 +38,10 @@ export default function DemoPage() {
               INTERACTIVE AGENTIC LAB
             </div>
             <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Experience the Autonomous <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">AI Contact Center</span>
+              Experience the Autonomous <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-emerald-400 bg-clip-text text-transparent">AI Customer Service System</span>
             </h1>
             <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/70 sm:text-lg">
-              Test real-time conversational voice turns, dual-channel speaker diarization, deterministic tool executions, and supervisor intervention in a live sandbox.
+              Test real-time conversational voice turns, multi-agent specialist swarms, autonomous case management, deterministic tool executions, and supervisor approval gates in a live sandbox.
             </p>
           </div>
 

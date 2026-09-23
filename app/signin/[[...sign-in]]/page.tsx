@@ -65,7 +65,7 @@ export default function SignInPage() {
                 Sign in to Omniweb
               </h1>
               <p className="mt-2 text-sm text-slate-400">
-                Access your AI agent control plane & contact center
+                Access your AI customer service control plane
               </p>
             </div>
 

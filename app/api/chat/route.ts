@@ -195,15 +195,15 @@ function querySemanticKnowledge(
     ) {
       return {
         reply:
-          "A traditional 50-person call center burns roughly $180,000 every month in payroll and overhead. Omniweb handles that exact same call volume with concurrent voice swarms for under $2,500 monthly, unlocking over $2.1 million in annual bottom-line savings.",
+          "A traditional 50-person customer service operation burns roughly $180,000 every month in payroll and overhead. Omniweb handles that exact same volume with autonomous AI customer service swarms for under $2,500 monthly, unlocking over $2.1 million in annual bottom-line savings.",
         action: {
           type: "navigate",
           label: "Open ROI Calculator",
           href: "/demo",
-          summary: "Navigating to Call Center ROI Calculator.",
+          summary: "Navigating to AI Customer Service ROI Calculator.",
         },
         thought:
-          "NLU Intent: enterprise_roi_analysis. Generated 50-seat human call center vs Omniweb AI cost comparison.",
+          "NLU Intent: enterprise_roi_analysis. Generated 50-seat traditional support vs Omniweb AI cost comparison.",
         toolCall: {
           name: "calculate_seat_replacement_roi",
           params: { human_seats: 50, avg_salary: 3600 },
@@ -836,12 +836,12 @@ function querySemanticKnowledge(
   ) {
     return {
       reply:
-        "The Supervisor Live War Room is an operational HUD for call center managers. It provides live concurrent call metrics, sentiment tracking, whisper coaching into agent headsets, and one-click takeover barge-in.",
+        "The Supervisor Live War Room is an operational HUD for customer operations and support managers. It provides live concurrent interaction metrics, sentiment tracking, whisper coaching into agent headsets, and one-click takeover barge-in.",
       action: {
         type: "navigate",
         label: "Open Live War Room",
         href: "/dashboard/call-center",
-        summary: "Opening Call Center Supervisor War Room.",
+        summary: "Opening AI Customer Service Supervisor War Room.",
       },
       thought: "NLU Intent: supervisor_war_room_inquiry. Retrieved live HUD, whisper coaching, and barge-in telemetry specs.",
       toolCall: { name: "fetch_war_room_status", params: {}, result: { active_swarms: 14, whisper_ready: true } }

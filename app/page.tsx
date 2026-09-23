@@ -27,7 +27,7 @@ const features = [
     icon: MessageSquare,
     title: "Multi-Agent Specialist Swarm",
     benefit: "Strict RBAC & Tool Bounds",
-    summary: "8 bounded specialist agents (Receptionist, Billing, Sales, Support, Scheduling, Retention, Escalation) collaborating seamlessly.",
+    summary: "8 bounded specialist agents (Account, Billing, Scheduling, Technical Support, Case Management, Escalation, Supervisor) collaborating seamlessly.",
     bullets: ["Context-preserving handoffs", "pgvector Knowledge Base RAG", "DeepAgents long-horizon audits"],
     image: "/images/AI chatflow.png",
   },
@@ -115,30 +115,30 @@ export default function Home() {
         <PageHeroWithVideo
           id="home-hero"
           size="large"
-          eyebrow={<><span className="text-white">OMNIWEB</span> &nbsp;|&nbsp; <span className="opacity-80">AI REVENUE SYSTEM</span></>}
+          eyebrow={<><span className="text-white">OMNIWEB</span> &nbsp;|&nbsp; <span className="opacity-80">AI CUSTOMER SERVICE SYSTEM</span></>}
           title={
             <>
-              <span className="site-display-tone-dark">AI THAT ANSWERS,</span>
+              <span className="site-display-tone-dark">AUTONOMOUS</span>
               <br />
-              <span className="site-display-tone-dark">QUALIFIES, AND BOOKS</span>
+              <span className="site-display-tone-dark">AI CUSTOMER SERVICE</span>
               <br />
-              <span className="site-display-accent">MORE BUSINESS.</span>
+              <span className="site-display-accent">SYSTEM & PLATFORM.</span>
             </>
           }
           description={null}
           localVideos={["/media/ai-conversion-pitch-web.mp4"]}
           videoTitle="Omniweb Demo Video"
-          videoSlotLabel="AI SALES SYSTEM"
+          videoSlotLabel="AI CUSTOMER SERVICE SYSTEM"
           primaryAction={{ label: "Start Your Setup", href: "/get-started", variant: "primary" }}
           secondaryAction={{ label: "Try Live Demo", href: "/demo", variant: "secondary" }}
-          badges={["24/7 lead response", "< 60s follow-up speed", "30+ hrs manual work saved"]}
+          badges={["Autonomous case resolution", "Sub-250ms voice swarms", "Human-in-the-loop approvals"]}
         />
 
         <GlobeShowcaseSection />
 
         <ScrollingMarqueeSection />
 
-        {/* ── Live Autonomous Contact Center Simulator Section ── */}
+        {/* ── Live Autonomous AI Customer Service System Simulator Section ── */}
         <section id="simulator" className="site-section-shell relative w-full max-w-full overflow-hidden bg-[#040812]">
           <div className="site-shell relative z-10 space-y-8 sm:space-y-12 w-full max-w-full min-w-0 overflow-hidden">
             <LiveCallCenterSimulator />
@@ -151,9 +151,9 @@ export default function Home() {
           <div className="site-shell relative z-10">
             <div className="mx-auto max-w-3xl text-center">
               <p className="site-eyebrow">Platform Capabilities</p>
-              <h2 className="site-h2 mt-4">Enterprise Agent Customer Service</h2>
+              <h2 className="site-h2 mt-4">Enterprise AI Customer Service System</h2>
               <p className="site-section-copy mt-5 mx-auto max-w-2xl">
-                Every touchpoint is designed to answer in sub-250ms, execute deterministic business tools, and escalate safely with supervisor oversight.
+                Every customer interaction is handled by autonomous specialist agent swarms executing real business tools, managing case state, and escalating safely with supervisor oversight.
               </p>
             </div>
             <div className="mt-10 grid gap-6 lg:grid-cols-3">

@@ -70,7 +70,7 @@ const COMPARISON_FEATURES = [
 const PRICING_FAQS = [
   {
     question: "How does the 7-day free trial work?",
-    answer: "You get full, unrestricted access to the Omniweb AI contact center platform for 7 days. You can test sub-250ms voice calls, build chat assistants, and connect your knowledge sources. No credit card is required to begin.",
+    answer: "You get full, unrestricted access to the Omniweb AI Customer Service System for 7 days. You can test sub-250ms voice calls, build specialist agents, and connect your knowledge sources. No credit card is required to begin.",
   },
   {
     question: "What counts as an AI conversation?",
@@ -251,7 +251,7 @@ export function PricingPageContent({
                 className="h-13 rounded-xl border-white/15 bg-white/5 font-semibold text-white hover:bg-white/10"
               >
                 <Link href="/demo">
-                  Try Live Call Center Simulator
+                  Try AI Customer Service Simulator
                 </Link>
               </Button>
             </div>
@@ -271,7 +271,7 @@ export function PricingPageContent({
               Calculate Your Real Monthly Savings
             </h2>
             <p className="mt-3 text-sm text-slate-300">
-              Compare the cost of staffing human front-desk receptionists vs. deploying Omniweb 24/7 autonomous voice swarms.
+              Compare the cost of staffing human customer service teams vs. deploying Omniweb 24/7 autonomous AI customer service swarms.
             </p>
           </div>
 
@@ -305,7 +305,7 @@ export function PricingPageContent({
 
               <div className="space-y-3 pt-4 border-t border-white/10 text-xs text-slate-400">
                 <div className="flex justify-between">
-                  <span>Traditional Front-Desk Reps Required:</span>
+                  <span>Traditional Support Reps Required:</span>
                   <span className="font-semibold text-white">{humanAgentsNeeded} full-time rep(s)</span>
                 </div>
                 <div className="flex justify-between">
