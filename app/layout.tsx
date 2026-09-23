@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono, Oswald, Roboto_Condensed } from 'next/font/google'
 
 import Script from 'next/script'
-import { KeycloakProvider } from '@/components/KeycloakProvider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ScrollToTopOnNavigation } from '@/components/scroll-to-top'
 import { SiteAiWidget } from '@/components/site-ai-widget'
@@ -110,8 +109,7 @@ export default function RootLayout({
             />
           </noscript>
         ) : null}
-        <KeycloakProvider>
-            <ThemeProvider attribute="data-theme" defaultTheme="default" enableSystem={false} themes={["default", "light", "dark"]}>
+        <ThemeProvider attribute="data-theme" defaultTheme="default" enableSystem={false} themes={["default", "light", "dark"]}>
           {(() => {
             return (
               <>
@@ -122,7 +120,6 @@ export default function RootLayout({
             )
           })()}
         </ThemeProvider>
-          </KeycloakProvider>
 
       </body>
     </html>

@@ -4,7 +4,7 @@
 }
 
 # ── 1. Custom Domain & Public Hostnames (Automatic Trusted ACME HTTPS) ──────────
-omniweb.ai, www.omniweb.ai, omniweb.com, www.omniweb.com, {$DOMAIN_NAME:136.114.167.50.sslip.io}, 136.114.167.50.sslip.io, 136.114.167.50.nip.io {
+omniweb.ai, www.omniweb.ai, {$DOMAIN_NAME:136.114.167.50.sslip.io} {
     # Encode responses with gzip & zstandard compression
     encode gzip zstd
 
@@ -38,18 +38,16 @@ omniweb.ai, www.omniweb.ai, omniweb.com, www.omniweb.com, {$DOMAIN_NAME:136.114.
         reverse_proxy host.docker.internal:9000
     }
 
+    # Forward Auth routes to Keycloak
+    handle /api/auth/* {
+        uri strip_prefix /api/auth
+        reverse_proxy keycloak:8080
+    }
+
     # Forward API routes to FastAPI Backend
     handle /api/engine/* {
         uri strip_prefix /api/engine
         reverse_proxy backend:8000
-
-        # Forward Auth API routes to Auth Service
-        handle /api/auth/* {
-            uri strip_prefix /api/auth
-            reverse_proxy keycloak:8080
-        }
-
-
     }
 
     handle /health {
