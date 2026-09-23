@@ -44,25 +44,19 @@ class CreateTicketTool(BaseTool[CreateTicketInput, CreateTicketOutput]):
         agent_name: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> ToolResult:
-        ticket_id = f"TICK-{abs(hash(params.issue_summary)) % 10000:04d}"
-        queue_map = {
-            "hardware": "Tier-2 Hardware Specialists",
-            "billing": "Finance & Billing Queue",
-            "account_access": "Identity Security Team",
-            "technical_issue": "Tier-1 Technical Support",
-        }
-        assigned_queue = queue_map.get(params.category, "General Support Queue")
-        sla_hours = 2 if params.severity in ("high", "critical") else 24
-
+        from app.adapters.factory import get_adapter_factory
+        ticketing = get_adapter_factory().get_ticketing_adapter(tenant_id)
+        result = await ticketing.create_ticket(
+            customer_id=params.customer_id,
+            title=params.issue_summary,
+            description=f"Caller: {params.caller_name} ({params.caller_phone or caller_id}). Steps attempted: {params.troubleshooting_steps_attempted}",
+            category=params.category,
+            severity=params.severity,
+            tenant_id=tenant_id,
+        )
         return ToolResult(
             success=True,
-            data={
-                "ticket_id": ticket_id,
-                "status": "opened",
-                "assigned_queue": assigned_queue,
-                "sla_hours": sla_hours,
-                "message": f"Ticket {ticket_id} opened and assigned to {assigned_queue}. SLA commitment: {sla_hours} hours.",
-            },
+            data=result,
         )
 
 

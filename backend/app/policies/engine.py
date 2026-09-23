@@ -37,6 +37,13 @@ class PolicyEvaluationResult(BaseModel):
 class PolicyEngine:
     """Deterministic business rule evaluator for agent actions."""
 
+    def __init__(self):
+        self._tenant_refund_thresholds: dict[str, float] = {}
+
+    def set_tenant_refund_threshold(self, tenant_id: str, threshold: float) -> None:
+        """Configure a custom refund threshold for a specific tenant."""
+        self._tenant_refund_thresholds[tenant_id] = threshold
+
     def evaluate_action(
         self,
         *,
@@ -51,7 +58,9 @@ class PolicyEngine:
         # Rule 1: High-Risk Refund Threshold
         if action == "request_refund":
             amount = float(params.get("amount", 0.0))
-            threshold = settings.HIGH_RISK_CREDIT_THRESHOLD
+            threshold = self._tenant_refund_thresholds.get(
+                tenant_id, settings.HIGH_RISK_CREDIT_THRESHOLD
+            )
             if amount > threshold:
                 return PolicyEvaluationResult(
                     decision=PolicyDecision.REQUIRE_APPROVAL,

@@ -68,94 +68,26 @@ class ToolRegistry:
         agent_name: str,
         caller_id: str | None = None,
         context: dict[str, Any] | None = None,
+        session: Any = None,
     ) -> ToolResult:
-        """Validate, authorize, and execute a tool invocation with full auditability."""
-        start_time = time.perf_counter()
-        corr = get_current_correlation()
+        """Validate, authorize, and execute a tool invocation through the 9-stage pipeline."""
         tool = self.get(name)
-
         if not tool:
             err_msg = f"Tool '{name}' is not registered in the system."
             logger.error(err_msg)
             return ToolResult(success=False, error=err_msg)
 
-        # 1. RBAC Check: Ensure requesting agent is permitted to invoke this tool
-        if tool.allowed_agents and agent_name not in tool.allowed_agents and "all" not in tool.allowed_agents:
-            err_msg = (
-                f"Agent '{agent_name}' is not authorized to invoke tool '{name}'. "
-                f"Allowed agents: {tool.allowed_agents}"
-            )
-            logger.error(err_msg, extra={"tenant_id": tenant_id, "correlation_id": corr.correlation_id})
-            return ToolResult(success=False, error=err_msg)
-
-        # 2. Schema Validation via Pydantic
-        try:
-            validated_params = tool.input_schema.model_validate(raw_params)
-        except ValidationError as val_err:
-            err_msg = f"Invalid parameters for tool '{name}': {val_err.errors()}"
-            logger.error(err_msg)
-            return ToolResult(success=False, error=err_msg)
-
-        # 3. High-Risk Evaluation (Human-in-the-Loop check)
-        if tool.risk_level == ToolRiskLevel.HIGH_RISK:
-            approval_id = f"appr_{uuid.uuid4().hex[:10]}"
-            logger.warning(
-                f"[HITL Triggered] Tool '{name}' classified as HIGH_RISK. Approval ID: {approval_id}",
-                extra={"approval_id": approval_id, "tenant_id": tenant_id, "agent": agent_name},
-            )
-            return ToolResult(
-                success=True,
-                requires_approval=True,
-                approval_id=approval_id,
-                data={
-                    "status": "pending_human_approval",
-                    "approval_id": approval_id,
-                    "tool": name,
-                    "proposed_params": validated_params.model_dump(),
-                    "message": "This action requires supervisory approval before execution.",
-                },
-            )
-
-        # 4. Tool Execution
-        try:
-            result = await tool.execute(
-                validated_params,
-                tenant_id=tenant_id,
-                caller_id=caller_id,
-                agent_name=agent_name,
-                context=context,
-            )
-            duration_ms = (time.perf_counter() - start_time) * 1000
-            result.execution_time_ms = duration_ms
-
-            MetricTracker.record_turn_latency(
-                stage=f"tool_{name}",
-                duration_ms=duration_ms,
-                agent=agent_name,
-                tenant_id=tenant_id,
-            )
-
-            logger.info(
-                f"Tool '{name}' executed successfully in {duration_ms:.1f}ms",
-                extra={
-                    "tool_name": name,
-                    "agent": agent_name,
-                    "tenant_id": tenant_id,
-                    "duration_ms": duration_ms,
-                    "correlation_id": corr.correlation_id,
-                },
-            )
-            return result
-
-        except Exception as exc:
-            duration_ms = (time.perf_counter() - start_time) * 1000
-            err_msg = f"Execution of tool '{name}' failed: {str(exc)}"
-            logger.error(err_msg, exc_info=True)
-            return ToolResult(
-                success=False,
-                error=err_msg,
-                execution_time_ms=duration_ms,
-            )
+        from app.tools.pipeline import get_tool_pipeline
+        pipeline = get_tool_pipeline()
+        return await pipeline.execute(
+            tool,
+            raw_params,
+            tenant_id=tenant_id,
+            agent_name=agent_name,
+            caller_id=caller_id,
+            context=context,
+            session=session,
+        )
 
 
 _tool_registry = ToolRegistry()

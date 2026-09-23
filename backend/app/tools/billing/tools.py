@@ -40,26 +40,18 @@ class GetInvoicesTool(BaseTool[GetInvoicesInput, GetInvoicesOutput]):
         agent_name: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> ToolResult:
-        mock_invoices = [
-            {
-                "invoice_id": "INV-2026-0881",
-                "date": "2026-08-01",
-                "amount": 299.00,
-                "status": "paid",
-                "items": ["Omniweb AI Contact Center (10 Agents)", "Twilio SIP Inbound Minutes (2,400 min)"],
-            },
-            {
-                "invoice_id": "INV-2026-0781",
-                "date": "2026-07-01",
-                "amount": 299.00,
-                "status": "paid",
-                "items": ["Omniweb AI Contact Center (10 Agents)"],
-            },
-        ]
+        from app.adapters.factory import get_adapter_factory
+        billing = get_adapter_factory().get_billing_adapter(tenant_id)
+        invoices = await billing.get_invoices(
+            customer_id=params.customer_id,
+            phone=params.phone_number or caller_id,
+            tenant_id=tenant_id,
+            limit=params.limit,
+        )
         return ToolResult(
             success=True,
             data={
-                "invoices": mock_invoices,
+                "invoices": invoices,
                 "total_balance": 0.00,
                 "status": "account_in_good_standing",
             },
@@ -99,15 +91,18 @@ class RequestRefundTool(BaseTool[RequestRefundInput, RequestRefundOutput]):
         agent_name: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> ToolResult:
-        # If policy engine approves after human sign-off:
+        from app.adapters.factory import get_adapter_factory
+        billing = get_adapter_factory().get_billing_adapter(tenant_id)
+        result = await billing.issue_refund(
+            customer_id=params.customer_id,
+            invoice_id=params.invoice_id,
+            amount=params.amount,
+            reason=params.reason,
+            tenant_id=tenant_id,
+        )
         return ToolResult(
             success=True,
-            data={
-                "status": "refund_approved_and_processed",
-                "refund_id": f"ref_{params.invoice_id}",
-                "amount": params.amount,
-                "message": f"Successfully refunded ${params.amount:.2f} back to original payment method.",
-            },
+            data=result,
         )
 
 

@@ -96,11 +96,11 @@ class NavigateSiteTool(BaseTool[NavigateSiteInput, NavigateSiteOutput]):
 
         # Sort by match score
         matched.sort(key=lambda x: x[0], reverse=True)
-        top_routes = [r.dict() for _, r in matched[:3]]
+        top_routes = [r.model_dump() for _, r in matched[:3]]
 
         if not top_routes:
             # Fallback to demo or pricing
-            default_route = SITE_DIRECTORY[0].dict()
+            default_route = SITE_DIRECTORY[0].model_dump()
             return ToolResult(
                 success=True,
                 data={

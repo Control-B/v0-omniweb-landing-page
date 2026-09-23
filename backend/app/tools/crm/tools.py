@@ -39,23 +39,17 @@ class LookupCustomerTool(BaseTool[LookupCustomerInput, LookupCustomerOutput]):
         agent_name: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> ToolResult:
-        phone = params.phone_number or caller_id or "+15552345678"
-        # Mock/real DB lookup with rich customer context
-        mock_customer = {
-            "id": "cust_849201",
-            "name": "Sarah Jenkins",
-            "phone": phone,
-            "email": params.email or "sarah.jenkins@example.com",
-            "tier": "enterprise",
-            "active_plan": "Business Telephony + AI Agent Swarm",
-            "account_balance": 0.00,
-            "last_interaction": "2026-08-28 (Resolved billing question)",
-            "csat_average": 4.9,
-            "verified": True,
-        }
+        from app.adapters.factory import get_adapter_factory
+        crm = get_adapter_factory().get_crm_adapter(tenant_id)
+        result = await crm.lookup_customer(
+            phone=params.phone_number or caller_id,
+            email=params.email,
+            customer_id=params.customer_id,
+            tenant_id=tenant_id,
+        )
         return ToolResult(
             success=True,
-            data={"found": True, "customer": mock_customer},
+            data=result,
         )
 
 

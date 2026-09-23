@@ -37,12 +37,19 @@ class CheckAvailabilityTool(BaseTool[CheckAvailabilityInput, CheckAvailabilityOu
         agent_name: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> ToolResult:
-        mock_slots = ["09:00 AM", "11:30 AM", "02:00 PM", "04:15 PM"]
+        from app.adapters.factory import get_adapter_factory
+        cal = get_adapter_factory().get_calendar_adapter(tenant_id)
+        slots = await cal.check_availability(
+            date_str=params.date_str,
+            service_type=params.service_type,
+            duration_minutes=params.duration_minutes,
+            tenant_id=tenant_id,
+        )
         return ToolResult(
             success=True,
             data={
                 "date": params.date_str,
-                "available_slots": mock_slots,
+                "available_slots": slots,
                 "timezone": "America/New_York",
             },
         )
@@ -81,16 +88,20 @@ class BookAppointmentTool(BaseTool[BookAppointmentInput, BookAppointmentOutput])
         agent_name: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> ToolResult:
-        booking_id = f"cal_{abs(hash(params.caller_email + params.appointment_time)) % 100000:05d}"
+        from app.adapters.factory import get_adapter_factory
+        cal = get_adapter_factory().get_calendar_adapter(tenant_id)
+        result = await cal.book_appointment(
+            attendee_name=params.caller_name,
+            attendee_email=params.caller_email,
+            attendee_phone=params.caller_phone or caller_id,
+            appointment_date=params.appointment_date,
+            appointment_time=params.appointment_time,
+            topic=params.topic,
+            tenant_id=tenant_id,
+        )
         return ToolResult(
             success=True,
-            data={
-                "booking_id": booking_id,
-                "confirmed_time": f"{params.appointment_date} at {params.appointment_time} (EST)",
-                "calendar_invite_sent": True,
-                "sms_reminder_scheduled": bool(params.caller_phone or caller_id),
-                "message": f"Appointment booked with {params.caller_name} for {params.appointment_date} at {params.appointment_time}. Calendar invite dispatched.",
-            },
+            data=result,
         )
 
 
