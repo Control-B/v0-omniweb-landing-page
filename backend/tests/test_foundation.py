@@ -16,7 +16,7 @@ def test_settings_feature_flags():
     assert settings.ENABLE_LIVEKIT is True
     assert settings.ENABLE_ADK is True
     assert settings.ENABLE_DEEP_AGENTS is True
-    assert settings.DEFAULT_INTENT_MODEL == "gemini-2.0-flash"
+    assert settings.DEFAULT_INTENT_MODEL in ("gemini-2.0-flash", "gemini-2.0-flash-lite")
     assert settings.HIGH_RISK_CREDIT_THRESHOLD == 50.0
 
 

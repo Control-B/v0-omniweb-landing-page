@@ -120,6 +120,7 @@ class Client(Base):
     tenant_call_logs: Mapped[list["TenantCallLog"]] = relationship(back_populates="client")
     usage_metering: Mapped[list["TenantUsageMetering"]] = relationship(back_populates="client")
     escalation_rules: Mapped[list["TenantEscalationRule"]] = relationship(back_populates="client")
+    customers: Mapped[list["Customer"]] = relationship(back_populates="client")
 
     __table_args__ = (
         Index("ix_clients_email", "email"),
@@ -951,3 +952,218 @@ class SiteTemplateInstance(Base):
         Index("ix_site_template_instances_public_slug", "public_slug"),
         UniqueConstraint("client_id", "site_slug", name="uq_site_template_instance_slug_per_client"),
     )
+
+
+# ── Customer Operations Platform Models ──────────────────────────────────────
+
+class Customer(Base):
+    """Canonical cross-channel customer entity scoped to a tenant."""
+    __tablename__ = "customers"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    primary_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    primary_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    status: Mapped[str] = mapped_column(String(50), default="ACTIVE", nullable=False)
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+    client: Mapped["Client"] = relationship(back_populates="customers")
+    identities: Mapped[list["CustomerIdentity"]] = relationship(back_populates="customer", cascade="all, delete-orphan")
+    cases: Mapped[list["Case"]] = relationship(back_populates="customer", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_customers_tenant", "tenant_id"),
+        Index("ix_customers_email", "tenant_id", "primary_email"),
+        Index("ix_customers_phone", "tenant_id", "primary_phone"),
+    )
+
+
+class CustomerIdentity(Base):
+    """Mapping of customer channels (phone, email, web session) with verification confidence."""
+    __tablename__ = "customer_identities"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("customers.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    channel: Mapped[str] = mapped_column(String(50), nullable=False)  # PHONE, EMAIL, WEB_SESSION, STRIPE_CUSTOMER, SHOPIFY_ID
+    identifier: Mapped[str] = mapped_column(String(255), nullable=False)
+    verification_status: Mapped[str] = mapped_column(String(50), default="PROBABLE", nullable=False)  # KNOWN, PROBABLE, UNKNOWN
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    customer: Mapped["Customer"] = relationship(back_populates="identities")
+
+    __table_args__ = (
+        Index("ix_identities_customer", "customer_id"),
+        UniqueConstraint("tenant_id", "channel", "identifier", name="uq_channel_identifier_per_tenant"),
+    )
+
+
+class Case(Base):
+    """First-class customer operation case tracking workflow state and resolution."""
+    __tablename__ = "cases"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("customers.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    category: Mapped[str] = mapped_column(String(100), nullable=False)  # BILLING_DISPUTE, TECH_SUPPORT, SCHEDULING, GENERAL
+    priority: Mapped[str] = mapped_column(String(50), default="MEDIUM", nullable=False)  # LOW, MEDIUM, HIGH, URGENT
+    status: Mapped[str] = mapped_column(String(50), default="OPEN", nullable=False)  # OPEN, IN_PROGRESS, WAITING_APPROVAL, ESCALATED, RESOLVED, CLOSED
+    assigned_agent: Mapped[str] = mapped_column(String(100), default="supervisor", nullable=False)
+    human_owner_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("clients.id"), nullable=True)
+    current_workflow: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    customer: Mapped["Customer"] = relationship(back_populates="cases")
+    events: Mapped[list["CaseEvent"]] = relationship(back_populates="case", cascade="all, delete-orphan")
+    approvals: Mapped[list["ApprovalRequest"]] = relationship(back_populates="case", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_cases_tenant_status", "tenant_id", "status"),
+        Index("ix_cases_customer", "customer_id"),
+        Index("ix_cases_created_at", "created_at"),
+    )
+
+
+class CaseEvent(Base):
+    """Chronological case timeline event capturing state changes, tool proposals, and human interventions."""
+    __tablename__ = "case_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    case_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("cases.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    actor_type: Mapped[str] = mapped_column(String(50), nullable=False)  # AI_AGENT, HUMAN_OPERATOR, CUSTOMER, SYSTEM
+    actor_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(100), nullable=False)  # INTENT_DETECTED, TOOL_PROPOSED, APPROVAL_REQUESTED, APPROVAL_GRANTED, ACTION_EXECUTED, STATUS_CHANGED
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    event_payload: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
+    trace_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    case: Mapped["Case"] = relationship(back_populates="events")
+
+    __table_args__ = (
+        Index("ix_case_events_case", "case_id", "created_at"),
+        Index("ix_case_events_tenant", "tenant_id"),
+    )
+
+
+class ApprovalRequest(Base):
+    """Human-in-the-loop approval gate for sensitive operations."""
+    __tablename__ = "approval_requests"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    case_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("cases.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    action_type: Mapped[str] = mapped_column(String(100), nullable=False)  # ISSUE_REFUND, CANCEL_SUBSCRIPTION, APPLY_DISCOUNT
+    proposed_payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    policy_rule_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="PENDING", nullable=False)  # PENDING, APPROVED, REJECTED, EXPIRED
+    reviewed_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    resolution_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    workflow_checkpoint_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    case: Mapped["Case"] = relationship(back_populates="approvals")
+
+    __table_args__ = (
+        Index("ix_approvals_tenant_status", "tenant_id", "status"),
+        Index("ix_approvals_case", "case_id"),
+    )
+
+
+class AuditEvent(Base):
+    """Immutable audit log for security, compliance, and multi-tenant accountability."""
+    __tablename__ = "audit_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    actor_type: Mapped[str] = mapped_column(String(50), nullable=False)  # AI_AGENT, HUMAN_AGENT, SYSTEM, CUSTOMER
+    actor_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    resource_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    resource_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    previous_state: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    new_state: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    authorization_result: Mapped[str] = mapped_column(String(50), default="ALLOWED", nullable=False)  # ALLOWED, DENIED, FLAGGED
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    trace_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    __table_args__ = (
+        Index("ix_audit_tenant_action", "tenant_id", "action", "created_at"),
+    )
+
+
+class IdempotencyRecord(Base):
+    """Tracks state and payload of consequential write actions to prevent duplicate execution."""
+    __tablename__ = "idempotency_records"
+
+    idempotency_key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clients.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    operation_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="IN_PROGRESS", nullable=False)  # IN_PROGRESS, COMPLETED, FAILED
+    result_payload: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    __table_args__ = (
+        Index("ix_idempotency_tenant", "tenant_id"),
+        Index("ix_idempotency_expires", "expires_at"),
+    )
+

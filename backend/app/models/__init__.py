@@ -13,6 +13,13 @@ from app.models.models import (
     ShopifyStore,
     ShopifyAssistantSession,
     ShopifyDiscountApproval,
+    Customer,
+    CustomerIdentity,
+    Case,
+    CaseEvent,
+    ApprovalRequest,
+    AuditEvent,
+    IdempotencyRecord,
 )
 
 __all__ = [
@@ -30,4 +37,11 @@ __all__ = [
     "ShopifyStore",
     "ShopifyAssistantSession",
     "ShopifyDiscountApproval",
+    "Customer",
+    "CustomerIdentity",
+    "Case",
+    "CaseEvent",
+    "ApprovalRequest",
+    "AuditEvent",
+    "IdempotencyRecord",
 ]
