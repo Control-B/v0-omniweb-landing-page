@@ -37,6 +37,25 @@ class SearchKnowledgeTool(BaseTool[SearchKnowledgeInput, SearchKnowledgeOutput])
         agent_name: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> ToolResult:
+        session = context.get("session") if context else None
+        if session:
+            from app.services.knowledge_service import get_knowledge_service
+            ks = get_knowledge_service()
+            try:
+                db_results = await ks.search_knowledge(
+                    tenant_id=tenant_id,
+                    query=params.query,
+                    top_k=params.top_k,
+                    session=session,
+                )
+                if db_results:
+                    return ToolResult(
+                        success=True,
+                        data={"results": db_results, "total_found": len(db_results)},
+                    )
+            except Exception as exc:
+                pass
+
         # Comprehensive semantic knowledge chunks with tenant-isolated indexing
         knowledge_corpus = [
             {
